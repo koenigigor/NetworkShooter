@@ -1,0 +1,84 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+
+#include "ShooterPlayer.h"
+
+// Sets default values
+AShooterPlayer::AShooterPlayer()
+{
+ 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	PrimaryActorTick.bCanEverTick = true;
+
+	AbilitySystem = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystem"));
+	CharacterAttributeSet = CreateDefaultSubobject<UNetShooterAttributeSet>(TEXT("CharacterAttributeSet"));
+	WeaponAttributeSet = CreateDefaultSubobject<UWeaponAttributeSet>(TEXT("WeaponAttributeSet"));
+}
+
+UAbilitySystemComponent* AShooterPlayer::GetAbilitySystemComponent() const
+{
+	return AbilitySystem;
+}
+
+// Called when the game starts or when spawned
+void AShooterPlayer::BeginPlay()
+{
+	Super::BeginPlay();
+
+	BindAttributeDelegates();
+
+	//Give Startup abilities
+	if (HasAuthority())
+	{
+		//cant bind key in network
+		for (const auto& Ability : StartupAbilities)
+		{
+			GetAbilitySystemComponent()->GiveAbility(FGameplayAbilitySpec(Ability));
+		}
+	}
+}
+
+void AShooterPlayer::AddAbility(TSubclassOf<UGameplayAbility> Ability)
+{
+	if (!HasAuthority())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("NoAuthority"));
+	}
+	
+	GetAbilitySystemComponent()->GiveAbility(FGameplayAbilitySpec(Ability, 1, INDEX_NONE));
+	UE_LOG(LogTemp, Warning, TEXT("AbilityAdded"))
+}
+
+void AShooterPlayer::BindAttributeDelegates()
+{
+	GetAbilitySystemComponent()->GetGameplayAttributeValueChangeDelegate(CharacterAttributeSet->GetHealthAttribute()).AddUObject(this, &AShooterPlayer::OnHealthChange);
+	GetAbilitySystemComponent()->GetGameplayAttributeValueChangeDelegate(CharacterAttributeSet->GetArmorAttribute()).AddUObject(this, &AShooterPlayer::OnHealthChange);
+}
+
+void AShooterPlayer::OnHealthChange(const FOnAttributeChangeData& Data)
+{
+	//TODO
+	UE_LOG(LogTemp, Warning, TEXT("HealthChanged"))
+	
+	HealthChanged(Data.OldValue);
+}
+
+
+void AShooterPlayer::OnArmorChange(const FOnAttributeChangeData& Data)
+{
+	//TODO
+	UE_LOG(LogTemp, Warning, TEXT("ArmorChanged"))
+}
+
+// Called every frame
+void AShooterPlayer::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+}
+
+// Called to bind functionality to input
+void AShooterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
+	
+}
+

@@ -1,0 +1,22 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+
+#include "MyGameplayEffectSpec.h"
+
+#include "GameplayEffect.h"
+
+FGameplayEffectSpecHandle UMyGameplayEffectSpec::SetPeriod(FGameplayEffectSpecHandle SpecHandle, float Period)
+{
+	FGameplayEffectSpec* Spec = SpecHandle.Data.Get();
+	if (Spec)
+	{
+		//Spec->SetDuration(Duration, true);
+		Spec->Period = Period;
+	}
+	else
+	{
+		ABILITY_LOG(Warning, TEXT("UUMyGameplayEffectSpec::SetPeriod called with invalid SpecHandle"));
+	}
+
+	return SpecHandle;
+}
