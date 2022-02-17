@@ -22,6 +22,8 @@ bool UNSEquipment::PickUpWeapon(AWeapon* Weapon)
 	
 	UE_LOG(LogTemp, Warning, TEXT("PickUpWeapon item name = %s"), *(WeaponData->Name.ToString()))
 
+	Weapon -> SetOwner(GetOwner());
+	Weapon -> SetInstigator(GetOwner()->GetInstigator()); //TODO or need cast
 
 	//Switch by weapon type
 	switch (WeaponData->Type)
@@ -71,7 +73,8 @@ bool UNSEquipment::PickUpWeapon(AWeapon* Weapon)
 				UE_LOG(LogTemp, Warning, TEXT("Weapon frized %s"), *Weapon->WeaponData->Name.ToString())
 				//Weapon -> SetActorHiddenInGame(true); //not replicates?
 				//Weapon -> SetActorEnableCollision(false);
-				Weapon -> bStoraged = true;
+				//Weapon -> bStoraged = true;
+				Weapon -> SetStatus(EWeaponStatus::InStorage);
 			}
 
 			return true;
@@ -128,7 +131,8 @@ bool UNSEquipment::EquipWeapon(int32 Slot)
 	UE_LOG(LogTemp, Warning, TEXT("Weapon unfrized %s"), *EquippedWeapon->WeaponData->Name.ToString())
 	//EquippedWeapon -> SetActorHiddenInGame(false);
 	//EquippedWeapon -> SetActorEnableCollision(false);
-	EquippedWeapon -> bStoraged = false;
+	//EquippedWeapon -> bStoraged = false;
+	EquippedWeapon -> SetStatus(EWeaponStatus::Equiped);
 		
 	return true;
 }

@@ -24,6 +24,7 @@ void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeP
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AWeapon, bStoraged);
+	DOREPLIFETIME(AWeapon, Status);
 }
 
 void AWeapon::SetupData(UWeaponData* Data)
@@ -58,6 +59,33 @@ void AWeapon::OnStoraged()
 		SetActorEnableCollision(false);  //////////////
 		SetActorHiddenInGame(false);
 	}
+}
+
+void AWeapon::OnRep_Status()
+{
+	switch (Status)
+	{
+	case EWeaponStatus::Equiped:
+		SetActorEnableCollision(false);
+		SetActorHiddenInGame(false);
+		break;
+
+	case EWeaponStatus::InStorage:
+		SetActorEnableCollision(false);
+		SetActorHiddenInGame(true);
+		break;
+		
+	case EWeaponStatus::InWorld:
+		SetActorEnableCollision(true);
+		SetActorHiddenInGame(false);
+		break;
+	}
+}
+
+void AWeapon::SetStatus(EWeaponStatus NewStatus)
+{
+	//place for validation, server changes etc
+	Status = NewStatus;
 }
 
 /*

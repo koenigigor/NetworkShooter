@@ -9,6 +9,13 @@
 #include "Weapon.generated.h"
 
 
+UENUM()
+enum class EWeaponStatus : uint8
+{
+	InWorld,
+	InStorage,
+	Equiped
+};
 
 UCLASS()
 class NETWORKSHOTER_API AWeapon : public AActor
@@ -36,6 +43,9 @@ public:
 	//called from equipment component for enable/disable actor
 	UPROPERTY(ReplicatedUsing=OnStoraged)
 	bool bStoraged = false;
+
+	/** [Server] change weapon visibility parameters, on change condition (equip, stored, etc)*/
+	void SetStatus(EWeaponStatus NewStatus);
 	
 	/** Original weapon skill
 	 *	slice for sword,
@@ -59,9 +69,15 @@ protected:
 	//UPROPERTY(Replicated)
 	UStaticMeshComponent* WeaponMesh = nullptr;
 
+	UPROPERTY(ReplicatedUsing=OnRep_Status)
+	EWeaponStatus Status;
+
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
 	UProjectileMovementComponent* ProjectileMovement;
 
 	UFUNCTION()
 	void OnStoraged();
+
+	UFUNCTION()
+	void OnRep_Status();
 };
