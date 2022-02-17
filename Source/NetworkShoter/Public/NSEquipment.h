@@ -49,18 +49,18 @@ public:
 	bool PickUpWeapon(AWeapon* Weapon);
 	
 	/** try Equip weapon */
+	UFUNCTION(BlueprintCallable)
 	bool EquipWeapon(int32 Slot);
-
-	/** Remove 1 grenade */
-//	TSubclassOf<AGrenade> RemoveGrenade(int32 Slot);
-
+	
 	/** Return Grenade ptr in selected slot*/
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	AWeapon* GetGrenade(int32 Slot, bool bWithRemove=true);
 
+	/** ReturnGrenade in selected slot */
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	AWeapon* GetSelectedGrenade(bool bWithRemove=true);
 
+	/** Get Equipped weapon ref */
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	AWeapon* GetEquippedWeapon() {return EquippedWeapon; };
 	
@@ -79,6 +79,10 @@ public:
 	UWeaponData* DefaultWeapon;
 
 protected:
+	/** Call equip weapon if function was be called not from server */
+	UFUNCTION(Reliable, Server)
+	void ServerEquipWeapon(int32 Slot);
+	
 	/** Store weapons */
 	UPROPERTY()
 	TArray<AWeapon*> Weapons;

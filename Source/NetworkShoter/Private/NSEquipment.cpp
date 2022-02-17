@@ -85,6 +85,13 @@ bool UNSEquipment::PickUpWeapon(AWeapon* Weapon)
 bool UNSEquipment::EquipWeapon(int32 Slot)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Start EquipWeapon"))
+
+	if (!GetOwner()->HasAuthority())
+	{
+		ServerEquipWeapon(Slot);
+		UE_LOG(LogTemp, Warning, TEXT("Equip weapon called not from server, redirect to server"))
+		return false;
+	}
 	
 	if (!Weapons[Slot])
 	{
@@ -93,7 +100,12 @@ bool UNSEquipment::EquipWeapon(int32 Slot)
 	auto WeaponToEquip = Weapons[Slot];
 	
 	//Remove weapon if has already equiped
-	//TODO
+	if (EquippedWeapon)
+	{
+		EquippedWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+		PickUpWeapon(EquippedWeapon);
+		EquippedWeapon = nullptr;
+	}
 	
 	//attach weapon to owner
 		//get mesh to attach //TODO interface for get component for 1st 3rd person if need
@@ -110,13 +122,10 @@ bool UNSEquipment::EquipWeapon(int32 Slot)
 	
 	EquippedWeapon = WeaponToEquip;
 
-	//Unhide storaged weapon
+	//Unhide weapon from storage
 	EquippedWeapon -> SetActorHiddenInGame(false);
 	EquippedWeapon -> SetActorEnableCollision(false);
-	
-	UE_LOG(LogTemp, Warning, TEXT("Weapon %s") , *WeaponToEquip->GetActorLocation().ToString())
-	UE_LOG(LogTemp, Warning, TEXT("SocketGun %s") , *MeshToAttach->GetSocketLocation("Gun").ToString())
-	
+		
 	return true;
 }
 
@@ -162,7 +171,6 @@ AWeapon* UNSEquipment::GetSelectedGrenade(bool bWithRemove)
 	return GetGrenade(SelectedGrenadeSlot, bWithRemove);
 }
 
-
 void UNSEquipment::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -193,11 +201,17 @@ void UNSEquipment::CreateDefaultWeapon()
 	AWeapon* Weapon = GetWorld() -> SpawnActor<AWeapon>(SpawnLocation, SpawnRotation, SpawnParameters);
 	Weapon->SetupData(DefaultWeapon);
 
-	//Add weapon in array;
+	//Add weapon in storage;
 	PickUpWeapon(Weapon);
 
 	//equip weapon
 	EquipWeapon(0);
+}
+
+void UNSEquipment::ServerEquipWeapon_Implementation(int32 Slot)
+{
+	UE_LOG(LogTemp, Warning, TEXT("ServerEquipWeapon_Implementation called"))
+	EquipWeapon(Slot);
 }
 
 
