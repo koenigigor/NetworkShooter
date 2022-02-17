@@ -57,7 +57,7 @@ bool UNSEquipment::PickUpWeapon(AWeapon* Weapon)
 			bool bFreeSlot = false;
 			for (auto& WeaponSlot : Weapons)
 			{
-				if (WeaponSlot == nullptr)
+				if (WeaponSlot == nullptr || WeaponSlot == Weapon)
 				{
 					bFreeSlot=true;
 					WeaponSlot = Weapon;
@@ -68,8 +68,10 @@ bool UNSEquipment::PickUpWeapon(AWeapon* Weapon)
 			//if success freeze weapon
 			if (bFreeSlot)
 			{
-				Weapon -> SetActorHiddenInGame(true);
-				Weapon -> SetActorEnableCollision(false);
+				UE_LOG(LogTemp, Warning, TEXT("Weapon frized %s"), *Weapon->WeaponData->Name.ToString())
+				//Weapon -> SetActorHiddenInGame(true); //not replicates?
+				//Weapon -> SetActorEnableCollision(false);
+				Weapon -> bStoraged = true;
 			}
 
 			return true;
@@ -123,8 +125,10 @@ bool UNSEquipment::EquipWeapon(int32 Slot)
 	EquippedWeapon = WeaponToEquip;
 
 	//Unhide weapon from storage
-	EquippedWeapon -> SetActorHiddenInGame(false);
-	EquippedWeapon -> SetActorEnableCollision(false);
+	UE_LOG(LogTemp, Warning, TEXT("Weapon unfrized %s"), *EquippedWeapon->WeaponData->Name.ToString())
+	//EquippedWeapon -> SetActorHiddenInGame(false);
+	//EquippedWeapon -> SetActorEnableCollision(false);
+	EquippedWeapon -> bStoraged = false;
 		
 	return true;
 }

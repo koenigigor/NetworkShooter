@@ -19,6 +19,8 @@ public:
 	// Sets default values for this actor's properties
 	AWeapon();
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 	/** Setup weapon data from datatable,
 	 *  Must be called after construction */
 	UFUNCTION(BlueprintCallable)
@@ -30,6 +32,10 @@ public:
 	/** set velocity and activate projectile movement */
 	UFUNCTION(BlueprintCallable)
 	void LaunchAsProjectile(FVector Velocity);
+
+	//called from equipment component for enable/disable actor
+	UPROPERTY(ReplicatedUsing=OnStoraged)
+	bool bStoraged = false;
 	
 	/** Original weapon skill
 	 *	slice for sword,
@@ -56,11 +62,6 @@ protected:
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
 	UProjectileMovementComponent* ProjectileMovement;
 
-/*	UPROPERTY(BlueprintReadWrite)
-	bool bAttackingMelee = false;
-	bool bPunchOnDelay = false;*/
-/*
-public:
-	UPROPERTY(BlueprintReadWrite, Category="Default", meta = (ExposeOnSpawn=true))
-	UWeaponData* WeaponDataVar = nullptr;*/
+	UFUNCTION()
+	void OnStoraged();
 };

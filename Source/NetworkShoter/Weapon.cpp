@@ -2,6 +2,8 @@
 
 #include "Weapon.h"
 
+#include "Net/UnrealNetwork.h"
+
 
 AWeapon::AWeapon()
 {
@@ -15,6 +17,13 @@ AWeapon::AWeapon()
 
 	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
 	ProjectileMovement->SetAutoActivate(false);
+}
+
+void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AWeapon, bStoraged);
 }
 
 void AWeapon::SetupData(UWeaponData* Data)
@@ -38,6 +47,18 @@ void AWeapon::LaunchAsProjectile(FVector Velocity)
 	ProjectileMovement->Activate();
 }
 
+void AWeapon::OnStoraged()
+{
+	if (bStoraged)
+	{
+		SetActorEnableCollision(false);
+		SetActorHiddenInGame(true);
+	} else
+	{
+		SetActorEnableCollision(false);  //////////////
+		SetActorHiddenInGame(false);
+	}
+}
 
 /*
 void AWeapon::DoPunch()
