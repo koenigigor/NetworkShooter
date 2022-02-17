@@ -3,12 +3,16 @@
 
 #include "NSEquipment.h"
 
+#include "AbilitySystemInterface.h"
+#include "Net/UnrealNetwork.h"
 #include "NetworkShoter/Weapon.h"
 
 // Sets default values for this component's properties
 UNSEquipment::UNSEquipment()
 {
 	PrimaryComponentTick.bCanEverTick = false;
+	
+	Weapons.SetNum(MaxWeaponSlots);
 }
 
 bool UNSEquipment::PickUpWeapon(AWeapon* Weapon)
@@ -41,33 +45,78 @@ bool UNSEquipment::PickUpWeapon(AWeapon* Weapon)
 			}
 
 			Weapon->Destroy();
+
+			return true;
 		}
 		break;
 
 	case EWeaponType::MeleeWeapon:
 	case EWeaponType::RangeWeapon:
+		{
+			//add weapon in array
+			bool bFreeSlot = false;
+			for (auto& WeaponSlot : Weapons)
+			{
+				if (WeaponSlot == nullptr)
+				{
+					bFreeSlot=true;
+					WeaponSlot = Weapon;
+					break;
+				}
+			}
+			
+			//if success freeze weapon
+			if (bFreeSlot)
+			{
+				Weapon -> SetActorHiddenInGame(true);
+				Weapon -> SetActorEnableCollision(false);
+			}
 
+			return true;
+		}
 		break;
 
 	default:
-		UE_LOG(LogTemp, Warning, TEXT("Cant recognise WeaponType, in weapon %s"), *(Weapon->GetName()))			
+		UE_LOG(LogTemp, Warning, TEXT("Cant recognise WeaponType, in weapon %s"), *(Weapon->GetName()))
+		return false;
 	}
-	
-	//is grenade
-
-	//is weapon
-
-	return true;
 }
 
 bool UNSEquipment::EquipWeapon(int32 Slot)
 {
+	UE_LOG(LogTemp, Warning, TEXT("Start EquipWeapon"))
+	
+	if (!Weapons[Slot])
+	{
+		return false;
+	};
+	auto WeaponToEquip = Weapons[Slot];
+	
 	//Remove weapon if has already equiped
-
+	//TODO
+	
 	//attach weapon to owner
-
+		//get mesh to attach //TODO interface for get component for 1st 3rd person if need
+	USkeletalMeshComponent* MeshToAttach = GetOwner()->FindComponentByClass<USkeletalMeshComponent>();
+	
+	FName Socket = "Gun";
+	WeaponToEquip->AttachToComponent(MeshToAttach, FAttachmentTransformRules::SnapToTargetIncludingScale, FName("Gun"));
+	
 	//apply new weapon stats to player
+	if (auto IAbilitySystem = Cast<IAbilitySystemInterface>(GetOwner()))
+	{
+		IAbilitySystem->GetAbilitySystemComponent()->InitStats(UWeaponAttributeSet::StaticClass(), WeaponToEquip->WeaponData->AttributeSet);
+	};
+	
+	EquippedWeapon = WeaponToEquip;
 
+	//Unhide storaged weapon
+	EquippedWeapon -> SetActorHiddenInGame(false);
+	EquippedWeapon -> SetActorEnableCollision(false);
+	
+	UE_LOG(LogTemp, Warning, TEXT("Weapon %s") , *WeaponToEquip->GetActorLocation().ToString())
+	UE_LOG(LogTemp, Warning, TEXT("SocketGun %s") , *MeshToAttach->GetSocketLocation("Gun").ToString())
+	
 	return true;
 }
 
@@ -114,17 +163,26 @@ AWeapon* UNSEquipment::GetSelectedGrenade(bool bWithRemove)
 }
 
 
+void UNSEquipment::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(UNSEquipment, EquippedWeapon);
+}
+
 // Called when the game starts
 void UNSEquipment::BeginPlay()
 {
 	Super::BeginPlay();
 
-	CreateDefaultWeapon();
+	if (GetOwner()->HasAuthority())
+	{
+		CreateDefaultWeapon();
+	}
 }
 
 void UNSEquipment::CreateDefaultWeapon()
 {
-
 	//Spawn weapon actor
 	FVector SpawnLocation(0,0,-500);
 	FRotator SpawnRotation(0,0,0);
@@ -136,8 +194,7 @@ void UNSEquipment::CreateDefaultWeapon()
 	Weapon->SetupData(DefaultWeapon);
 
 	//Add weapon in array;
-	Weapons.Empty();
-	Weapons.Add(Weapon);
+	PickUpWeapon(Weapon);
 
 	//equip weapon
 	EquipWeapon(0);

@@ -60,6 +60,11 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	AWeapon* GetSelectedGrenade(bool bWithRemove=true);
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	AWeapon* GetEquippedWeapon() {return EquippedWeapon; };
+	
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
 protected:
 	// Called when the game starts
@@ -84,4 +89,10 @@ protected:
 
 	UPROPERTY()
 	int32 SelectedGrenadeSlot = 0;
+
+	/** Count weapons who can be stored */
+	int32 MaxWeaponSlots = 3;
+
+	UPROPERTY(Replicated)
+	AWeapon* EquippedWeapon = nullptr;
 };
