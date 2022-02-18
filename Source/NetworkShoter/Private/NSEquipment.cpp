@@ -7,11 +7,12 @@
 #include "Net/UnrealNetwork.h"
 #include "NetworkShoter/Weapon.h"
 
-// Sets default values for this component's properties
+
 UNSEquipment::UNSEquipment()
 {
 	PrimaryComponentTick.bCanEverTick = false;
-	
+
+	//Prepare weapon array
 	Weapons.SetNum(MaxWeaponSlots);
 }
 
@@ -19,8 +20,6 @@ bool UNSEquipment::PickUpWeapon(AWeapon* Weapon)
 {
 	//GetWeaponData
 	auto WeaponData = Weapon->WeaponData;
-	
-	UE_LOG(LogTemp, Warning, TEXT("PickUpWeapon item name = %s"), *(WeaponData->Name.ToString()))
 
 	Weapon -> SetOwner(GetOwner());
 	Weapon -> SetInstigator(GetOwner()->GetInstigator()); //TODO or need cast
@@ -215,29 +214,25 @@ void UNSEquipment::BeginPlay()
 {
 	Super::BeginPlay();
 
+	//Create default weapon
 	if (GetOwner()->HasAuthority())
 	{
-		CreateDefaultWeapon();
-	}
-}
-
-void UNSEquipment::CreateDefaultWeapon()
-{
-	//Spawn weapon actor
-	FVector SpawnLocation(0,0,-500);
-	FRotator SpawnRotation(0,0,0);
-	FActorSpawnParameters SpawnParameters;
-	SpawnParameters.Owner = GetOwner();
-	SpawnParameters.Instigator = Cast<APawn>(GetOwner());
+		//Spawn weapon actor
+		FVector SpawnLocation(0,0,-500);
+		FRotator SpawnRotation(0,0,0);
+		FActorSpawnParameters SpawnParameters;
+		SpawnParameters.Owner = GetOwner();
+		SpawnParameters.Instigator = Cast<APawn>(GetOwner());
 	
-	AWeapon* Weapon = GetWorld() -> SpawnActor<AWeapon>(SpawnLocation, SpawnRotation, SpawnParameters);
-	Weapon->SetupData(DefaultWeapon);
+		AWeapon* Weapon = GetWorld() -> SpawnActor<AWeapon>(SpawnLocation, SpawnRotation, SpawnParameters);
+		Weapon->SetupData(DefaultWeapon);
 
-	//Add weapon in storage;
-	PickUpWeapon(Weapon);
+		//Add weapon in storage;
+		PickUpWeapon(Weapon);
 
-	//equip weapon
-	EquipWeapon(0);
+		//equip weapon
+		EquipWeapon(0);
+	}
 }
 
 void UNSEquipment::ServerEquipWeapon_Implementation(int32 Slot)

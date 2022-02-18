@@ -44,11 +44,12 @@ class NETWORKSHOTER_API UNSEquipment : public UActorComponent
 
 public:	
 	UNSEquipment();
-	
+
+	/** [Server] Pick weapon from ground, podium etc.*/
 	UFUNCTION(BlueprintCallable)
 	bool PickUpWeapon(AWeapon* Weapon);
 	
-	/** try Equip weapon */
+	/** [Server] try Equip weapon */
 	UFUNCTION(BlueprintCallable)
 	bool EquipWeapon(int32 Slot);
 	
@@ -69,20 +70,17 @@ public:
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
+	
+	/** Call equip weapon if function was be called not from server */
+    UFUNCTION(Reliable, Server)
+	void ServerEquipWeapon(int32 Slot);
 
-	/** Create and attach default weapon */
-	void CreateDefaultWeapon();
-
-public:
+protected:
 	/** Default weapon created when game start */
 	UPROPERTY(EditDefaultsOnly)
 	UWeaponData* DefaultWeapon;
 
 protected:
-	/** Call equip weapon if function was be called not from server */
-	UFUNCTION(Reliable, Server)
-	void ServerEquipWeapon(int32 Slot);
-	
 	/** Store weapons */
 	UPROPERTY()
 	TArray<AWeapon*> Weapons;

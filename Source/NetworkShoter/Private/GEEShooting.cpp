@@ -11,9 +11,7 @@ void UGEEShooting::Execute_Implementation(const FGameplayEffectCustomExecutionPa
                                           FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const
 {
 	Super::Execute_Implementation(ExecutionParams, OutExecutionOutput);
-
-	FGameplayTagContainer TagContainer;
-
+	
 	//Get player weapon primary ability
 	TSubclassOf<UGameplayAbility> PrimaryAbility;
 	auto PlayerEquipment = ExecutionParams.GetSourceAbilitySystemComponent()->GetOwnerActor()->FindComponentByClass<UNSEquipment>();
@@ -23,11 +21,9 @@ void UGEEShooting::Execute_Implementation(const FGameplayEffectCustomExecutionPa
 		PrimaryAbility =  Weapon->WeaponData->PrimaryAbility;
 	}
 
-	//TagContainer.AddTag(FGameplayTag::RequestGameplayTag("Skill.Weapon.Primary"));
-
+	//Activate ability if valid
 	if (IsValid(PrimaryAbility))
 	{
-		//bool result = ExecutionParams.GetSourceAbilitySystemComponent()->TryActivateAbilitiesByTag(TagContainer);
 		bool result = ExecutionParams.GetSourceAbilitySystemComponent()->TryActivateAbilityByClass(PrimaryAbility);
 		if (!result)
 		{
