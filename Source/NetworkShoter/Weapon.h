@@ -40,10 +40,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void LaunchAsProjectile(FVector Velocity);
 
-	//called from equipment component for enable/disable actor
-	UPROPERTY(ReplicatedUsing=OnStoraged)
-	bool bStoraged = false;
-
 	/** [Server] change weapon visibility parameters, on change condition (equip, stored, etc)*/
 	void SetStatus(EWeaponStatus NewStatus);
 	
@@ -74,9 +70,6 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
 	UProjectileMovementComponent* ProjectileMovement;
-
-	UFUNCTION()
-	void OnStoraged();
 
 	UFUNCTION()
 	void OnRep_Status();

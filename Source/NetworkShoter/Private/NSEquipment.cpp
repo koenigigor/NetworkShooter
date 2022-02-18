@@ -69,10 +69,6 @@ bool UNSEquipment::PickUpWeapon(AWeapon* Weapon)
 			//if success freeze weapon
 			if (bFreeSlot)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("Weapon frized %s"), *Weapon->WeaponData->Name.ToString())
-				//Weapon -> SetActorHiddenInGame(true); //not replicates?
-				//Weapon -> SetActorEnableCollision(false);
-				//Weapon -> bStoraged = true;
 				Weapon -> SetStatus(EWeaponStatus::InStorage);
 			}
 
@@ -84,6 +80,46 @@ bool UNSEquipment::PickUpWeapon(AWeapon* Weapon)
 		UE_LOG(LogTemp, Warning, TEXT("Cant recognise WeaponType, in weapon %s"), *(Weapon->GetName()))
 		return false;
 	}
+}
+
+AWeapon* UNSEquipment::DropCurrentWeapon()
+{
+	//if dont have other weapon in storage return
+	//equip next weapon
+	int32 OtherWeaponSlot = -1;
+	for (int32 i = 0; i< MaxWeaponSlots; i++)
+	{
+		if (Weapons[i] != nullptr && Weapons[i] != EquippedWeapon)
+		{
+			OtherWeaponSlot = i;
+			break;
+		}
+	}
+	if (OtherWeaponSlot == -1)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Cant drop weapon if you hawe only 1"))
+		return nullptr;
+	}
+	
+	//Unequip weapon
+	AWeapon* Weapon = UnequipWeapon(false);
+	
+	//delete weapon info from storage
+	for (auto& StoredWeapon : Weapons)
+	{
+		if (StoredWeapon == Weapon)
+		{
+			StoredWeapon = nullptr;
+			break;
+		}
+	}
+	
+	//set visibility
+	Weapon->SetStatus(EWeaponStatus::InWorld);
+
+	EquipWeapon(OtherWeaponSlot);
+	
+	return Weapon;
 }
 
 bool UNSEquipment::EquipWeapon(int32 Slot)
@@ -103,28 +139,8 @@ bool UNSEquipment::EquipWeapon(int32 Slot)
 	};
 	auto WeaponToEquip = Weapons[Slot];
 	
-	//Remove weapon if has already equiped
-	if (EquippedWeapon)
-	{
-		//detach
-		EquippedWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-		PickUpWeapon(EquippedWeapon);
-
-		//remove weapon abilities
-		if (auto IAbilitySystem = Cast<IAbilitySystemInterface>(GetOwner()))
-		{
-			auto AbilitySystem = IAbilitySystem->GetAbilitySystemComponent();
-			
-			if (IsValid(EquippedWeapon->WeaponData->PrimaryAbility))
-				AbilitySystem->ClearAbility(AbilitySystem->FindAbilitySpecFromClass(EquippedWeapon->WeaponData->PrimaryAbility)->Handle);
-			if (IsValid(EquippedWeapon->WeaponData->SecondaryAbility))
-				AbilitySystem->ClearAbility(AbilitySystem->FindAbilitySpecFromClass(EquippedWeapon->WeaponData->SecondaryAbility)->Handle);
-			if (IsValid(EquippedWeapon->WeaponData->Throw))
-				AbilitySystem->ClearAbility(AbilitySystem->FindAbilitySpecFromClass(EquippedWeapon->WeaponData->Throw)->Handle);
-		}
-		
-		EquippedWeapon = nullptr;
-	}
+	//Remove weapon if has already equipped
+	UnequipWeapon(true);
 	
 	//attach weapon to owner
 		//get mesh to attach //TODO interface for get component for 1st 3rd person if need
@@ -151,10 +167,6 @@ bool UNSEquipment::EquipWeapon(int32 Slot)
 	EquippedWeapon = WeaponToEquip;
 
 	//Unhide weapon from storage
-	UE_LOG(LogTemp, Warning, TEXT("Weapon unfrized %s"), *EquippedWeapon->WeaponData->Name.ToString())
-	//EquippedWeapon -> SetActorHiddenInGame(false);
-	//EquippedWeapon -> SetActorEnableCollision(false);
-	//EquippedWeapon -> bStoraged = false;
 	EquippedWeapon -> SetStatus(EWeaponStatus::Equiped);
 		
 	return true;
@@ -233,6 +245,37 @@ void UNSEquipment::BeginPlay()
 		//equip weapon
 		EquipWeapon(0);
 	}
+}
+
+AWeapon* UNSEquipment::UnequipWeapon(bool bAddInStorage)
+{
+	if (EquippedWeapon)
+	{
+		//detach
+		EquippedWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+		if (bAddInStorage)
+		{
+			PickUpWeapon(EquippedWeapon);
+		}
+		
+		//remove weapon abilities
+		if (auto IAbilitySystem = Cast<IAbilitySystemInterface>(GetOwner()))
+		{
+			auto AbilitySystem = IAbilitySystem->GetAbilitySystemComponent();
+			
+			if (IsValid(EquippedWeapon->WeaponData->PrimaryAbility))
+				AbilitySystem->ClearAbility(AbilitySystem->FindAbilitySpecFromClass(EquippedWeapon->WeaponData->PrimaryAbility)->Handle);
+			if (IsValid(EquippedWeapon->WeaponData->SecondaryAbility))
+				AbilitySystem->ClearAbility(AbilitySystem->FindAbilitySpecFromClass(EquippedWeapon->WeaponData->SecondaryAbility)->Handle);
+			if (IsValid(EquippedWeapon->WeaponData->Throw))
+				AbilitySystem->ClearAbility(AbilitySystem->FindAbilitySpecFromClass(EquippedWeapon->WeaponData->Throw)->Handle);
+		}
+
+		auto TempWeapon = EquippedWeapon;
+		EquippedWeapon = nullptr;
+		return TempWeapon;
+	}
+	return nullptr;
 }
 
 void UNSEquipment::ServerEquipWeapon_Implementation(int32 Slot)

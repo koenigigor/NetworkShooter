@@ -22,8 +22,7 @@ AWeapon::AWeapon()
 void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(AWeapon, bStoraged);
+	
 	DOREPLIFETIME(AWeapon, Status);
 }
 
@@ -46,19 +45,6 @@ void AWeapon::LaunchAsProjectile(FVector Velocity)
 	//ProjectileMovement->SetVelocityInLocalSpace(Velocity);
 	ProjectileMovement->Velocity = Velocity;
 	ProjectileMovement->Activate();
-}
-
-void AWeapon::OnStoraged()
-{
-	if (bStoraged)
-	{
-		SetActorEnableCollision(false);
-		SetActorHiddenInGame(true);
-	} else
-	{
-		SetActorEnableCollision(false);  //////////////
-		SetActorHiddenInGame(false);
-	}
 }
 
 void AWeapon::OnRep_Status()
@@ -86,6 +72,7 @@ void AWeapon::SetStatus(EWeaponStatus NewStatus)
 {
 	//place for validation, server changes etc
 	Status = NewStatus;
+	OnRep_Status();
 }
 
 /*

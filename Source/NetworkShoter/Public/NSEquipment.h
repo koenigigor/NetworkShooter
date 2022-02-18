@@ -48,6 +48,10 @@ public:
 	/** [Server] Pick weapon from ground, podium etc.*/
 	UFUNCTION(BlueprintCallable)
 	bool PickUpWeapon(AWeapon* Weapon);
+
+	/** [Server] Drop weapon to world */
+	UFUNCTION(BlueprintCallable)
+	AWeapon* DropCurrentWeapon();
 	
 	/** [Server] try Equip weapon */
 	UFUNCTION(BlueprintCallable)
@@ -75,12 +79,14 @@ protected:
     UFUNCTION(Reliable, Server)
 	void ServerEquipWeapon(int32 Slot);
 
-protected:
+	/** Unregister abilities and detach weapon from character */
+	AWeapon* UnequipWeapon(bool bAddInStorage = true);
+	
+	
 	/** Default weapon created when game start */
 	UPROPERTY(EditDefaultsOnly)
 	UWeaponData* DefaultWeapon;
-
-protected:
+	
 	/** Store weapons */
 	UPROPERTY()
 	TArray<AWeapon*> Weapons;
