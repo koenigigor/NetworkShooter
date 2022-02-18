@@ -4,6 +4,8 @@
 #include "GEEShooting.h"
 
 #include "AbilitySystemComponent.h"
+#include "NSEquipment.h"
+#include "NetworkShoter/Weapon.h"
 
 void UGEEShooting::Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams,
                                           FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const
@@ -12,11 +14,27 @@ void UGEEShooting::Execute_Implementation(const FGameplayEffectCustomExecutionPa
 
 	FGameplayTagContainer TagContainer;
 
-	TagContainer.AddTag(FGameplayTag::RequestGameplayTag("Skill.Weapon.Primary"));
-
-	bool result = ExecutionParams.GetSourceAbilitySystemComponent()->TryActivateAbilitiesByTag(TagContainer);
-	if (!result)
+	//Get player weapon primary ability
+	TSubclassOf<UGameplayAbility> PrimaryAbility;
+	auto PlayerEquipment = ExecutionParams.GetSourceAbilitySystemComponent()->GetOwnerActor()->FindComponentByClass<UNSEquipment>();
+	if (PlayerEquipment)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Skill.Weapon.Primary, not found"))
-	};
+		auto Weapon = PlayerEquipment->GetEquippedWeapon();
+		PrimaryAbility =  Weapon->WeaponData->PrimaryAbility;
+	}
+
+	//TagContainer.AddTag(FGameplayTag::RequestGameplayTag("Skill.Weapon.Primary"));
+
+	if (IsValid(PrimaryAbility))
+	{
+		//bool result = ExecutionParams.GetSourceAbilitySystemComponent()->TryActivateAbilitiesByTag(TagContainer);
+		bool result = ExecutionParams.GetSourceAbilitySystemComponent()->TryActivateAbilityByClass(PrimaryAbility);
+		if (!result)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("PrimaryAbility not activated"))
+		};
+	} else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("PrimaryAbility not found"))
+	}
 }

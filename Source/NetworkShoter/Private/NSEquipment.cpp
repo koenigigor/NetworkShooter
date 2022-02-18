@@ -107,8 +107,23 @@ bool UNSEquipment::EquipWeapon(int32 Slot)
 	//Remove weapon if has already equiped
 	if (EquippedWeapon)
 	{
+		//detach
 		EquippedWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 		PickUpWeapon(EquippedWeapon);
+
+		//remove weapon abilities
+		if (auto IAbilitySystem = Cast<IAbilitySystemInterface>(GetOwner()))
+		{
+			auto AbilitySystem = IAbilitySystem->GetAbilitySystemComponent();
+			
+			if (IsValid(EquippedWeapon->WeaponData->PrimaryAbility))
+				AbilitySystem->ClearAbility(AbilitySystem->FindAbilitySpecFromClass(EquippedWeapon->WeaponData->PrimaryAbility)->Handle);
+			if (IsValid(EquippedWeapon->WeaponData->SecondaryAbility))
+				AbilitySystem->ClearAbility(AbilitySystem->FindAbilitySpecFromClass(EquippedWeapon->WeaponData->SecondaryAbility)->Handle);
+			if (IsValid(EquippedWeapon->WeaponData->Throw))
+				AbilitySystem->ClearAbility(AbilitySystem->FindAbilitySpecFromClass(EquippedWeapon->WeaponData->Throw)->Handle);
+		}
+		
 		EquippedWeapon = nullptr;
 	}
 	
@@ -119,10 +134,19 @@ bool UNSEquipment::EquipWeapon(int32 Slot)
 	FName Socket = "Gun";
 	WeaponToEquip->AttachToComponent(MeshToAttach, FAttachmentTransformRules::SnapToTargetIncludingScale, FName("Gun"));
 	
-	//apply new weapon stats to player
+	//apply new weapon stats to player and register weapon ablilityes
 	if (auto IAbilitySystem = Cast<IAbilitySystemInterface>(GetOwner()))
 	{
-		IAbilitySystem->GetAbilitySystemComponent()->InitStats(UWeaponAttributeSet::StaticClass(), WeaponToEquip->WeaponData->AttributeSet);
+		auto AbilitySystem = IAbilitySystem->GetAbilitySystemComponent();
+		
+		AbilitySystem->InitStats(UWeaponAttributeSet::StaticClass(), WeaponToEquip->WeaponData->AttributeSet);
+
+		if (IsValid(WeaponToEquip->WeaponData->PrimaryAbility))
+			AbilitySystem->GiveAbility(FGameplayAbilitySpec(WeaponToEquip->WeaponData->PrimaryAbility));
+		if (IsValid(WeaponToEquip->WeaponData->SecondaryAbility))
+			AbilitySystem->GiveAbility(FGameplayAbilitySpec(WeaponToEquip->WeaponData->SecondaryAbility));
+		if (IsValid(WeaponToEquip->WeaponData->Throw))
+			AbilitySystem->GiveAbility(FGameplayAbilitySpec(WeaponToEquip->WeaponData->Throw));
 	};
 	
 	EquippedWeapon = WeaponToEquip;
