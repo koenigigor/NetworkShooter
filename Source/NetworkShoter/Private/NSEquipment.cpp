@@ -167,7 +167,7 @@ bool UNSEquipment::EquipWeapon(int32 Slot)
 	EquippedWeapon = WeaponToEquip;
 
 	//Unhide weapon from storage
-	EquippedWeapon -> SetStatus(EWeaponStatus::Equiped);
+	EquippedWeapon -> SetStatus(EWeaponStatus::Equipped);
 		
 	return true;
 }

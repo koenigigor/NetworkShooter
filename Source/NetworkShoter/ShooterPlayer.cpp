@@ -2,6 +2,9 @@
 
 
 #include "ShooterPlayer.h"
+#include "AbilitySystemComponent.h"
+#include "NetShooterAttributeSet.h"
+#include "WeaponAttributeSet.h"
 
 // Sets default values
 AShooterPlayer::AShooterPlayer()

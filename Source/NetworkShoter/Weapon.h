@@ -5,16 +5,16 @@
 #include "CoreMinimal.h"
 #include "WeaponData.h"
 #include "GameFramework/Actor.h"
-#include "GameFramework/ProjectileMovementComponent.h"
 #include "Weapon.generated.h"
 
+class UProjectileMovementComponent;
 
 UENUM()
 enum class EWeaponStatus : uint8
 {
 	InWorld,
 	InStorage,
-	Equiped
+	Equipped
 };
 
 UCLASS()
@@ -42,33 +42,15 @@ public:
 
 	/** [Server] change weapon visibility parameters, on change condition (equip, stored, etc)*/
 	void SetStatus(EWeaponStatus NewStatus);
-	
-	/** Original weapon skill
-	 *	slice for sword,
-	 *	shoot for rifle, etc. */
-//	UPROPERTY(EditDefaultsOnly)
-//	TSubclassOf<UGameplayAbility> PrimaryAbility;
-
-	/** Second Weapon skill
-	 * Block or punch for sword
-	 * punch for rifle, etc */
-//	UPROPERTY(EditDefaultsOnly)
-//	TSubclassOf<UGameplayAbility> SecondaryAbility;
-
-	/** Throw weapon as projectile
-	 *  Last word in hopeless situation =) */
-//	UPROPERTY(EditDefaultsOnly)
-//	TSubclassOf<UGameplayAbility> Throw;
-
 
 protected:
-	//UPROPERTY(Replicated)
+	UPROPERTY() //Replicated)
 	UStaticMeshComponent* WeaponMesh = nullptr;
 
 	UPROPERTY(ReplicatedUsing=OnRep_Status)
 	EWeaponStatus Status;
 
-	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)  //todo need blueprint and visible?
 	UProjectileMovementComponent* ProjectileMovement;
 
 	UFUNCTION()

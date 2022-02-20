@@ -3,15 +3,15 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AbilitySystemComponent.h"
+
 #include "GameplayEffectTypes.h"
 #include "GameFramework/Character.h"
 #include "AbilitySystemInterface.h"
-#include "NetShooterAttributeSet.h"
-#include "WeaponAttributeSet.h"
 #include "ShooterPlayer.generated.h"
 
-//#DECLARE_DYNAMIC_MULTICAST_DELEGATE
+class UAbilitySystemComponent;
+class UNetShooterAttributeSet;
+class UWeaponAttributeSet;
 
 UCLASS()
 class NETWORKSHOTER_API AShooterPlayer : public ACharacter, public IAbilitySystemInterface
