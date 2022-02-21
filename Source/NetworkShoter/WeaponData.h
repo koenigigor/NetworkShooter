@@ -63,13 +63,16 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Range")
 	FName MuzzleSocket = "Muzzle";
 
-///Explode settings (grenades like)
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Explode");
+///Throw settings (grenades like)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Throw");
 	bool bExplodeOnDestroy = false;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Explode");
-	float ExplodeRadius;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Throw");
+	float ExplodeRadius = 0.f;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Explode");
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Throw");
 	float ExplodeDamage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Throw");
+	float ThrowSpeed = 1000.f;
 };
