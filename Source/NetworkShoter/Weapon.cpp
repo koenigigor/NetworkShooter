@@ -45,6 +45,7 @@ void AWeapon::LaunchAsProjectile(FVector Velocity)
 	ProjectileMovement->Velocity = Velocity;
 	ProjectileMovement->Activate();
 	//WeaponMesh->SetNotifyRigidBodyCollision(true); //activate hit events
+//	WeaponMesh->SetSimulatePhysics(true);
 }
 
 void AWeapon::OnRep_Status()
