@@ -48,7 +48,6 @@ void AShooterPlayer::AddAbility(TSubclassOf<UGameplayAbility> Ability)
 	}
 	
 	GetAbilitySystemComponent()->GiveAbility(FGameplayAbilitySpec(Ability, 1, INDEX_NONE));
-	UE_LOG(LogTemp, Warning, TEXT("AbilityAdded"))
 }
 
 void AShooterPlayer::BindAttributeDelegates()
@@ -59,9 +58,6 @@ void AShooterPlayer::BindAttributeDelegates()
 
 void AShooterPlayer::OnHealthChange(const FOnAttributeChangeData& Data)
 {
-	//TODO
-	UE_LOG(LogTemp, Warning, TEXT("HealthChanged"))
-	
 	HealthChanged(Data.OldValue);
 }
 
@@ -69,7 +65,6 @@ void AShooterPlayer::OnHealthChange(const FOnAttributeChangeData& Data)
 void AShooterPlayer::OnArmorChange(const FOnAttributeChangeData& Data)
 {
 	//TODO
-	UE_LOG(LogTemp, Warning, TEXT("ArmorChanged"))
 }
 
 // Called every frame

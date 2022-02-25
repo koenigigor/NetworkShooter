@@ -64,25 +64,15 @@ void UGECalculationShoot::Execute_Implementation(const FGameplayEffectCustomExec
 
 	float Health = 0.f;
 	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(GetAttributeCapture().HealthDef, EvaluationParameters, Health);
-
-	UE_LOG(LogTemp, Warning, TEXT("GetAttributes:"))
-	UE_LOG(LogTemp, Warning, TEXT("WeaponDamage: %f"), AttackPower)
-	UE_LOG(LogTemp, Warning, TEXT("Health: %f"), Health)
-	UE_LOG(LogTemp, Warning, TEXT("Armor: %f"), Armor)
 	
 	//calculation results
 	float ResultDamage = AttackPower + 1; //TODO make some formula
 	
 	float OutArmor = Armor - ResultDamage;
 	
-	UE_LOG(LogTemp, Warning, TEXT("OutArmor: %f"), OutArmor)
-	
-	
 	if (OutArmor <= 0.f)
 	{
 		float OutHealth = Health - fabs(OutArmor);
-
-		UE_LOG(LogTemp, Warning, TEXT("OutHealth: %f"), OutHealth)
 		
 		//SetResults
 		if (Armor > 0) //not trigger replication if already has been 0
