@@ -26,11 +26,6 @@ void UAbilityTask_PlayerShootTrace::Activate()
 	//ECC_GameTraceChannel2 weapon channel
 	GetWorld()->LineTraceSingleByChannel(ViewHit, ViewStart, ViewEnd, ECollisionChannel::ECC_GameTraceChannel2, QueryParams);
 	
-	DrawDebugLine(GetWorld(), ViewStart, ViewEnd, FColor::Red, false, 20.f, 0, 2);
-	DrawDebugPoint(GetWorld(), ViewStart, 3.f, FColor::Red, false, 20.f);
-	DrawDebugPoint(GetWorld(), ViewEnd, 3.f, FColor::Red, false, 20.f);
-	
-	
 	//Trace from weapon
 	UNSEquipment* Equipment = GetOwnerActor()->FindComponentByClass<UNSEquipment>();
 	ensure(Equipment && Equipment->GetEquippedWeapon());
@@ -39,11 +34,6 @@ void UAbilityTask_PlayerShootTrace::Activate()
 	FHitResult WeaponHit;
 
 	GetWorld()->LineTraceSingleByChannel(WeaponHit, WeaponStart, WeaponEnd, ECollisionChannel::ECC_GameTraceChannel2, QueryParams);
-	DrawDebugLine(GetWorld(), WeaponStart, WeaponEnd, FColor::Cyan, false, 20.f, 0, 2);
-	DrawDebugPoint(GetWorld(), WeaponStart, 10.f, FColor::Cyan, false, 20.f);
-	DrawDebugPoint(GetWorld(), WeaponEnd, 10.f, FColor::Green, false, 20.f);
-
-	//UE_LOG(LogTemp, Warning, TEXT("Donkey hit: %s"), *ViewHit.GetComponent()->GetName())
 	
 	// Construct TargetData
 	FGameplayAbilityTargetData_SingleTargetHit* TargetData = new FGameplayAbilityTargetData_SingleTargetHit(WeaponHit);
