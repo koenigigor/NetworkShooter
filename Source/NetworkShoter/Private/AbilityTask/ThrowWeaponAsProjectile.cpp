@@ -67,8 +67,6 @@ void UThrowWeaponAsProjectile::Activate()
 
 	LocationOnPreviousFrame = Weapon->GetActorLocation();
 	Weapon->OnActorHit.AddDynamic(this, &UThrowWeaponAsProjectile::OnHit);
-
-	UE_LOG(LogTemp, Warning, TEXT("Task activate"))
 }
 
 UThrowWeaponAsProjectile* UThrowWeaponAsProjectile::AbilityTask_ThrowWeaponAsProjectile(UGameplayAbility* OwningAbility,
@@ -90,6 +88,7 @@ void UThrowWeaponAsProjectile::TickTask(float DeltaTime)
 		FHitResult OutHit;
 		FCollisionQueryParams Query;
 		Query.AddIgnoredActor(Weapon->GetInstigator());
+		Query.AddIgnoredActor(Weapon);
 		
 		DrawDebugLine(GetWorld(), LocationOnPreviousFrame, Weapon->GetActorLocation(), FColor::Green, false, 10.f, 2, 5);
 		
@@ -97,8 +96,6 @@ void UThrowWeaponAsProjectile::TickTask(float DeltaTime)
 		{
 			OnHit(nullptr, nullptr, FVector::UpVector, OutHit);
 		}
-
-		UE_LOG(LogTemp, Warning, TEXT("Tick"))
 		
 		LocationOnPreviousFrame = Weapon->GetActorLocation();
 	}
@@ -113,8 +110,6 @@ void UThrowWeaponAsProjectile::OnHit(AActor* SelfActor, AActor* OtherActor, FVec
 	// Give it a handle and return
 	FGameplayAbilityTargetDataHandle Handle;
 	Handle.Data.Add(TSharedPtr<FGameplayAbilityTargetData>(TargetData));
-
-	UE_LOG(LogTemp, Warning, TEXT("Hit Reseived"))
 	
 	WeaponHit.Broadcast(Handle);
 }
