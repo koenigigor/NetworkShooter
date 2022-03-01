@@ -18,11 +18,10 @@ UNSEquipment::UNSEquipment()
 
 bool UNSEquipment::PickUpWeapon(AWeapon* Weapon)
 {
-	//GetWeaponData
-	auto WeaponData = Weapon->WeaponData;
+	const auto WeaponData = Weapon->WeaponData;
 
 	Weapon -> SetOwner(GetOwner());
-	Weapon -> SetInstigator(GetOwner()->GetInstigator()); //TODO or need cast
+	Weapon -> SetInstigator(GetOwner()->GetInstigator());
 
 	//Switch by weapon type
 	switch (WeaponData->Type)
@@ -84,40 +83,27 @@ bool UNSEquipment::PickUpWeapon(AWeapon* Weapon)
 
 AWeapon* UNSEquipment::DropCurrentWeapon()
 {
-	//if dont have other weapon in storage return
-	//equip next weapon
-	int32 OtherWeaponSlot = -1;
+	//check if dont have other weapon
+	bool LastWeapon = true;
 	for (int32 i = 0; i< MaxWeaponSlots; i++)
 	{
 		if (Weapons[i] != nullptr && Weapons[i] != EquippedWeapon)
 		{
-			OtherWeaponSlot = i;
+			LastWeapon = false;
 			break;
 		}
 	}
-	if (OtherWeaponSlot == -1)
+	
+	if (LastWeapon)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Cant drop weapon if you hawe only 1"))
+		UE_LOG(LogTemp, Warning, TEXT("Cant drop last weapon"))
 		return nullptr;
 	}
 	
-	//Unequip weapon
+	//Unequip weapon with drop it in world
 	AWeapon* Weapon = UnequipWeapon(false);
 	
-	//delete weapon info from storage
-	for (auto& StoredWeapon : Weapons)
-	{
-		if (StoredWeapon == Weapon)
-		{
-			StoredWeapon = nullptr;
-			break;
-		}
-	}
-	
-	//set visibility
-	Weapon->SetStatus(EWeaponStatus::InWorld);
-
-	EquipWeapon(OtherWeaponSlot);
+	EquipNextWeapon();
 	
 	return Weapon;
 }
@@ -125,18 +111,14 @@ AWeapon* UNSEquipment::DropCurrentWeapon()
 bool UNSEquipment::EquipWeapon(int32 Slot)
 {
 	if (Slot == EquippedWeaponSlot) { return false; }
-
+	if (!Weapons[Slot])	{ return false; };
+	
 	if (!GetOwner()->HasAuthority())
 	{
 		ServerEquipWeapon(Slot);
-		UE_LOG(LogTemp, Warning, TEXT("Equip weapon called not from server, redirect to server"))
 		return false;
 	}
 	
-	if (!Weapons[Slot])
-	{
-		return false;
-	};
 	auto WeaponToEquip = Weapons[Slot];
 	
 	//Remove weapon if has already equipped
@@ -147,9 +129,9 @@ bool UNSEquipment::EquipWeapon(int32 Slot)
 	USkeletalMeshComponent* MeshToAttach = GetOwner()->FindComponentByClass<USkeletalMeshComponent>();
 	
 	FName Socket = "Gun";
-	WeaponToEquip->AttachToComponent(MeshToAttach, FAttachmentTransformRules::SnapToTargetIncludingScale, FName("Gun"));
+	WeaponToEquip->AttachToComponent(MeshToAttach, FAttachmentTransformRules::SnapToTargetIncludingScale, Socket);
 	
-	//apply new weapon stats to player and register weapon ablilityes
+	//apply new weapon stats to player and register weapon ability
 	if (auto IAbilitySystem = Cast<IAbilitySystemInterface>(GetOwner()))
 	{
 		auto AbilitySystem = IAbilitySystem->GetAbilitySystemComponent();
@@ -184,60 +166,55 @@ void UNSEquipment::EquipNextWeapon(bool Up)
 	{
 		NextSlot = Up ? NextSlot + 1 : NextSlot - 1;
 		
-		if (NextSlot > MaxWeaponSlots) { NextSlot = 0; }	//up not work
+		if (NextSlot > MaxWeaponSlots) { NextSlot = 0; }
 		if (NextSlot < 0) { NextSlot = MaxWeaponSlots; }
-
-		UE_LOG(LogTemp, Warning, TEXT("NextSlot = %f"), NextSlot)
 		
 		if (Weapons.IsValidIndex(NextSlot) && Weapons[NextSlot])
-		//if (Weapons[NextSlot])
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Found in Slot = %f"), NextSlot)
 			EquipWeapon(NextSlot);
 			return;
 		}
 	}
 	while (NextSlot != EquippedWeaponSlot);
 	
-	//walk around weapon array not fount next weapon
 	UE_LOG(LogTemp, Warning, TEXT("Next weapon not found"))
+	return;
 }
+
 
 AWeapon* UNSEquipment::GetGrenade(int32 Slot, bool bWithRemove)
 {
-	if (Grenades.IsValidIndex(Slot))
+	if (!Grenades.IsValidIndex(Slot))
 	{
-		//Get grenade from grenades array
-		auto GrenadeData = Grenades[Slot].GrenadeData;
-		//remove if need
-		if (bWithRemove)
-		{
-			if (Grenades[Slot].Count <= 1)
-			{
-				Grenades.RemoveAt(Slot);
-			}
-			else
-			{
-				Grenades[Slot].Count --;
-			}
-		}
-		
-		//Spawn weapon actor
-        FVector SpawnLocation(100, 100, 100);
-        FRotator SpawnRotation(0,0,0);
-        FActorSpawnParameters SpawnParameters;
-        SpawnParameters.Owner = GetOwner();
-        SpawnParameters.Instigator = Cast<APawn>(GetOwner());
-			UE_LOG(LogTemp, Warning, TEXT("Before spawn"))
-        AWeapon* SpawnedWeapon =GetOwner() -> GetWorld() -> SpawnActor<AWeapon>(SpawnLocation, SpawnRotation, SpawnParameters);
-			UE_LOG(LogTemp, Warning, TEXT("Afterspawn"))
-        SpawnedWeapon->SetupData(GrenadeData);
-			UE_LOG(LogTemp, Warning, TEXT("Aftersetup"))
-		return SpawnedWeapon;
+		UE_LOG(LogTemp, Warning, TEXT("No Grenade in slot %f"), Slot)
+		return nullptr;
 	}
-
-	UE_LOG(LogTemp, Warning, TEXT("No Grenade in slot %f"), Slot)
-	return nullptr;
+	
+	auto GrenadeData = Grenades[Slot].GrenadeData;
+		
+	if (bWithRemove)
+	{
+		if (Grenades[Slot].Count <= 1)
+		{
+			Grenades.RemoveAt(Slot);
+		}
+		else
+		{
+			Grenades[Slot].Count --;
+		}
+	}
+		
+	//Spawn weapon actor
+	FVector SpawnLocation(100, 100, 100);
+	FRotator SpawnRotation(0,0,0);
+	FActorSpawnParameters SpawnParameters;
+	SpawnParameters.Owner = GetOwner();
+	SpawnParameters.Instigator = Cast<APawn>(GetOwner());
+	
+	AWeapon* SpawnedWeapon =GetOwner() -> GetWorld() -> SpawnActor<AWeapon>(SpawnLocation, SpawnRotation, SpawnParameters);
+	SpawnedWeapon->SetupData(GrenadeData);
+	
+	return SpawnedWeapon;
 }
 
 AWeapon* UNSEquipment::GetSelectedGrenade(bool bWithRemove)
@@ -245,18 +222,16 @@ AWeapon* UNSEquipment::GetSelectedGrenade(bool bWithRemove)
 	return GetGrenade(SelectedGrenadeSlot, bWithRemove);
 }
 
+
 void UNSEquipment::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	//DOREPLIFETIME(UNSEquipment, EquippedWeapon);
-	//DOREPLIFETIME(UNSEquipment, EquippedWeaponSlot);
+	
 	DOREPLIFETIME_CONDITION(UNSEquipment, EquippedWeapon, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(UNSEquipment, EquippedWeaponSlot, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(UNSEquipment, Weapons, COND_OwnerOnly);
 }
 
-// Called when the game starts
 void UNSEquipment::BeginPlay()
 {
 	Super::BeginPlay();
@@ -269,18 +244,17 @@ void UNSEquipment::BeginPlay()
 		FRotator SpawnRotation(0,0,0);
 		FActorSpawnParameters SpawnParameters;
 		SpawnParameters.Owner = GetOwner();
-		SpawnParameters.Instigator = Cast<APawn>(GetOwner());
+		SpawnParameters.Instigator = GetOwner()->GetInstigator();
 	
 		AWeapon* Weapon = GetWorld() -> SpawnActor<AWeapon>(SpawnLocation, SpawnRotation, SpawnParameters);
 		Weapon->SetupData(DefaultWeapon);
 
-		//Add weapon in storage;
+		//Add and equip weapon
 		PickUpWeapon(Weapon);
-
-		//equip weapon
 		EquipWeapon(0);
 	}
 }
+
 
 AWeapon* UNSEquipment::UnequipWeapon(bool bAddInStorage)
 {
@@ -288,9 +262,16 @@ AWeapon* UNSEquipment::UnequipWeapon(bool bAddInStorage)
 	{
 		//detach
 		EquippedWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+		
 		if (bAddInStorage)
 		{
 			PickUpWeapon(EquippedWeapon);
+		}
+		else
+		{
+			//delete weapon info from storage
+			Weapons[EquippedWeaponSlot] -> SetStatus(EWeaponStatus::InWorld);
+			Weapons[EquippedWeaponSlot] = nullptr;
 		}
 		
 		//remove weapon abilities

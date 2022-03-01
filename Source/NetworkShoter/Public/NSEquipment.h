@@ -10,7 +10,7 @@ class AWeapon;
 class AGrenade;
 class UWeaponData;
 
-/** store class collected grenades and their count */
+/** Struct for stored grenades and their count */
 USTRUCT(BlueprintType)
 struct FGrenadeCount
 {
@@ -23,7 +23,7 @@ struct FGrenadeCount
 		Count = ItemCount;
 	};
 
-	//store weapon data for construct grenades when it nesesary
+	//store weapon data for construct grenades when it need
 	UPROPERTY()
 	UWeaponData* GrenadeData = nullptr;
 	
@@ -31,10 +31,10 @@ struct FGrenadeCount
 };
 
 /** Network Shooter base equipment component
- *	Collect and store grenades
- *	Switch weapon
- *	Provides 4 grenade slot and 4 weapon slot
- *	
+ *	Collect and store grenades and weapons
+ *	Switch, equip, unequip weapon
+ *	defaults: 4 grenade slot and 4 weapon slot
+ *		equip DefaultWeapon on BeginPlay
  */
 
 UCLASS(Blueprintable, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -49,47 +49,53 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool PickUpWeapon(AWeapon* Weapon);
 
-	/** [Server] Drop weapon to world */
+	
+	/** [Server] Drop weapon to world
+	 *	@return Dropped weapon */
 	UFUNCTION(BlueprintCallable)
 	AWeapon* DropCurrentWeapon();
 	
-	/** [Both] try Equip weapon */
+	/** [Client or Server] try Equip weapon */
 	UFUNCTION(BlueprintCallable)
 	bool EquipWeapon(int32 Slot);
 
 	/** [Client or Server] try equip weapon in next slot */
 	UFUNCTION(BlueprintCallable)
-	void EquipNextWeapon(bool Up);
+	void EquipNextWeapon(bool Up=true);
+
+	/** Get Equipped weapon ref */
+    UFUNCTION(BlueprintCallable, BlueprintPure)
+    AWeapon* GetEquippedWeapon() {return EquippedWeapon; };
+
 	
-	/** Return Grenade ptr in selected slot*/
+	/** [Server] Return Grenade ptr in selected slot*/
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	AWeapon* GetGrenade(int32 Slot, bool bWithRemove=true);
 
-	/** ReturnGrenade in selected slot */
+	/** [Server] ReturnGrenade in selected slot */
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	AWeapon* GetSelectedGrenade(bool bWithRemove=true);
 
-	/** Get Equipped weapon ref */
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	AWeapon* GetEquippedWeapon() {return EquippedWeapon; };
 	
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
 protected:
-	// Called when the game starts
+	/**Called when the game starts,
+	 * [Server] spawn and equip default weapon */
 	virtual void BeginPlay() override;
-	
-	/** Call equip weapon if function was be called not from server */
-    UFUNCTION(Reliable, Server)
-	void ServerEquipWeapon(int32 Slot);
 
-	/** Unregister abilities and detach weapon from character */
+	/** [Server] Unregister abilities and detach weapon from character */
 	AWeapon* UnequipWeapon(bool bAddInStorage = true);
-	
+
 	
 	/** Default weapon created when game start */
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category="Setup")
 	UWeaponData* DefaultWeapon;
+
+	/** Count weapons who can be stored */
+	UPROPERTY(EditDefaultsOnly, Category="Setup")
+	int32 MaxWeaponSlots = 3;
+
 	
 	/** Store weapons */
 	UPROPERTY(Replicated)
@@ -99,11 +105,9 @@ protected:
 	UPROPERTY()
 	TArray<FGrenadeCount> Grenades;
 
+	
 	UPROPERTY()
 	int32 SelectedGrenadeSlot = 0;
-
-	/** Count weapons who can be stored */
-	int32 MaxWeaponSlots = 3;
 
 	UPROPERTY(Replicated)
 	AWeapon* EquippedWeapon = nullptr;
@@ -111,4 +115,9 @@ protected:
 	/** Slot where weapon current equip */
 	UPROPERTY(Replicated)
 	int32 EquippedWeaponSlot = -1;
+
+private:
+	/** Redirect EquipWeapon.Client to EquipWeapon.Server */
+	UFUNCTION(Reliable, Server)
+	void ServerEquipWeapon(int32 Slot);
 };
