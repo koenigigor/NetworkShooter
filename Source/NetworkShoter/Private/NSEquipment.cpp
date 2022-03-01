@@ -124,7 +124,7 @@ AWeapon* UNSEquipment::DropCurrentWeapon()
 
 bool UNSEquipment::EquipWeapon(int32 Slot)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Start EquipWeapon"))
+	if (Slot == EquippedWeaponSlot) { return false; }
 
 	if (!GetOwner()->HasAuthority())
 	{
@@ -163,13 +163,44 @@ bool UNSEquipment::EquipWeapon(int32 Slot)
 		if (IsValid(WeaponToEquip->WeaponData->Throw))
 			AbilitySystem->GiveAbility(FGameplayAbilitySpec(WeaponToEquip->WeaponData->Throw));
 	};
-	
+
+	EquippedWeaponSlot = Slot;
 	EquippedWeapon = WeaponToEquip;
 
 	//Unhide weapon from storage
 	EquippedWeapon -> SetStatus(EWeaponStatus::Equipped);
 		
 	return true;
+}
+
+void UNSEquipment::EquipNextWeapon(bool Up)
+{
+	if (!GetWorld()) { return; } // loop runs on start editor?
+	
+	int32 NextSlot = EquippedWeaponSlot;
+	
+	//find and equip next weapon
+	do
+	{
+		NextSlot = Up ? NextSlot + 1 : NextSlot - 1;
+		
+		if (NextSlot > MaxWeaponSlots) { NextSlot = 0; }	//up not work
+		if (NextSlot < 0) { NextSlot = MaxWeaponSlots; }
+
+		UE_LOG(LogTemp, Warning, TEXT("NextSlot = %f"), NextSlot)
+		
+		if (Weapons.IsValidIndex(NextSlot) && Weapons[NextSlot])
+		//if (Weapons[NextSlot])
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Found in Slot = %f"), NextSlot)
+			EquipWeapon(NextSlot);
+			return;
+		}
+	}
+	while (NextSlot != EquippedWeaponSlot);
+	
+	//walk around weapon array not fount next weapon
+	UE_LOG(LogTemp, Warning, TEXT("Next weapon not found"))
 }
 
 AWeapon* UNSEquipment::GetGrenade(int32 Slot, bool bWithRemove)
@@ -218,7 +249,11 @@ void UNSEquipment::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(UNSEquipment, EquippedWeapon);
+	//DOREPLIFETIME(UNSEquipment, EquippedWeapon);
+	//DOREPLIFETIME(UNSEquipment, EquippedWeaponSlot);
+	DOREPLIFETIME_CONDITION(UNSEquipment, EquippedWeapon, COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UNSEquipment, EquippedWeaponSlot, COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UNSEquipment, Weapons, COND_OwnerOnly);
 }
 
 // Called when the game starts
@@ -280,7 +315,6 @@ AWeapon* UNSEquipment::UnequipWeapon(bool bAddInStorage)
 
 void UNSEquipment::ServerEquipWeapon_Implementation(int32 Slot)
 {
-	UE_LOG(LogTemp, Warning, TEXT("ServerEquipWeapon_Implementation called"))
 	EquipWeapon(Slot);
 }
 

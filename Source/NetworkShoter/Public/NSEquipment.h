@@ -53,9 +53,13 @@ public:
 	UFUNCTION(BlueprintCallable)
 	AWeapon* DropCurrentWeapon();
 	
-	/** [Server] try Equip weapon */
+	/** [Both] try Equip weapon */
 	UFUNCTION(BlueprintCallable)
 	bool EquipWeapon(int32 Slot);
+
+	/** [Client or Server] try equip weapon in next slot */
+	UFUNCTION(BlueprintCallable)
+	void EquipNextWeapon(bool Up);
 	
 	/** Return Grenade ptr in selected slot*/
 	UFUNCTION(BlueprintCallable, BlueprintPure)
@@ -88,7 +92,7 @@ protected:
 	UWeaponData* DefaultWeapon;
 	
 	/** Store weapons */
-	UPROPERTY()
+	UPROPERTY(Replicated)
 	TArray<AWeapon*> Weapons;
 
 	/** Store Grenades */
@@ -103,4 +107,8 @@ protected:
 
 	UPROPERTY(Replicated)
 	AWeapon* EquippedWeapon = nullptr;
+	
+	/** Slot where weapon current equip */
+	UPROPERTY(Replicated)
+	int32 EquippedWeaponSlot = -1;
 };
