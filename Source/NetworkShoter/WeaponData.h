@@ -35,39 +35,49 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="General")
 	FName Name = "Weapon name placeholder";
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="General")
+	UTexture2D* UIImage;
+
 	/** Original weapon skill
 	*	slice for sword,
 	*	shoot for rifle, etc.
 	*/
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Ability")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Ability", meta=(EditCondition="Type!=EWeaponType::Grenade", EditConditionHides))
 	TSubclassOf<UGameplayAbility> PrimaryAbility;
 
 	/** Second Weapon skill
 	 * Block or punch for sword
 	 * punch for rifle, etc
 	 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Ability")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Ability", meta=(EditCondition="Type!=EWeaponType::Grenade", EditConditionHides))
 	TSubclassOf<UGameplayAbility> SecondaryAbility;
 
 	/** Throw weapon as projectile
 	 *  Last word in hopeless situation =)
 	 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Ability")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Ability", meta=(EditCondition="Type!=EWeaponType::Grenade", EditConditionHides))
 	TSubclassOf<UGameplayAbility> Throw;
 
 	/** Initial weapon attribute set for  */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Ability")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Ability", meta=(EditCondition="Type!=EWeaponType::Grenade", EditConditionHides))
 	UDataTable* AttributeSet;
 
-///Range settings	
+///Range settings
+	/** Shoot by projectile ability get projectile info here */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Range")
-	FName MuzzleSocket = "Muzzle";
+	bool bShootByProjectile = false;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Range", meta=(EditCondition="bShootByProjectile"))
+	float ProjectileSpeed = 1300;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Range", meta=(EditCondition="bShootByProjectile"))
+	TSubclassOf<AActor> ProjectileClass = nullptr;
 
 ///Throw settings (grenades like)
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Throw");
 	bool bExplodeOnDestroy = false;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Throw");
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Throw", meta=(EditCondition="bExplodeOnDestroy"));
 	float ExplodeRadius = 0.f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Throw");
