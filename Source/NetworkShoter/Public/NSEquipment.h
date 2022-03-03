@@ -10,6 +10,9 @@ class AWeapon;
 class AGrenade;
 class UWeaponData;
 
+/** [client] call on weapons rep notify */
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWeaponUpdated);
+
 /** Struct for stored grenades and their count */
 USTRUCT(BlueprintType)
 struct FGrenadeCount
@@ -67,6 +70,9 @@ public:
     UFUNCTION(BlueprintCallable, BlueprintPure)
     AWeapon* GetEquippedWeapon() {return EquippedWeapon; };
 
+	/** Get all weapons ref */
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	TArray<AWeapon*> GetAllWeapons();
 	
 	/** [Server] Return Grenade ptr in selected slot*/
 	UFUNCTION(BlueprintCallable, BlueprintPure)
@@ -98,7 +104,7 @@ protected:
 
 	
 	/** Store weapons */
-	UPROPERTY(Replicated)
+	UPROPERTY(ReplicatedUsing=OnRep_Weapons)
 	TArray<AWeapon*> Weapons;
 
 	/** Store Grenades */
@@ -120,4 +126,9 @@ private:
 	/** Redirect EquipWeapon.Client to EquipWeapon.Server */
 	UFUNCTION(Reliable, Server)
 	void ServerEquipWeapon(int32 Slot);
+	
+	UFUNCTION()
+	void OnRep_Weapons();
+	UPROPERTY(BlueprintAssignable)
+	FWeaponUpdated WeaponUpdated;
 };

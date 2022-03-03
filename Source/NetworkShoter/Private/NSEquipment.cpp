@@ -54,14 +54,29 @@ bool UNSEquipment::PickUpWeapon(AWeapon* Weapon)
 	case EWeaponType::RangeWeapon:
 		{
 			//add weapon in array
+			//first loop if weapon already in storage
+			//second for find free spot
 			bool bFreeSlot = false;
 			for (auto& WeaponSlot : Weapons)
 			{
-				if (WeaponSlot == nullptr || WeaponSlot == Weapon)
+				if (WeaponSlot == Weapon)
 				{
 					bFreeSlot=true;
 					WeaponSlot = Weapon;
 					break;
+				}
+			}
+			
+			if (!bFreeSlot)
+			{
+				for (auto& WeaponSlot : Weapons)
+				{
+					if (WeaponSlot == nullptr)
+					{
+						bFreeSlot=true;
+						WeaponSlot = Weapon;
+						break;
+					}
 				}
 			}
 			
@@ -182,6 +197,11 @@ void UNSEquipment::EquipNextWeapon(bool Up)
 }
 
 
+TArray<AWeapon*> UNSEquipment::GetAllWeapons()
+{
+	return Weapons;
+}
+
 AWeapon* UNSEquipment::GetGrenade(int32 Slot, bool bWithRemove)
 {
 	if (!Grenades.IsValidIndex(Slot))
@@ -292,6 +312,11 @@ AWeapon* UNSEquipment::UnequipWeapon(bool bAddInStorage)
 		return TempWeapon;
 	}
 	return nullptr;
+}
+
+void UNSEquipment::OnRep_Weapons()
+{
+	WeaponUpdated.Broadcast();
 }
 
 void UNSEquipment::ServerEquipWeapon_Implementation(int32 Slot)
