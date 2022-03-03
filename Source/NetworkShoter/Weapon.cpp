@@ -24,6 +24,7 @@ void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeP
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
 	DOREPLIFETIME(AWeapon, Status);
+	DOREPLIFETIME(AWeapon, WeaponData);
 }
 
 void AWeapon::SetupData(UWeaponData* Data)

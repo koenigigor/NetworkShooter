@@ -33,7 +33,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	virtual void SetupData(UWeaponData* WeaponData);
 
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly, Replicated)
 	UWeaponData* WeaponData;
 
 	/** set velocity and activate projectile movement */
