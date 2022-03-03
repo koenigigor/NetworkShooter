@@ -5,6 +5,7 @@
 
 #include "DrawDebugHelpers.h"
 #include "NSEquipment.h"
+#include "Camera/CameraComponent.h"
 #include "NetworkShoter/Weapon.h"
 
 void UAbilityTask_PlayerShootTrace::Activate()
@@ -18,10 +19,22 @@ void UAbilityTask_PlayerShootTrace::Activate()
 	
 	//Get point where character view
 	FVector ViewStart;
-	FRotator ViewRotation;
+	FVector ViewVector;
 	FHitResult ViewHit;
-	GetOwnerActor()->GetInstigator()->GetController()->GetActorEyesViewPoint(ViewStart, ViewRotation);
-	FVector ViewEnd = ViewRotation.Vector() * ShootDistantion;
+
+	auto Camera = GetAvatarActor()->GetInstigator()->FindComponentByClass<UCameraComponent>();
+	if (Camera)
+	{
+		ViewStart = Camera->GetComponentLocation();
+		ViewVector = Cast<AActor>(GetAvatarActor()->GetInstigatorController())->GetActorForwardVector(); //GetActorForwardVector in controller is hidden
+	}
+	else
+	{
+		FRotator ViewRotation;
+		GetOwnerActor()->GetInstigator()->GetController()->GetActorEyesViewPoint(ViewStart, ViewRotation);
+		ViewVector = ViewRotation.Vector();
+	}
+	FVector ViewEnd = ViewVector * ShootDistantion + ViewStart;
 	
 	//ECC_GameTraceChannel2 weapon channel
 	GetWorld()->LineTraceSingleByChannel(ViewHit, ViewStart, ViewEnd, ECollisionChannel::ECC_GameTraceChannel2, QueryParams);
