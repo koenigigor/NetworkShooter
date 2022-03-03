@@ -197,6 +197,11 @@ void UNSEquipment::EquipNextWeapon(bool Up)
 }
 
 
+int32 UNSEquipment::GetEquippedWeaponSlot()
+{
+	return EquippedWeaponSlot;
+}
+
 TArray<AWeapon*> UNSEquipment::GetAllWeapons()
 {
 	return Weapons;
@@ -312,6 +317,11 @@ AWeapon* UNSEquipment::UnequipWeapon(bool bAddInStorage)
 		return TempWeapon;
 	}
 	return nullptr;
+}
+
+void UNSEquipment::OnRep_SelectWeapon()
+{
+	SlotSelected.Broadcast();
 }
 
 void UNSEquipment::OnRep_Weapons()

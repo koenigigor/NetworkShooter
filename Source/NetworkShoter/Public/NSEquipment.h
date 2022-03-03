@@ -10,8 +10,9 @@ class AWeapon;
 class AGrenade;
 class UWeaponData;
 
-/** [client] call on weapons rep notify */
+/** [client] call rep notify */
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWeaponUpdated);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FSlotSelected);
 
 /** Struct for stored grenades and their count */
 USTRUCT(BlueprintType)
@@ -69,6 +70,10 @@ public:
 	/** Get Equipped weapon ref */
     UFUNCTION(BlueprintCallable, BlueprintPure)
     AWeapon* GetEquippedWeapon() {return EquippedWeapon; };
+	
+	/** Get Equipped weapon slot */
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	int32 GetEquippedWeaponSlot();
 
 	/** Get all weapons ref */
 	UFUNCTION(BlueprintCallable, BlueprintPure)
@@ -119,7 +124,7 @@ protected:
 	AWeapon* EquippedWeapon = nullptr;
 	
 	/** Slot where weapon current equip */
-	UPROPERTY(Replicated)
+	UPROPERTY(ReplicatedUsing=OnRep_SelectWeapon)
 	int32 EquippedWeaponSlot = -1;
 
 private:
@@ -131,4 +136,9 @@ private:
 	void OnRep_Weapons();
 	UPROPERTY(BlueprintAssignable)
 	FWeaponUpdated WeaponUpdated;
+
+	UFUNCTION()
+	void OnRep_SelectWeapon();
+	UPROPERTY(BlueprintAssignable)
+	FSlotSelected SlotSelected;
 };
