@@ -151,7 +151,19 @@ bool UNSEquipment::EquipWeapon(int32 Slot)
 	{
 		auto AbilitySystem = IAbilitySystem->GetAbilitySystemComponent();
 		
-		AbilitySystem->InitStats(UWeaponAttributeSet::StaticClass(), WeaponToEquip->WeaponData->AttributeSet);
+		//depricated //AbilitySystem->InitStats(UWeaponAttributeSet::StaticClass(), WeaponToEquip->WeaponData->AttributeSet);
+
+		//get weapon attribute
+		TArray<UAttributeSet*> AllAttributes = AbilitySystem->GetSpawnedAttributes();
+		for (const auto& Attribute : AllAttributes)
+		{
+			if (Attribute && Attribute->IsA(UWeaponAttributeSet::StaticClass()))
+			{
+				auto WeaponAttributeSet = Cast<UWeaponAttributeSet>(Attribute);
+				//copy attributes from weapon
+				WeaponAttributeSet->CopyFrom(WeaponToEquip->WeaponAttributeSet);
+			}
+		} 
 
 		if (IsValid(WeaponToEquip->WeaponData->PrimaryAbility))
 			AbilitySystem->GiveAbility(FGameplayAbilitySpec(WeaponToEquip->WeaponData->PrimaryAbility));
@@ -312,6 +324,19 @@ AWeapon* UNSEquipment::UnequipWeapon(bool bAddInStorage)
 				AbilitySystem->ClearAbility(AbilitySystem->FindAbilitySpecFromClass(EquippedWeapon->WeaponData->SecondaryAbility)->Handle);
 			if (IsValid(EquippedWeapon->WeaponData->Throw))
 				AbilitySystem->ClearAbility(AbilitySystem->FindAbilitySpecFromClass(EquippedWeapon->WeaponData->Throw)->Handle);
+			
+			//copy attribute to weapon attribute (for save current ammo, etc)
+			//get weapon attribute (GetOrCreateAttributeSubobject(Attributes) is private)
+			TArray<UAttributeSet*> AllAttributes = AbilitySystem->GetSpawnedAttributes();
+			for (const auto& Attribute : AllAttributes)
+			{
+				if (Attribute && Attribute->IsA(UWeaponAttributeSet::StaticClass()))
+				{
+					auto WeaponAttributeSet = Cast<UWeaponAttributeSet>(Attribute);
+					//copy stats
+					EquippedWeapon->WeaponAttributeSet->CopyFrom(WeaponAttributeSet);
+				}
+			} 
 		}
 
 		auto TempWeapon = EquippedWeapon;

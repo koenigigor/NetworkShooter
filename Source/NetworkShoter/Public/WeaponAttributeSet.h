@@ -25,6 +25,9 @@ class NETWORKSHOTER_API UWeaponAttributeSet : public UAttributeSet
 public:
 	UWeaponAttributeSet();
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	/** Copy params from other WeaponAttributeSet */
+	void CopyFrom(const UWeaponAttributeSet* Other);
 	
 	/** Weapon parameters, must be set when weapon equip */ //TODO check if can make 2 attribute set in character? make weapon attribute set
 

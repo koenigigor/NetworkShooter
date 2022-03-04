@@ -26,3 +26,13 @@ void UWeaponAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 	DOREPLIFETIME_CONDITION(UWeaponAttributeSet, ReloadTime, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(UWeaponAttributeSet, MeleePerSecond, COND_OwnerOnly);
 }
+
+void UWeaponAttributeSet::CopyFrom(const UWeaponAttributeSet* Other)
+{
+	WeaponDamage = Other->WeaponDamage;
+	Ammo = Other->Ammo;
+	MaxAmmo = Other->MaxAmmo;
+	ShootsPerSec = Other->ShootsPerSec;
+	ReloadTime = Other->ReloadTime;
+	MeleePerSecond = Other->MeleePerSecond;
+}

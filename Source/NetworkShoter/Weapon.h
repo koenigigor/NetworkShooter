@@ -36,6 +36,9 @@ public:
 	UPROPERTY(BlueprintReadOnly, Replicated)
 	UWeaponData* WeaponData;
 
+	UPROPERTY()
+	UWeaponAttributeSet* WeaponAttributeSet = nullptr;
+
 	/** set velocity and activate projectile movement */
 	UFUNCTION(BlueprintCallable)
 	void LaunchAsProjectile(FVector Velocity);

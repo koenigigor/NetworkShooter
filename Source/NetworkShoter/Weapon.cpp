@@ -39,6 +39,17 @@ void AWeapon::SetupData(UWeaponData* Data)
 	
 	//set mesh
 	WeaponMesh->SetStaticMesh( Data->Mesh);
+
+	
+	//init attribute
+	if (WeaponData->AttributeSet)
+	{
+		if (!WeaponAttributeSet)
+		{ WeaponAttributeSet = NewObject<UWeaponAttributeSet>(this, UWeaponAttributeSet::StaticClass()); }
+		
+		WeaponAttributeSet->InitFromMetaDataTable(WeaponData->AttributeSet);
+	}
+	
 }
 
 void AWeapon::LaunchAsProjectile(FVector Velocity)
