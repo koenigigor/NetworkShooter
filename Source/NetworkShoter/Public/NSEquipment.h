@@ -12,6 +12,7 @@ class UWeaponData;
 
 /** [client] call rep notify */
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWeaponUpdated);
+/** [client] and [server] */
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FSlotSelected);
 
 /** Struct for stored grenades and their count */

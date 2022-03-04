@@ -164,6 +164,8 @@ bool UNSEquipment::EquipWeapon(int32 Slot)
 	EquippedWeaponSlot = Slot;
 	EquippedWeapon = WeaponToEquip;
 
+	SlotSelected.Broadcast();
+
 	//Unhide weapon from storage
 	EquippedWeapon -> SetStatus(EWeaponStatus::Equipped);
 		
