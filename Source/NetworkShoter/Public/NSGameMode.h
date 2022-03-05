@@ -17,7 +17,8 @@ class NETWORKSHOTER_API ANSGameMode : public AGameMode
 	GENERATED_BODY()
 
 	/** must be called when character kill someone (other character) */
-	void CharacterKilled(APawn* KillInstigator, AActor* WhoKilled, AActor* Causer);
+	UFUNCTION(BlueprintCallable, meta=(DefaultToSelf="WhoKilled"))
+	void CharacterKilled(AController* InstigatedBy, AActor* WhoKilled, AActor* DamageCauser);
 
 	/** Return spawn points where Pawn can be spawned */
 	TArray<ANSPlayerStart*> GetFreePlayerStarts(FName CommandName);

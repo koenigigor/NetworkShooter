@@ -3,7 +3,7 @@
 
 #include "NSGameMode.h"
 
-void ANSGameMode::CharacterKilled(APawn* KillInstigator, AActor* WhoKilled, AActor* Causer)
+void ANSGameMode::CharacterKilled(AController* InstigatedBy, AActor* WhoKilled, AActor* DamageCauser)
 {
 	//do something
 
