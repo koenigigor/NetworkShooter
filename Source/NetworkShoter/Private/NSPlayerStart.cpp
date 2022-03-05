@@ -3,3 +3,10 @@
 
 #include "NSPlayerStart.h"
 
+bool ANSPlayerStart::CanSpawn(FName CommandName)
+{
+	//get owerlaping actors
+	//must be not any pawn
+
+	return true;
+}

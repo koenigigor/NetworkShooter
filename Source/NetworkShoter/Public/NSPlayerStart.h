@@ -13,5 +13,9 @@ UCLASS()
 class NETWORKSHOTER_API ANSPlayerStart : public APlayerStart
 {
 	GENERATED_BODY()
-	
+
+	/** Return true if pawn can be spawned in this point
+	 * @CommandName Actor has this tag
+	 */
+	bool CanSpawn(FName CommandName);
 };

@@ -6,6 +6,8 @@
 #include "GameFramework/GameMode.h"
 #include "NSGameMode.generated.h"
 
+class ANSPlayerStart;
+
 /**
  * Base GameMode Class for network shooter
  */
@@ -15,5 +17,14 @@ class NETWORKSHOTER_API ANSGameMode : public AGameMode
 	GENERATED_BODY()
 
 	/** must be called when character kill someone (other character) */
-	void CharacterKilled(APawn* Instigator, AActor* WhoKilled, AActor* Causer);
+	void CharacterKilled(APawn* KillInstigator, AActor* WhoKilled, AActor* Causer);
+
+	/** Return spawn points where Pawn can be spawned */
+	TArray<ANSPlayerStart*> GetFreePlayerStarts(FName CommandName);
+
+	//Spawn Character in his command player start, and possess to it
+	APawn* SpawnPlayer(APlayerController* Controller);
+
+	//Spawn Spectator
+	APawn* SpawnSpectator(APlayerController* Controller);
 };
