@@ -5,6 +5,8 @@
 #include "NetShooterAttributeSet.h"
 #include "WeaponAttributeSet.h"
 #include "AbilitySystemComponent.h"
+#include "NSPlayerState.h"
+#include "PCNetShooter.h"
 
 struct FAttribCapture
 {
@@ -85,4 +87,12 @@ void UGECalculationShoot::Execute_Implementation(const FGameplayEffectCustomExec
 	{
 		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(GetAttributeCapture().ArmorProperty, EGameplayModOp::Override, OutArmor));
 	}
+
+
+	//Client notify prorotype
+	if (auto Controller = Cast<APCNetShooter>(TargetActor->GetInstigatorController()))
+	{
+		auto FromDirection = (TargetActor->GetActorLocation() - SourceActor->GetActorLocation()).GetSafeNormal();
+		Controller->NotifyReceiveDamage_Implementation(ResultDamage, FromDirection, FName(SourceActor->GetInstigatorController()->GetName()), SourceActor);
+	};
 }

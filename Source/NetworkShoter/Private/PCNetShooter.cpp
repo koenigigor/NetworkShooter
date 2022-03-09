@@ -54,3 +54,8 @@ void APCNetShooter::OnAbilityActivate(UGameplayAbility* ActivatedAbility)
 		StartReload();
 	}
 }*/
+void APCNetShooter::NotifyReceiveDamage_Implementation(float Damage, FVector FromDirection, FName InstigatorName,
+	AActor* DamageCauser)
+{
+	UE_LOG(LogTemp, Warning, TEXT("PC: client receive damage %f, from %s"), Damage, *InstigatorName.ToString())
+}

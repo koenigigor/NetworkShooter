@@ -15,7 +15,9 @@ class NETWORKSHOTER_API APCNetShooter : public APlayerController
 {
 	GENERATED_BODY()
 
-
+	/** Notify player about incoming damage for cosmetic (Ui notify, kill feed etc) */
+	UFUNCTION(Client, Unreliable, BlueprintCosmetic)
+	void NotifyReceiveDamage(float Damage, FVector FromDirection, FName InstigatorName, AActor* DamageCauser);
 
 
 	/* is server side notifiers

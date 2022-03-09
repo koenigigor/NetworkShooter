@@ -3,11 +3,18 @@
 
 #include "NSGameMode.h"
 
-void ANSGameMode::CharacterKilled(AController* InstigatedBy, AActor* WhoKilled, AActor* DamageCauser)
+void ANSGameMode::BeginPlay()
+{
+	Super::BeginPlay();
+
+	PlayerDeath.AddDynamic(this, &ANSGameMode::CharacterKilled);
+}
+
+void ANSGameMode::CharacterKilled(APawn* WhoKilled, AController* InstigatedBy, AActor* DamageCauser)
 {
 	//do something
 
-	//Broadcast
+	UE_LOG(LogTemp, Warning, TEXT("Gamemoge say: %s is died"), *WhoKilled->GetName())
 }
 
 TArray<ANSPlayerStart*> ANSGameMode::GetFreePlayerStarts(FName CommandName)
