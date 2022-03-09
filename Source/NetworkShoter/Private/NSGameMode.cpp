@@ -3,6 +3,9 @@
 
 #include "NSGameMode.h"
 
+#include "NSPlayerStart.h"
+#include "Kismet/GameplayStatics.h"
+
 void ANSGameMode::BeginPlay()
 {
 	Super::BeginPlay();
@@ -28,8 +31,29 @@ TArray<ANSPlayerStart*> ANSGameMode::GetFreePlayerStarts(FName CommandName)
 
 APawn* ANSGameMode::SpawnPlayer(APlayerController* Controller)
 {
-	//todo
-	return nullptr;
+	//Get Player Start
+	ANSPlayerStart* ResultPlayerStart;
+	TArray<ANSPlayerStart*> ValidPlayerStarts;
+	TArray<AActor*> PlayerStarts;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ANSPlayerStart::StaticClass(), PlayerStarts);
+	for (const auto& PlayerStart : PlayerStarts)
+	{
+		auto LPlayerStart = StaticCast<ANSPlayerStart*>(PlayerStart);
+		if (LPlayerStart && LPlayerStart->CanSpawn(FName()))
+		{
+			ValidPlayerStarts.Add(LPlayerStart);
+		}
+	}
+	if (!ValidPlayerStarts.IsValidIndex(0)) { return nullptr; }
+	ResultPlayerStart = ValidPlayerStarts[ FMath::RandRange(int32(0), int32(ValidPlayerStarts.Num()-1)) ];
+	
+	//Spawn player pawn
+	//GetWorld()->SpawnActor(DefaultPawnClass, ResultPlayerStart->GetTransform());
+	auto NewPawn = SpawnDefaultPawnFor(Controller, ResultPlayerStart);
+	
+	//possess on pawn
+	Controller->Possess(NewPawn);
+	return NewPawn;
 }
 
 APawn* ANSGameMode::SpawnSpectator(APlayerController* Controller)

@@ -33,6 +33,7 @@ protected:
 	TArray<ANSPlayerStart*> GetFreePlayerStarts(FName CommandName);
 
 	//Spawn Character in his command player start, and possess to it
+	UFUNCTION(BlueprintCallable)
 	APawn* SpawnPlayer(APlayerController* Controller);
 
 	//Spawn Spectator
