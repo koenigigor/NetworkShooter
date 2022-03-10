@@ -4,6 +4,8 @@
 #include "NSGameMode.h"
 
 #include "NSPlayerStart.h"
+#include "PCNetShooter.h"
+#include "GameFramework/SpectatorPawn.h"
 #include "Kismet/GameplayStatics.h"
 
 void ANSGameMode::BeginPlay()
@@ -17,7 +19,7 @@ void ANSGameMode::CharacterKilled(APawn* WhoKilled, AController* InstigatedBy, A
 {
 	//do something
 
-	UE_LOG(LogTemp, Warning, TEXT("Gamemoge say: %s is died"), *WhoKilled->GetName())
+	UE_LOG(LogTemp, Warning, TEXT("GameMode say: %s is died"), *WhoKilled->GetName())
 }
 
 TArray<ANSPlayerStart*> ANSGameMode::GetFreePlayerStarts(FName CommandName)
@@ -59,9 +61,25 @@ APawn* ANSGameMode::SpawnPlayer(APlayerController* Controller)
 APawn* ANSGameMode::SpawnSpectator(APlayerController* Controller)
 {
 	//spawn spectator pawn
-	//transform?
+	APawn* SpawnedSpectator = nullptr;
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = Controller;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+	SpawnParams.ObjectFlags |= RF_Transient;	// We never want to save spectator pawns into a map
+	auto CastController = StaticCast<AActor*>(Controller);
+	SpawnedSpectator = GetWorld()->SpawnActor<ASpectatorPawn>(SpectatorClass, CastController->GetActorLocation(), Controller->GetControlRotation(), SpawnParams);
 
 	//possess
+	if (Controller->GetPawn())
+	{
+		Controller->UnPossess();
+	}
+	Controller -> Possess(SpawnedSpectator);
+
 	
-	return nullptr;
+	//set spectator pawn
+	//Controller -> ChangeState("Spectating");
+	
+	return SpawnedSpectator;
 }

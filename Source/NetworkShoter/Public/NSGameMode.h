@@ -37,5 +37,6 @@ protected:
 	APawn* SpawnPlayer(APlayerController* Controller);
 
 	//Spawn Spectator
+	UFUNCTION(BlueprintCallable)
 	APawn* SpawnSpectator(APlayerController* Controller);
 };
