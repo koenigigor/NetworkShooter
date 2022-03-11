@@ -18,6 +18,12 @@ void ANSSpectator::BeginPlay()
 	
 }
 
+void ANSSpectator::SetSpectatorMode(ESpectatorMode Mode)
+{
+
+	SpectatorMode = Mode;
+}
+
 // Called every frame
 void ANSSpectator::Tick(float DeltaTime)
 {

@@ -6,6 +6,14 @@
 #include "GameFramework/SpectatorPawn.h"
 #include "NSSpectator.generated.h"
 
+UENUM()
+enum class ESpectatorMode : uint8
+{
+	Free,
+	AttachToActor,
+	AroundActor
+};
+
 /**
  * Default spectator pawn class for network shooter
  */
@@ -19,10 +27,18 @@ public:
 	// Sets default values for this pawn's properties
 	ANSSpectator();
 
+	UFUNCTION(BlueprintPure)
+	ESpectatorMode GetSpectatorMode() const { return SpectatorMode; };
+	
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	UFUNCTION(BlueprintCallable)
+	void SetSpectatorMode(ESpectatorMode Mode);
+
+	UPROPERTY(VisibleAnywhere)
+	ESpectatorMode SpectatorMode = ESpectatorMode::Free;
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
