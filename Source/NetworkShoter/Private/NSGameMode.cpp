@@ -5,6 +5,7 @@
 
 #include "NSPlayerStart.h"
 #include "PCNetShooter.h"
+#include "Game/NSGameState.h"
 #include "GameFramework/SpectatorPawn.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -55,7 +56,19 @@ APawn* ANSGameMode::SpawnPlayer(APlayerController* Controller)
 	
 	//possess on pawn
 	Controller->Possess(NewPawn);
+	AddSpawnedPLayerInTeamList(NewPawn);
 	return NewPawn;
+}
+
+void ANSGameMode::AddSpawnedPLayerInTeamList(APawn* Pawn)
+{
+	//GetTeam name
+	//todo
+
+	if (auto GameState = GetGameState<ANSGameState>())
+	{
+		GameState->AddPlayerPawn(Pawn);	
+	}
 }
 
 APawn* ANSGameMode::SpawnSpectator(APlayerController* Controller)

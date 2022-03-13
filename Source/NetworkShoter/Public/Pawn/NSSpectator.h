@@ -16,6 +16,7 @@ enum class ESpectatorMode : uint8
 
 /**
  * Default spectator pawn class for network shooter
+ * TODO Client only
  */
 
 UCLASS()
@@ -36,6 +37,9 @@ protected:
 
 	UFUNCTION(BlueprintCallable)
 	void SetSpectatorMode(ESpectatorMode Mode);
+
+	//set Spectator as other actor camera
+	void SetModeAttachToActor();
 
 	UPROPERTY(VisibleAnywhere)
 	ESpectatorMode SpectatorMode = ESpectatorMode::Free;

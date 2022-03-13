@@ -36,6 +36,8 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	APawn* SpawnPlayer(APlayerController* Controller);
 
+	void AddSpawnedPLayerInTeamList(APawn* Pawn);
+
 	//Spawn Spectator
 	UFUNCTION(BlueprintCallable)
 	APawn* SpawnSpectator(APlayerController* Controller);
