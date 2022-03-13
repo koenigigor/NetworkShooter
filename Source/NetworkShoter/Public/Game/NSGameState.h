@@ -17,11 +17,11 @@ class NETWORKSHOTER_API ANSGameState : public AGameStateBase
 public:	
 	/** Add pawn in pawn list, called when player possess in Pawn */
 	UFUNCTION(BlueprintCallable)
-	virtual void AddPlayerPawn(APawn* Pawn, FName Team = "None");
+	virtual void AddPlayerPawn(APawn* Pawn);
 
 	/** Remove pawn in pawn from list, called when player possess in Pawn */
 	UFUNCTION(BlueprintCallable)
-	virtual void RemovePawn(APawn* Pawn, FName Team = "None");
+	virtual void RemovePawn(APawn* Pawn);
 	
 private:
 	UPROPERTY(ReplicatedUsing=OnRep_Team1)

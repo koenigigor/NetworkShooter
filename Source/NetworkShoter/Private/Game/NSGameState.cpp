@@ -5,12 +5,20 @@
 
 #include "Net/UnrealNetwork.h"
 
-void ANSGameState::AddPlayerPawn(APawn* Pawn, FName Team)
+void ANSGameState::AddPlayerPawn(APawn* Pawn)
 {
+	//get team name
+
+	//add pawn in team array
 }
 
-void ANSGameState::RemovePawn(APawn* Pawn, FName Team)
+void ANSGameState::RemovePawn(APawn* Pawn)
 {
+	//get team name
+
+	//remove pawn from team array
+
+	//client rep notify on removed (for swap spectator)
 }
 
 void ANSGameState::OnRep_Team1()

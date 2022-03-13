@@ -21,6 +21,8 @@ void ANSGameMode::CharacterKilled(APawn* WhoKilled, AController* InstigatedBy, A
 	//do something
 
 	UE_LOG(LogTemp, Warning, TEXT("GameMode say: %s is died"), *WhoKilled->GetName())
+
+	GetGameState<ANSGameState>() -> RemovePawn(WhoKilled);
 }
 
 TArray<ANSPlayerStart*> ANSGameMode::GetFreePlayerStarts(FName CommandName)
@@ -56,19 +58,10 @@ APawn* ANSGameMode::SpawnPlayer(APlayerController* Controller)
 	
 	//possess on pawn
 	Controller->Possess(NewPawn);
-	AddSpawnedPLayerInTeamList(NewPawn);
+	
+	GetGameState<ANSGameState>() -> AddPlayerPawn(NewPawn);
+	
 	return NewPawn;
-}
-
-void ANSGameMode::AddSpawnedPLayerInTeamList(APawn* Pawn)
-{
-	//GetTeam name
-	//todo
-
-	if (auto NSGameState = GetGameState<ANSGameState>())
-	{
-		NSGameState->AddPlayerPawn(Pawn);	
-	}
 }
 
 APawn* ANSGameMode::SpawnSpectator(APlayerController* Controller)
