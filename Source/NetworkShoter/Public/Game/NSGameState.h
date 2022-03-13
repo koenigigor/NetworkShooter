@@ -34,4 +34,7 @@ private:
 	void OnRep_Team1();
 	UFUNCTION()
 	void OnRep_Team2();
+
+public:
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 };

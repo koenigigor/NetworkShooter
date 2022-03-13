@@ -65,9 +65,9 @@ void ANSGameMode::AddSpawnedPLayerInTeamList(APawn* Pawn)
 	//GetTeam name
 	//todo
 
-	if (auto GameState = GetGameState<ANSGameState>())
+	if (auto NSGameState = GetGameState<ANSGameState>())
 	{
-		GameState->AddPlayerPawn(Pawn);	
+		NSGameState->AddPlayerPawn(Pawn);	
 	}
 }
 
