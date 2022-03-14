@@ -22,8 +22,14 @@ public:
 	/** Remove pawn in pawn from list, called when player possess in Pawn */
 	UFUNCTION(BlueprintCallable)
 	virtual void RemovePawn(APawn* Pawn);
+
+	/** return next actor in team array */
+	void GetNextActorInTeam(FName Team, AActor*& NextActorInTeam, int32& NumberInTeam, bool bNext = true);
 	
 private:
+	/** Return team list for specified team */
+	virtual void GetTeamList(FName Team, TArray<APawn*>*& TeamListPtr);
+	
 	UPROPERTY(ReplicatedUsing=OnRep_Team1)
 	TArray<APawn*> Team1;
 	

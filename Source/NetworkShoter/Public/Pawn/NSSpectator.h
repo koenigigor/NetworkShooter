@@ -38,8 +38,14 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void SetSpectatorMode(ESpectatorMode Mode);
 
-	//set Spectator as other actor camera
+	/** can fly arround all map */
+	void SetModeFree();
+
+	/** View from other actor camera */
 	void SetModeAttachToActor();
+
+	/** Attach to other actor, can rotate camera */
+	void SetModeAroundActor();
 
 	UPROPERTY(VisibleAnywhere)
 	ESpectatorMode SpectatorMode = ESpectatorMode::Free;
@@ -50,4 +56,10 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+private:
+	/** Actor who we attach (in AttachTo mode) */
+	TPair<AActor*, int32> AttachedActor;
+
+	UFUNCTION(BlueprintCallable)
+	AActor* GetAttachedActor();
 };

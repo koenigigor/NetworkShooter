@@ -58,8 +58,15 @@ APawn* ANSGameMode::SpawnPlayer(APlayerController* Controller)
 	
 	//possess on pawn
 	Controller->Possess(NewPawn);
-	
-	GetGameState<ANSGameState>() -> AddPlayerPawn(NewPawn);
+
+	if (auto NSGameState = GetGameState<ANSGameState>())
+	{
+		NSGameState -> AddPlayerPawn(NewPawn);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("ANSGameState not valid for GameMode"))
+	}
 	
 	return NewPawn;
 }
