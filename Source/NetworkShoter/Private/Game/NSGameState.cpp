@@ -52,11 +52,15 @@ void ANSGameState::RemovePawn(APawn* Pawn)
 
 void ANSGameState::GetNextActorInTeam(FName Team, AActor*& NextActorInTeam, int32& NumberInTeam, bool bNext)
 {
-	return;
-	/*
-	auto TeamList = GetTeamList(Team);
+	UE_LOG(LogTemp, Warning, TEXT("ANSGameState::GetNextActorInTeam started"))
 
-	if (TeamList.Num() <= 0)
+	//Get Team List for target team
+	TArray<APawn*>* TeamListPtr = nullptr;
+	GetTeamList(Team, TeamListPtr);
+	if (!ensure(TeamListPtr)) { return; }
+
+	//if Empty return failed result
+	if (TeamListPtr -> Num() <= 0)
 	{
 		NextActorInTeam = nullptr;
 		NumberInTeam = -1;
@@ -71,9 +75,9 @@ void ANSGameState::GetNextActorInTeam(FName Team, AActor*& NextActorInTeam, int3
 		int32 PreviousActorIndex = -1;
 		if (PreviousActorInTeam)
 		{
-			for (int32 i = 0; i < TeamList.Num(); i++)
-			{
-				if (TeamList[i] == PreviousActorInTeam)
+			for (int32 i = 0; i < TeamListPtr->Num(); i++)
+			{	
+				if ((*TeamListPtr)[i] == PreviousActorInTeam)
 				{
 					PreviousActorIndex = i;
 					break;
@@ -84,7 +88,7 @@ void ANSGameState::GetNextActorInTeam(FName Team, AActor*& NextActorInTeam, int3
 		//if previous actor not founded, check index
 		if (PreviousActorIndex == -1)
 		{
-			PreviousActorIndex = TeamList.IsValidIndex(NumberInTeam) ? NumberInTeam : -1;
+			PreviousActorIndex = TeamListPtr->IsValidIndex(NumberInTeam) ? NumberInTeam : -1;
 			//todo if dead character give self number, maybe need do -1, and protect 0 -> -1
 		}
 
@@ -95,18 +99,20 @@ void ANSGameState::GetNextActorInTeam(FName Team, AActor*& NextActorInTeam, int3
 			//return next or previous element
 			if (bNext)
 			{
-				int32 NextIndex = (PreviousActorIndex+1 < TeamList.Num()) ? PreviousActorIndex+1 : 0;
+				int32 NextIndex = (PreviousActorIndex+1 < TeamListPtr->Num()) ? PreviousActorIndex+1 : 0;
 				
-				NextActorInTeam = TeamList[NextIndex];
+				NextActorInTeam = (*TeamListPtr)[NextIndex];
 				NumberInTeam = NextIndex;
+				UE_LOG(LogTemp, Warning, TEXT("ANSGameState::GetNextActorInTeam NextActor founded by index : %d"), NumberInTeam)
 				return;
 			}
 			else
 			{
-				int32 PreviousIndex = (PreviousActorIndex-1 >= 0) ? PreviousActorIndex-1 : TeamList.Num()-1;
+				int32 PreviousIndex = (PreviousActorIndex-1 >= 0) ? PreviousActorIndex-1 : TeamListPtr->Num()-1;
 				
-				NextActorInTeam = TeamList[PreviousIndex];
+				NextActorInTeam = (*TeamListPtr)[PreviousIndex];
 				NumberInTeam = PreviousIndex;
+				UE_LOG(LogTemp, Warning, TEXT("ANSGameState::GetNextActorInTeam NextActor founded by index : %d"), NumberInTeam)
 				return;
 			}
 		}
@@ -114,10 +120,11 @@ void ANSGameState::GetNextActorInTeam(FName Team, AActor*& NextActorInTeam, int3
 	else
 	{
 		//return first element in team
-		NextActorInTeam = TeamList[0];
+		NextActorInTeam = (*TeamListPtr)[0];
 		NumberInTeam = 0;
+		UE_LOG(LogTemp, Warning, TEXT("ANSGameState::GetNextActorInTeam no next actor, get 0 element : %d"), NumberInTeam)
 		return;
-	}*/
+	}
 }
 
 void ANSGameState::GetTeamList(FName Team, TArray<APawn*>*& TeamListPtr)
