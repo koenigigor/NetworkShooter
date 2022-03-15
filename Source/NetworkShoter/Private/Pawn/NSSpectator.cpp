@@ -22,6 +22,27 @@ void ANSSpectator::BeginPlay()
 	
 }
 
+void ANSSpectator::SwapAttachedActor(bool bNext)
+{
+	UpdateAttachedActor(bNext);
+	
+	SetSpectatorMode(SpectatorMode);
+}
+
+void ANSSpectator::UpdateAttachedActor(bool bNext)
+{
+    if (auto NSGameState = Cast<ANSGameState>(GetWorld()->GetGameState()))
+    {
+    	//TODO team
+    	NSGameState -> GetNextActorInTeam("Team1", AttachedActor.Key, AttachedActor.Value);
+    }
+    
+    if (!AttachedActor.Key)
+    {
+    	UE_LOG(LogTemp, Warning, TEXT("ANSSpectator nothing to attach"))
+    }
+}
+
 void ANSSpectator::SetSpectatorMode(ESpectatorMode Mode)
 {
 	//exit from current mode
@@ -41,21 +62,14 @@ void ANSSpectator::SetSpectatorMode(ESpectatorMode Mode)
 
 void ANSSpectator::SetModeAttachToActor()
 {
-	//get actors list from game state
-	AActor* ActorToAttach = nullptr;
-	//todo
-	if (auto NSGameState = Cast<ANSGameState>(GetWorld()->GetGameState()))
-	{
-		//TODO team
-		NSGameState -> GetNextActorInTeam("Team1", AttachedActor.Key, AttachedActor.Value);
-		ActorToAttach = AttachedActor.Key;
-	}
+	//get next actor to attach
+	if (!AttachedActor.Key)
+		UpdateAttachedActor();
+	
+	AActor* ActorToAttach = AttachedActor.Key;
 	
 	if (!ActorToAttach)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("ANSSpectator::SetModeAttachToActor nothing to attach"))
 		return;
-	}
 	
 	//Set actor camera view
 	if (GetController())
@@ -69,7 +83,19 @@ void ANSSpectator::SetModeAttachToActor()
 
 void ANSSpectator::SetModeAroundActor()
 {
-	//todo
+	//get next actor to attach
+	if (!AttachedActor.Key)
+		UpdateAttachedActor();
+	
+	AActor* ActorToAttach = AttachedActor.Key;
+	
+	if (!ActorToAttach)
+		return;
+
+	//Attach SpectatorPawn to Actor
+	this->AttachToActor(ActorToAttach, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+
+	//set movement
 }
 
 // Called every frame

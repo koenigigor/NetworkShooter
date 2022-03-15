@@ -35,6 +35,14 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	//if mode Attached, swap actor to next
+	UFUNCTION(BlueprintCallable)
+	void SwapAttachedActor(bool bNext=true);
+	
+	//Update AttachedActor reference
+	void UpdateAttachedActor(bool bNext=true);
+	
+	//Set spectator mode
 	UFUNCTION(BlueprintCallable)
 	void SetSpectatorMode(ESpectatorMode Mode);
 
