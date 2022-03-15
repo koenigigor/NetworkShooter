@@ -52,8 +52,6 @@ void ANSGameState::RemovePawn(APawn* Pawn)
 
 void ANSGameState::GetNextActorInTeam(FName Team, AActor*& NextActorInTeam, int32& NumberInTeam, bool bNext)
 {
-	UE_LOG(LogTemp, Warning, TEXT("ANSGameState::GetNextActorInTeam started"))
-
 	//Get Team List for target team
 	TArray<APawn*>* TeamListPtr = nullptr;
 	GetTeamList(Team, TeamListPtr);
@@ -67,7 +65,7 @@ void ANSGameState::GetNextActorInTeam(FName Team, AActor*& NextActorInTeam, int3
 		return;
 	}
 
-	//on call, NextActor can give us previous selected actor
+	//if Previous actor or index was been set
 	auto PreviousActorInTeam = NextActorInTeam;
 	if (PreviousActorInTeam || (NumberInTeam>-1))
 	{
@@ -103,7 +101,6 @@ void ANSGameState::GetNextActorInTeam(FName Team, AActor*& NextActorInTeam, int3
 				
 				NextActorInTeam = (*TeamListPtr)[NextIndex];
 				NumberInTeam = NextIndex;
-				UE_LOG(LogTemp, Warning, TEXT("ANSGameState::GetNextActorInTeam NextActor founded by index : %d"), NumberInTeam)
 				return;
 			}
 			else
@@ -112,19 +109,15 @@ void ANSGameState::GetNextActorInTeam(FName Team, AActor*& NextActorInTeam, int3
 				
 				NextActorInTeam = (*TeamListPtr)[PreviousIndex];
 				NumberInTeam = PreviousIndex;
-				UE_LOG(LogTemp, Warning, TEXT("ANSGameState::GetNextActorInTeam NextActor founded by index : %d"), NumberInTeam)
 				return;
 			}
 		}
 	}
-	else
-	{
-		//return first element in team
-		NextActorInTeam = (*TeamListPtr)[0];
-		NumberInTeam = 0;
-		UE_LOG(LogTemp, Warning, TEXT("ANSGameState::GetNextActorInTeam no next actor, get 0 element : %d"), NumberInTeam)
-		return;
-	}
+
+	//if not set or not find, return 0 element
+	NextActorInTeam = (*TeamListPtr)[0];
+	NumberInTeam = 0;
+	return;
 }
 
 void ANSGameState::GetTeamList(FName Team, TArray<APawn*>*& TeamListPtr)
