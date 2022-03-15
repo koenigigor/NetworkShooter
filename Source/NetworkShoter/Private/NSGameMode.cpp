@@ -21,6 +21,9 @@ void ANSGameMode::CharacterKilled(APawn* WhoKilled, AController* InstigatedBy, A
 	//do something
 
 	UE_LOG(LogTemp, Warning, TEXT("GameMode say: %s is died"), *WhoKilled->GetName())
+	
+	if (WhoKilled->GetController()->IsPlayerController())
+		DeathControllers.Add(StaticCast<APlayerController*>(WhoKilled->GetController()));
 
 	GetGameState<ANSGameState>() -> RemovePawn(WhoKilled);
 }

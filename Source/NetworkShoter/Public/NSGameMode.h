@@ -27,7 +27,7 @@ public:
 protected:
 	/** must be called when character kill someone (other character) */
 	UFUNCTION(BlueprintCallable, meta=(DefaultToSelf="WhoKilled"))
-	void CharacterKilled(APawn* WhoKilled, AController* InstigatedBy, AActor* DamageCauser);
+	virtual void CharacterKilled(APawn* WhoKilled, AController* InstigatedBy, AActor* DamageCauser);
 
 	/** Return spawn points where Pawn can be spawned */
 	TArray<ANSPlayerStart*> GetFreePlayerStarts(FName CommandName);
@@ -35,4 +35,8 @@ protected:
 	//Spawn Character in his command player start, and possess to it
 	UFUNCTION(BlueprintCallable)
 	APawn* SpawnPlayer(APlayerController* Controller);
+	
+	/** Death controllers to respawn */
+	UPROPERTY()
+	TArray<APlayerController*> DeathControllers;
 };
