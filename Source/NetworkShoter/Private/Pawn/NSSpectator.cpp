@@ -15,19 +15,13 @@ ANSSpectator::ANSSpectator()
 	AttachedActor.Value = -1;
 }
 
-// Called when the game starts or when spawned
-void ANSSpectator::BeginPlay()
+// Called to bind functionality to input
+void ANSSpectator::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
-	Super::BeginPlay();
-	
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
 }
 
-void ANSSpectator::SwapAttachedActor(bool bNext)
-{
-	UpdateAttachedActor(bNext);
-	
-	SetSpectatorMode(SpectatorMode);
-}
 
 void ANSSpectator::UpdateAttachedActor(bool bNext)
 {
@@ -41,6 +35,18 @@ void ANSSpectator::UpdateAttachedActor(bool bNext)
     {
     	UE_LOG(LogTemp, Warning, TEXT("ANSSpectator nothing to attach"))
     }
+}
+
+/*-----------------------------*/
+/* Action with Spectator modes */
+
+void ANSSpectator::SwapAttachedActor(bool bNext)
+{
+	if (SpectatorMode == ESpectatorMode::Free) { return; }
+	
+	UpdateAttachedActor(bNext);
+	
+	SetSpectatorMode(SpectatorMode);
 }
 
 void ANSSpectator::SetSpectatorMode(ESpectatorMode Mode)
@@ -67,6 +73,10 @@ void ANSSpectator::SetSpectatorMode(ESpectatorMode Mode)
 		SetModeAroundActor();
 	}
 }
+
+
+/*------------------------------------*/
+/* internal Begin/End Spectator modes */
 
 void ANSSpectator::SetModeAttachToActor()
 {
@@ -122,23 +132,3 @@ void ANSSpectator::ExitModeAroundActor()
 {
 	
 }
-
-// Called every frame
-void ANSSpectator::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
-
-// Called to bind functionality to input
-void ANSSpectator::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-}
-
-AActor* ANSSpectator::GetAttachedActor()
-{
-	return AttachedActor.Key;
-}
-

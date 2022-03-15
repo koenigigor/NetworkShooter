@@ -28,51 +28,49 @@ public:
 	// Sets default values for this pawn's properties
 	ANSSpectator();
 
-	UFUNCTION(BlueprintPure)
-	ESpectatorMode GetSpectatorMode() const { return SpectatorMode; };
-	
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+	// Called to bind functionality to input
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	//if mode Attached, swap actor to next
+	/* if mode Attached, swap actor to next */
 	UFUNCTION(BlueprintCallable)
 	void SwapAttachedActor(bool bNext=true);
+
+	/* Set spectator mode */
+    UFUNCTION(BlueprintCallable)
+    void SetSpectatorMode(ESpectatorMode Mode);
 	
+protected:
 	//Update AttachedActor reference
 	void UpdateAttachedActor(bool bNext=true);
-	
-	//Set spectator mode
-	UFUNCTION(BlueprintCallable)
-	void SetSpectatorMode(ESpectatorMode Mode);
+
+	/*----------------------------------*/
+	/** Begin/End from spectator modes **/
+	/*----------------------------------*/
 
 	/** can fly arround all map */
 	void SetModeFree();
-
+	
 	/** View from other actor camera */
 	void SetModeAttachToActor();
 
 	/** Attach to other actor, can rotate camera */
 	void SetModeAroundActor();
-
-	/*----------------------------*/
-	/** Exit from spectator mode **/
+	
 	void ExitModeAttachToActor();
 	void ExitModeAroundActor();
 
-	UPROPERTY(VisibleAnywhere)
-	ESpectatorMode SpectatorMode = ESpectatorMode::Free;
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 private:
+	UPROPERTY(VisibleAnywhere)
+	ESpectatorMode SpectatorMode = ESpectatorMode::Free;
+	
 	/** Actor who we attach (in AttachTo mode) */
 	TPair<AActor*, int32> AttachedActor;
 
-	UFUNCTION(BlueprintCallable)
-	AActor* GetAttachedActor();
+public:
+	UFUNCTION(BlueprintPure)
+	AActor* GetAttachedActor() const { return AttachedActor.Key; };
+
+	UFUNCTION(BlueprintPure)
+	ESpectatorMode GetSpectatorMode() const { return SpectatorMode; };
 };
