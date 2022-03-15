@@ -13,6 +13,8 @@ ANSSpectator::ANSSpectator()
 
 	AttachedActor.Key = nullptr;
 	AttachedActor.Value = -1;
+	
+	bReplicates = false;
 }
 
 // Called to bind functionality to input

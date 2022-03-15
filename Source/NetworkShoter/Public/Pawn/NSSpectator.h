@@ -16,7 +16,7 @@ enum class ESpectatorMode : uint8
 
 /**
  * Default spectator pawn class for network shooter
- * TODO Client only
+ * Client only
  */
 
 UCLASS()

@@ -3,6 +3,9 @@
 
 #include "PCNetShooter.h"
 
+#include "GameFramework/GameStateBase.h"
+#include "GameFramework/SpectatorPawn.h"
+
 //#include "WeaponAttributeSet.h"
 
 
@@ -58,4 +61,31 @@ void APCNetShooter::NotifyReceiveDamage_Implementation(float Damage, FVector Fro
 	AActor* DamageCauser)
 {
 	UE_LOG(LogTemp, Warning, TEXT("PC: client receive damage %f, from %s"), Damage, *InstigatorName.ToString())
+}
+
+APawn* APCNetShooter::SpawnSpectator()
+{
+	//spawn spectator pawn
+	APawn* SpawnedSpectator = nullptr;
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = this;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+	SpawnParams.ObjectFlags |= RF_Transient;	// We never want to save spectator pawns into a map
+	auto CastController = StaticCast<AActor*>(this);
+
+	auto SpectatorClass = GetWorld()->GetGameState()->SpectatorClass;
+	SpawnedSpectator = GetWorld()->SpawnActor<ASpectatorPawn>(SpectatorClass, CastController->GetActorLocation(), GetControlRotation(), SpawnParams);
+
+	bCanPossessWithoutAuthority = true;
+	//possess
+	if (GetPawn())
+	{
+		UnPossess();
+	}
+	Possess(SpawnedSpectator);
+
+	bCanPossessWithoutAuthority = false;
+	
+	return SpawnedSpectator;
 }

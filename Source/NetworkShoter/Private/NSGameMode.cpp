@@ -30,47 +30,48 @@ TArray<ANSPlayerStart*> ANSGameMode::GetFreePlayerStarts(FName CommandName)
 	TArray<ANSPlayerStart*> FreePoints;
 
 	//Get All Actors of class
+	TArray<AActor*> PlayerStarts;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ANSPlayerStart::StaticClass(), PlayerStarts);
+
+	for (const auto& PlayerStart : PlayerStarts)
+	{
+		auto NSPlayerStart = StaticCast<ANSPlayerStart*>(PlayerStart);  //here StaticCast always valid
+		if (NSPlayerStart -> CanSpawn(CommandName))
+		{
+			FreePoints.Add(NSPlayerStart);
+		}
+	}
 	
 	return FreePoints;
 }
 
 APawn* ANSGameMode::SpawnPlayer(APlayerController* Controller)
 {
-	//Get Player Start
-	ANSPlayerStart* ResultPlayerStart;
-	TArray<ANSPlayerStart*> ValidPlayerStarts;
-	TArray<AActor*> PlayerStarts;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ANSPlayerStart::StaticClass(), PlayerStarts);
-	for (const auto& PlayerStart : PlayerStarts)
-	{
-		auto LPlayerStart = StaticCast<ANSPlayerStart*>(PlayerStart);
-		if (LPlayerStart && LPlayerStart->CanSpawn(FName()))
-		{
-			ValidPlayerStarts.Add(LPlayerStart);
-		}
-	}
+	//TODO Get TEAM
+	FName Team = "Team1";
+	
+	TArray<ANSPlayerStart*> ValidPlayerStarts = GetFreePlayerStarts(Team);
 	if (!ValidPlayerStarts.IsValidIndex(0)) { return nullptr; }
-	ResultPlayerStart = ValidPlayerStarts[ FMath::RandRange(int32(0), int32(ValidPlayerStarts.Num()-1)) ];
+
+	//get random player start
+	ANSPlayerStart* ResultPlayerStart = ValidPlayerStarts[FMath::RandRange(int32(0), int32(ValidPlayerStarts.Num()-1))];
 	
 	//Spawn player pawn
 	//GetWorld()->SpawnActor(DefaultPawnClass, ResultPlayerStart->GetTransform());
 	auto NewPawn = SpawnDefaultPawnFor(Controller, ResultPlayerStart);
 	
-	//possess on pawn
 	Controller->Possess(NewPawn);
 
+	//add pawn in team list
 	if (auto NSGameState = GetGameState<ANSGameState>())
 	{
 		NSGameState -> AddPlayerPawn(NewPawn);
-	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("ANSGameState not valid for GameMode"))
 	}
 	
 	return NewPawn;
 }
 
+/*
 APawn* ANSGameMode::SpawnSpectator(APlayerController* Controller)
 {
 	//spawn spectator pawn
@@ -95,4 +96,4 @@ APawn* ANSGameMode::SpawnSpectator(APlayerController* Controller)
 	//Controller -> ChangeState("Spectating");
 	
 	return SpawnedSpectator;
-}
+}*/

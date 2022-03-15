@@ -5,54 +5,46 @@
 
 #include "Net/UnrealNetwork.h"
 
+
+void ANSGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ANSGameState, Team1);
+	DOREPLIFETIME(ANSGameState, Team2);
+}
+
+
 void ANSGameState::AddPlayerPawn(APawn* Pawn)
 {
-	//get team name TODO
+	//TODO Get team
 	FName TeamName = "Team1";
 
-	//add pawn in team array
+	//Get Team Array
 	TArray<APawn*>* TeamListPtr = nullptr;
-	//auto TeamList =
 	GetTeamList(TeamName, TeamListPtr);
-
-	if (!TeamListPtr)
-	{
-		UE_LOG(LogTemp, Error, TEXT("TeamListPtr is null"))
-		return;
-	}
+	if (!TeamListPtr) { return; }
 	
 	TeamListPtr -> AddUnique(Pawn);
-
-	//todo actually add in array? or it copy fo array
-
-	
-	/** Test **/
-	UE_LOG(LogTemp, Warning, TEXT("Added: Team1 Count: %d"), Team1.Num())
 }
 
 void ANSGameState::RemovePawn(APawn* Pawn)
 {
-	//get team name TODO
+	//TODO Get team
 	FName TeamName = "Team1";
 
 	
 	//remove pawn from team array
-	
 	TArray<APawn*>* TeamListPtr = nullptr;
 	GetTeamList(TeamName, TeamListPtr);
+	
 	if (TeamListPtr)
 		TeamListPtr -> Remove(Pawn);
-
-	
-	//client rep notify on removed (for swap spectator)
-
-	/** Test **/
-	UE_LOG(LogTemp, Warning, TEXT("Removed: TeamList Count: %d"), TeamListPtr -> Num())
 }
 
 void ANSGameState::GetNextActorInTeam(FName Team, AActor*& NextActorInTeam, int32& NumberInTeam, bool bNext)
 {
-	//Get Team List for target team
+	//Get Team array
 	TArray<APawn*>* TeamListPtr = nullptr;
 	GetTeamList(Team, TeamListPtr);
 	if (!ensure(TeamListPtr)) { return; }
@@ -142,10 +134,3 @@ void ANSGameState::OnRep_Team2()
 {
 }
 
-void ANSGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(ANSGameState, Team1);
-	DOREPLIFETIME(ANSGameState, Team2);
-}

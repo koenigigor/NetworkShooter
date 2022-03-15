@@ -19,7 +19,15 @@ class NETWORKSHOTER_API APCNetShooter : public APlayerController
 	UFUNCTION(Client, Unreliable, BlueprintCosmetic)
 	void NotifyReceiveDamage(float Damage, FVector FromDirection, FName InstigatorName, AActor* DamageCauser);
 
+	/** Enter spectator mode */
+	UFUNCTION(BlueprintCosmetic, BlueprintCallable)
+	APawn* SpawnSpectator();
 
+	//TODO check Spectator be garbage collected on Possess to character
+	//UPROPERTY()
+	//APawn* Spectator = nullptr;
+
+	
 	/* is server side notifiers
 protected:
 	UFUNCTION(BlueprintImplementableEvent)
