@@ -5,7 +5,7 @@
 
 #include "Game/NSGameState.h"
 
-// Sets default values
+
 ANSSpectator::ANSSpectator()
 {
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
@@ -17,7 +17,6 @@ ANSSpectator::ANSSpectator()
 	bReplicates = false;
 }
 
-// Called to bind functionality to input
 void ANSSpectator::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);

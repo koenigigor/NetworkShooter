@@ -57,7 +57,6 @@ APawn* ANSGameMode::SpawnPlayer(APlayerController* Controller)
 	ANSPlayerStart* ResultPlayerStart = ValidPlayerStarts[FMath::RandRange(int32(0), int32(ValidPlayerStarts.Num()-1))];
 	
 	//Spawn player pawn
-	//GetWorld()->SpawnActor(DefaultPawnClass, ResultPlayerStart->GetTransform());
 	auto NewPawn = SpawnDefaultPawnFor(Controller, ResultPlayerStart);
 	
 	Controller->Possess(NewPawn);
@@ -70,30 +69,3 @@ APawn* ANSGameMode::SpawnPlayer(APlayerController* Controller)
 	
 	return NewPawn;
 }
-
-/*
-APawn* ANSGameMode::SpawnSpectator(APlayerController* Controller)
-{
-	//spawn spectator pawn
-	APawn* SpawnedSpectator = nullptr;
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.Owner = Controller;
-	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
-	SpawnParams.ObjectFlags |= RF_Transient;	// We never want to save spectator pawns into a map
-	auto CastController = StaticCast<AActor*>(Controller);
-	SpawnedSpectator = GetWorld()->SpawnActor<ASpectatorPawn>(SpectatorClass, CastController->GetActorLocation(), Controller->GetControlRotation(), SpawnParams);
-
-	//possess
-	if (Controller->GetPawn())
-	{
-		Controller->UnPossess();
-	}
-	Controller -> Possess(SpawnedSpectator);
-
-	
-	//set spectator pawn
-	//Controller -> ChangeState("Spectating");
-	
-	return SpawnedSpectator;
-}*/

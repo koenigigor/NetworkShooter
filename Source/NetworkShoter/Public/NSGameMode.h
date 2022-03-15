@@ -35,8 +35,4 @@ protected:
 	//Spawn Character in his command player start, and possess to it
 	UFUNCTION(BlueprintCallable)
 	APawn* SpawnPlayer(APlayerController* Controller);
-
-	//Spawn Spectator
-//	UFUNCTION(BlueprintCallable)
-//	APawn* SpawnSpectator(APlayerController* Controller);
 };
