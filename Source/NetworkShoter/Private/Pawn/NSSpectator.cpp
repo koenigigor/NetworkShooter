@@ -46,6 +46,14 @@ void ANSSpectator::UpdateAttachedActor(bool bNext)
 void ANSSpectator::SetSpectatorMode(ESpectatorMode Mode)
 {
 	//exit from current mode
+	if (SpectatorMode == ESpectatorMode::AttachToActor)
+	{
+		ExitModeAttachToActor();
+	}
+	if (SpectatorMode == ESpectatorMode::AroundActor)
+	{
+		ExitModeAroundActor();
+	}
 	
 	SpectatorMode = Mode;
 
@@ -96,6 +104,23 @@ void ANSSpectator::SetModeAroundActor()
 	this->AttachToActor(ActorToAttach, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 
 	//set movement
+}
+
+void ANSSpectator::ExitModeAttachToActor()
+{
+	//return camera to self
+	if (GetController())
+	{
+		if (auto PlayerController = Cast<APlayerController>(GetController()))
+		{
+			PlayerController -> SetViewTarget(this);
+		}
+	}
+}
+
+void ANSSpectator::ExitModeAroundActor()
+{
+	
 }
 
 // Called every frame

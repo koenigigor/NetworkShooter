@@ -55,6 +55,11 @@ protected:
 	/** Attach to other actor, can rotate camera */
 	void SetModeAroundActor();
 
+	/*----------------------------*/
+	/** Exit from spectator mode **/
+	void ExitModeAttachToActor();
+	void ExitModeAroundActor();
+
 	UPROPERTY(VisibleAnywhere)
 	ESpectatorMode SpectatorMode = ESpectatorMode::Free;
 public:	
