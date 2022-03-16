@@ -31,7 +31,7 @@ protected:
 
 	//Spawn Character in his command player start, and possess to it
 	UFUNCTION(BlueprintCallable)
-	APawn* SpawnPlayer(APlayerController* Controller);
+	void SpawnPlayer(APlayerController* Controller);
 	
 	/** Death controllers to respawn */
 	UPROPERTY()

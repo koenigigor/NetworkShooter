@@ -29,24 +29,19 @@ void ANSGameMode::CharacterKilled(APawn* WhoKilled, AController* InstigatedBy, A
 	GetGameState<ANSGameState>() -> RemovePawn(WhoKilled);
 }
 
-APawn* ANSGameMode::SpawnPlayer(APlayerController* Controller)
+void ANSGameMode::SpawnPlayer(APlayerController* Controller)
 {
-	//get player start
-	auto PlayerStart = FindPlayerStart(Controller);
-	if (!PlayerStart) { return nullptr; }
+	//just restart player can teleport current possessed pawns to start point,
+	//here need spawn a new pawn
+	Controller->SetPawn(nullptr); //clear previous pawn (spectator)
 	
-	//Spawn player pawn
-	auto NewPawn = SpawnDefaultPawnFor(Controller, PlayerStart);
-	
-	Controller->Possess(NewPawn);
+	RestartPlayer(Controller);
 
 	//add pawn in team list
 	if (auto NSGameState = GetGameState<ANSGameState>())
 	{
-		NSGameState -> AddPlayerPawn(NewPawn);
+		NSGameState -> AddPlayerPawn(Controller->GetPawn());
 	}
-	
-	return NewPawn;
 }
 
 AActor* ANSGameMode::ChoosePlayerStart_Implementation(AController* Player)
@@ -94,3 +89,4 @@ AActor* ANSGameMode::ChoosePlayerStart_Implementation(AController* Player)
 	
 	return FoundPlayerStart;
 }
+
