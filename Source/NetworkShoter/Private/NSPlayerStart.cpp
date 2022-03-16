@@ -3,10 +3,16 @@
 
 #include "NSPlayerStart.h"
 
-#include "Components/CapsuleComponent.h"
+//#include "Components/CapsuleComponent.h"
 
-bool ANSPlayerStart::CanSpawn(FName CommandName)
+bool ANSPlayerStart::CanSpawn(AController* Controller)
 {
+	//Get team name from controller
+
+	//test team name with Start team
+
+
+	/** overlap tested in GameMode::ChoosePlayerStart
 	auto Capsule = Cast<UCapsuleComponent>(GetRootComponent());
 	Capsule->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Overlap);
 	Capsule->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
@@ -22,6 +28,7 @@ bool ANSPlayerStart::CanSpawn(FName CommandName)
 	{
 		return false;
 	}
+	*/
 	
 	return true;
 }

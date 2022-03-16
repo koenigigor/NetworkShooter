@@ -29,9 +29,6 @@ protected:
 	UFUNCTION(BlueprintCallable, meta=(DefaultToSelf="WhoKilled"))
 	virtual void CharacterKilled(APawn* WhoKilled, AController* InstigatedBy, AActor* DamageCauser);
 
-	/** Return spawn points where Pawn can be spawned */
-	TArray<ANSPlayerStart*> GetFreePlayerStarts(FName CommandName);
-
 	//Spawn Character in his command player start, and possess to it
 	UFUNCTION(BlueprintCallable)
 	APawn* SpawnPlayer(APlayerController* Controller);
@@ -39,4 +36,10 @@ protected:
 	/** Death controllers to respawn */
 	UPROPERTY()
 	TArray<APlayerController*> DeathControllers;
+	
+		/**  FindPlayerStart @IncomingName PlayerStart tag*/
+	/** Support function for FindPlayerStart */
+	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
+
+	//virtual void SetPlayerDefaults(APawn* PlayerPawn) override;
 };

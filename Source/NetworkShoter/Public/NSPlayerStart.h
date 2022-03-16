@@ -17,5 +17,5 @@ public:
 	/** Return true if pawn can be spawned in this point
 	 * @CommandName Actor has this tag
 	 */
-	bool CanSpawn(FName CommandName);
+	bool CanSpawn(AController* Controller);
 };

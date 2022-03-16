@@ -3,6 +3,7 @@
 
 #include "NSGameMode.h"
 
+#include "EngineUtils.h"
 #include "NSPlayerStart.h"
 #include "PCNetShooter.h"
 #include "Game/NSGameState.h"
@@ -28,39 +29,14 @@ void ANSGameMode::CharacterKilled(APawn* WhoKilled, AController* InstigatedBy, A
 	GetGameState<ANSGameState>() -> RemovePawn(WhoKilled);
 }
 
-TArray<ANSPlayerStart*> ANSGameMode::GetFreePlayerStarts(FName CommandName)
-{
-	TArray<ANSPlayerStart*> FreePoints;
-
-	//Get All Actors of class
-	TArray<AActor*> PlayerStarts;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ANSPlayerStart::StaticClass(), PlayerStarts);
-
-	for (const auto& PlayerStart : PlayerStarts)
-	{
-		auto NSPlayerStart = StaticCast<ANSPlayerStart*>(PlayerStart);  //here StaticCast always valid
-		if (NSPlayerStart -> CanSpawn(CommandName))
-		{
-			FreePoints.Add(NSPlayerStart);
-		}
-	}
-	
-	return FreePoints;
-}
-
 APawn* ANSGameMode::SpawnPlayer(APlayerController* Controller)
 {
-	//TODO Get TEAM
-	FName Team = "Team1";
-	
-	TArray<ANSPlayerStart*> ValidPlayerStarts = GetFreePlayerStarts(Team);
-	if (!ValidPlayerStarts.IsValidIndex(0)) { return nullptr; }
-
-	//get random player start
-	ANSPlayerStart* ResultPlayerStart = ValidPlayerStarts[FMath::RandRange(int32(0), int32(ValidPlayerStarts.Num()-1))];
+	//get player start
+	auto PlayerStart = FindPlayerStart(Controller);
+	if (!PlayerStart) { return nullptr; }
 	
 	//Spawn player pawn
-	auto NewPawn = SpawnDefaultPawnFor(Controller, ResultPlayerStart);
+	auto NewPawn = SpawnDefaultPawnFor(Controller, PlayerStart);
 	
 	Controller->Possess(NewPawn);
 
@@ -71,4 +47,50 @@ APawn* ANSGameMode::SpawnPlayer(APlayerController* Controller)
 	}
 	
 	return NewPawn;
+}
+
+AActor* ANSGameMode::ChoosePlayerStart_Implementation(AController* Player)
+{
+	// Choose a player start
+	APlayerStart* FoundPlayerStart = nullptr;
+	UClass* PawnClass = GetDefaultPawnClassForController(Player);
+	APawn* PawnToFit = PawnClass ? PawnClass->GetDefaultObject<APawn>() : nullptr;
+	TArray<APlayerStart*> UnOccupiedStartPoints;
+	TArray<APlayerStart*> OccupiedStartPoints;
+	UWorld* World = GetWorld();
+	for (TActorIterator<ANSPlayerStart> It(World); It; ++It)
+	{
+		ANSPlayerStart* PlayerStart = *It;
+
+		if (PlayerStart->CanSpawn(Player))
+		{
+			FVector ActorLocation = PlayerStart->GetActorLocation();
+			const FRotator ActorRotation = PlayerStart->GetActorRotation();
+			if (!World->EncroachingBlockingGeometry(PawnToFit, ActorLocation, ActorRotation))
+			{
+				UnOccupiedStartPoints.Add(PlayerStart);
+			}
+			else if (World->FindTeleportSpot(PawnToFit, ActorLocation, ActorRotation))
+			{
+				OccupiedStartPoints.Add(PlayerStart);
+			}
+		}
+	}
+
+	//if start not found
+	if (FoundPlayerStart == nullptr)
+	{
+		if (UnOccupiedStartPoints.Num() > 0)
+		{
+			FoundPlayerStart = UnOccupiedStartPoints[FMath::RandRange(0, UnOccupiedStartPoints.Num() - 1)];
+		}
+		else if (OccupiedStartPoints.Num() > 0)
+		{
+			FoundPlayerStart = OccupiedStartPoints[FMath::RandRange(0, OccupiedStartPoints.Num() - 1)];
+		}
+
+		UE_LOG(LogTemp, Error, TEXT("ANSGameMode::ChoosePlayerStart valid start not found"))
+	}
+	
+	return FoundPlayerStart;
 }
