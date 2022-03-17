@@ -82,9 +82,8 @@ AActor* ANSGameMode::ChoosePlayerStart_Implementation(AController* Player)
 		else if (OccupiedStartPoints.Num() > 0)
 		{
 			FoundPlayerStart = OccupiedStartPoints[FMath::RandRange(0, OccupiedStartPoints.Num() - 1)];
+			UE_LOG(LogTemp, Error, TEXT("ANSGameMode::ChoosePlayerStart free start not found"))
 		}
-
-		UE_LOG(LogTemp, Error, TEXT("ANSGameMode::ChoosePlayerStart valid start not found"))
 	}
 	
 	return FoundPlayerStart;
