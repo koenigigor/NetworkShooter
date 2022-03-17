@@ -18,7 +18,7 @@ class NETWORKSHOTER_API AGMDeathMatch : public ANSGameMode
 	float RespawnDelay = 5.f;
 	
 	
-	virtual void CharacterKilled(APawn* WhoKilled, AController* InstigatedBy, AActor* DamageCauser) override;
+	virtual void CharacterKilled(APawn* WhoKilled) override;
 
 	void RespawnDeathPlayer();
 };

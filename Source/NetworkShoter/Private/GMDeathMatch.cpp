@@ -3,9 +3,9 @@
 
 #include "GMDeathMatch.h"
 
-void AGMDeathMatch::CharacterKilled(APawn* WhoKilled, AController* InstigatedBy, AActor* DamageCauser)
+void AGMDeathMatch::CharacterKilled(APawn* WhoKilled)
 {
-	Super::CharacterKilled(WhoKilled, InstigatedBy, DamageCauser);
+	Super::CharacterKilled(WhoKilled);
 
 	//respawn after delay when he killed
 	FTimerHandle TimerHandle;

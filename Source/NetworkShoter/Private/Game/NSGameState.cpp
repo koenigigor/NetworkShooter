@@ -120,7 +120,7 @@ TArray<AController*> ANSGameState::GetAssist(AActor* DamagedActor)
 	return Assists;
 }
 
-void ANSGameState::AddStatisticWhenPawnKilled(APawn* WhoKilled, AController* InstigatedBy, AActor* DamageCauser)
+void ANSGameState::AddStatisticWhenPawnKilled(APawn* WhoKilled)
 {
 	if (DamageInfoList.Num() == 0) { return; } 
 		

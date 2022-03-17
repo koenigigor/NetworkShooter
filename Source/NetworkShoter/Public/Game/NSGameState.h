@@ -61,7 +61,7 @@ public:
 
 protected:
 	UFUNCTION()
-	void AddStatisticWhenPawnKilled(APawn* WhoKilled, AController* InstigatedBy, AActor* DamageCauser);
+	void AddStatisticWhenPawnKilled(APawn* WhoKilled);
 
 	
 public:

@@ -17,7 +17,7 @@ void ANSGameMode::BeginPlay()
 	PlayerDeath.AddDynamic(this, &ANSGameMode::CharacterKilled);
 }
 
-void ANSGameMode::CharacterKilled(APawn* WhoKilled, AController* InstigatedBy, AActor* DamageCauser)
+void ANSGameMode::CharacterKilled(APawn* WhoKilled)
 {
 	//do something
 

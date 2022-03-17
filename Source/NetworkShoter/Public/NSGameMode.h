@@ -8,7 +8,7 @@
 
 class ANSPlayerStart;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FNSPlayerDeath, APawn*, DamagedActor, AController*, DamageInstigator, AActor*, DamageCauser);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FNSPlayerDeath, APawn*, WhoKilled);
 
 /**
  * Base GameMode Class for network shooter
@@ -27,7 +27,7 @@ public:
 protected:
 	/** must be called when character kill someone (other character) */
 	UFUNCTION(BlueprintCallable, meta=(DefaultToSelf="WhoKilled"))
-	virtual void CharacterKilled(APawn* WhoKilled, AController* InstigatedBy, AActor* DamageCauser);
+	virtual void CharacterKilled(APawn* WhoKilled);
 
 	//Spawn Character in his command player start, and possess to it
 	UFUNCTION(BlueprintCallable)
