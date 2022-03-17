@@ -3,6 +3,8 @@
 
 #include "Game/NSGameState.h"
 
+#include "PCNetShooter.h"
+#include "GameFramework/PlayerState.h"
 #include "Net/UnrealNetwork.h"
 
 
@@ -12,6 +14,81 @@ void ANSGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 
 	DOREPLIFETIME(ANSGameState, Team1);
 	DOREPLIFETIME(ANSGameState, Team2);
+}
+
+void ANSGameState::ApplyDamageInfo(FDamageInfo DamageInfo)
+{
+	//if (!DamageInfo.IsValid) { return; }
+
+	//add info in list
+
+	UE_LOG(LogTemp, Warning, TEXT("%s deal %f damage to %s from %s"), *DamageInfo.InstigatorName, DamageInfo.Damage, *DamageInfo.DamagedActorName, *DamageInfo.DamageCauserName);
+
+	//temp prototype
+	auto PCNetShooter = Cast<APCNetShooter>(DamageInfo.DamagedActor->GetInstigatorController());
+	if (PCNetShooter)
+	{
+		PCNetShooter->NotifyReceiveDamage_Implementation(DamageInfo.Damage, FVector::ZeroVector, FName(DamageInfo.InstigatorName), DamageInfo.DamageCauser);
+	}
+}
+
+void ANSGameState::ApplyDamageInfoFromActors(AController* DamageInstigator, AActor* DamagedActor, AActor* DamageCauser, float Damage)
+{
+	FDamageInfo DamageInfo;
+	FString InstigatorName;
+	FString DamagedActorName;
+	FString CauserName;
+	
+	//Prepare DamageInstigator name
+	if (DamageInstigator)
+	{
+		if (DamageInstigator -> GetPlayerState<APlayerState>())
+		{
+			InstigatorName = DamageInstigator -> GetPlayerState<APlayerState>() -> GetPlayerName();
+		}
+		else
+		{
+			InstigatorName = DamageInstigator -> GetName();
+		}
+	}
+
+	//Prepare DamageReceiver name
+	if (DamagedActor->GetInstigatorController())
+	{
+		if (DamagedActor->GetInstigatorController()->GetPlayerState<APlayerState>())
+		{
+			DamagedActorName = DamagedActor->GetInstigatorController()->GetPlayerState<APlayerState>()->GetPlayerName();
+		}
+		else
+		{
+			DamagedActorName = DamagedActor->GetInstigatorController()->GetName();
+		}
+	}
+	else
+	{
+		DamagedActorName = DamagedActor->GetName();
+	}
+
+	//Prepare CauserName
+	//DamageInstigator->FindComponentByClass<ANSEquipnent>() -> GetEquippedWeapon() -> WeaponData -> Name;
+	CauserName = "TODO WeaponName";
+
+	
+	
+	DamageInfo.Damage = Damage;
+
+	DamageInfo.Instigator = DamageInstigator;
+	DamageInfo.InstigatorName = InstigatorName;
+
+	DamageInfo.DamagedActor = DamagedActor;
+	DamageInfo.DamagedActorName = DamagedActorName;
+	
+	DamageInfo.DamageCauser = DamageCauser;
+	DamageInfo.DamageCauserName = CauserName;
+	
+	DamageInfo.Time = GetWorld() -> GetTimeSeconds();
+	
+	ApplyDamageInfo(DamageInfo);
 }
 
 

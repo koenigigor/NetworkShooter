@@ -7,6 +7,7 @@
 #include "AbilitySystemComponent.h"
 #include "NSPlayerState.h"
 #include "PCNetShooter.h"
+#include "Game/NSGameState.h"
 
 struct FAttribCapture
 {
@@ -88,11 +89,11 @@ void UGECalculationShoot::Execute_Implementation(const FGameplayEffectCustomExec
 		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(GetAttributeCapture().ArmorProperty, EGameplayModOp::Override, OutArmor));
 	}
 
-
-	//Client notify prorotype
-	if (auto Controller = Cast<APCNetShooter>(TargetActor->GetInstigatorController()))
+/**********  TODO  **********/
+	//Notify GameState about damage
+	AActor* DamageCauser = nullptr;
+	if (SourceActor->GetWorld() && SourceActor->GetWorld() -> GetGameState<ANSGameState>())
 	{
-		auto FromDirection = (TargetActor->GetActorLocation() - SourceActor->GetActorLocation()).GetSafeNormal();
-		Controller->NotifyReceiveDamage_Implementation(ResultDamage, FromDirection, FName(SourceActor->GetInstigatorController()->GetName()), SourceActor);
-	};
+		SourceActor->GetWorld() -> GetGameState<ANSGameState>() -> ApplyDamageInfoFromActors(SourceActor->GetInstigatorController(), TargetActor, DamageCauser, ResultDamage);
+	}
 }

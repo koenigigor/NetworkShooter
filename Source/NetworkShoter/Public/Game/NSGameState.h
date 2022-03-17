@@ -7,6 +7,40 @@
 #include "NSGameState.generated.h"
 
 /**
+ * Struct for keep info about last damage
+ */
+USTRUCT()
+struct FDamageInfo
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	FString InstigatorName = "None";
+
+	UPROPERTY()
+	AController* Instigator = nullptr;
+
+	UPROPERTY()
+	FString DamagedActorName = "None";
+
+	UPROPERTY()
+	AActor* DamagedActor = nullptr;
+
+	UPROPERTY()
+	FString DamageCauserName = "None";
+
+	UPROPERTY()
+	AActor* DamageCauser = nullptr;
+	
+	UPROPERTY()
+	float Damage;
+
+	/** Time when damage was been applied */
+	UPROPERTY()
+	float Time;
+};
+
+/**
  * 
  */
 UCLASS()
@@ -15,7 +49,10 @@ class NETWORKSHOTER_API ANSGameState : public AGameStateBase
 	GENERATED_BODY()
 public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	void ApplyDamageInfo(FDamageInfo DamageInfo);
 	
+	void ApplyDamageInfoFromActors(AController* DamageInstigator, AActor* DamagedActor, AActor* DamageCauser, float Damage);
 	
 	/** Add pawn in pawn list, called from game mode when player possess in Pawn */
 	UFUNCTION(BlueprintCallable)
