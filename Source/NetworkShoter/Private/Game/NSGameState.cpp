@@ -3,6 +3,8 @@
 
 #include "Game/NSGameState.h"
 
+#include "NSGameMode.h"
+#include "NSPlayerState.h"
 #include "PCNetShooter.h"
 #include "GameFramework/PlayerState.h"
 #include "Net/UnrealNetwork.h"
@@ -16,14 +18,28 @@ void ANSGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME(ANSGameState, Team2);
 }
 
+void ANSGameState::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (GetWorld()->IsServer())
+	{
+		auto NSGameMode = Cast<ANSGameMode>(GetWorld()->GetAuthGameMode());
+		NSGameMode->PlayerDeath.AddDynamic(this, &ANSGameState::AddStatisticWhenPawnKilled);
+	}
+}
+
 void ANSGameState::ApplyDamageInfo(FDamageInfo DamageInfo)
 {
 	//if (!DamageInfo.IsValid) { return; }
 
 	//add info in list
+	DamageInfoList.Add(DamageInfo);
 
 	UE_LOG(LogTemp, Warning, TEXT("%s deal %f damage to %s from %s"), *DamageInfo.InstigatorName, DamageInfo.Damage, *DamageInfo.DamagedActorName, *DamageInfo.DamageCauserName);
 
+
+	
 	//temp prototype
 	auto PCNetShooter = Cast<APCNetShooter>(DamageInfo.DamagedActor->GetInstigatorController());
 	if (PCNetShooter)
@@ -89,6 +105,57 @@ void ANSGameState::ApplyDamageInfoFromActors(AController* DamageInstigator, AAct
 	DamageInfo.Time = GetWorld() -> GetTimeSeconds();
 	
 	ApplyDamageInfo(DamageInfo);
+}
+
+TArray<AController*> ANSGameState::GetAssist(AActor* DamagedActor)
+{
+	TArray<AController*> Assists;
+	for (const auto& Info : DamageInfoList)
+	{
+		if (Info.DamagedActor && Info.DamagedActor == DamagedActor && Info.Instigator)
+		{
+			Assists.AddUnique(Info.Instigator);
+		}
+	}
+	return Assists;
+}
+
+void ANSGameState::AddStatisticWhenPawnKilled(APawn* WhoKilled, AController* InstigatedBy, AActor* DamageCauser)
+{
+	if (DamageInfoList.Num() == 0) { return; } 
+		
+	//get last damage info for this pawn
+	FDamageInfo DamageInfo;
+	for (auto i = DamageInfoList.Num()-1; i>0; i--)
+	{
+		if (DamageInfoList[i].DamagedActor == WhoKilled)
+		{
+			DamageInfo = DamageInfoList[i];
+			break;
+		}
+	}
+	
+	//add death count
+    if (DamageInfo.Instigator)
+    {
+    	DamageInfo.Instigator -> GetPlayerState<ANSPlayerState>() -> AddKill();
+    }
+    
+    //add kill count
+    if (DamageInfo.DamagedActor && DamageInfo.DamagedActor->GetInstigatorController())
+    {
+    	DamageInfo.DamagedActor->GetInstigatorController() -> GetPlayerState<ANSPlayerState>() -> AddDeath();
+    }
+        		
+	//add assist count
+    auto AssistList = GetAssist(DamageInfo.DamagedActor);
+    for (const auto& Assistant : AssistList)
+	{
+		if (Assistant != DamageInfo.Instigator)
+		{
+			Assistant->GetPlayerState<ANSPlayerState>() -> AddAssist();
+        }
+    }			
 }
 
 

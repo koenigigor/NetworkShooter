@@ -8,6 +8,22 @@
 
 
 /**
+ * Struct for store battle stat
+ */
+USTRUCT(BlueprintType)
+struct FPlayerStatistic
+{
+	GENERATED_BODY()
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	int32 KillCount = 0;
+	UPROPERTY(BlueprintReadOnly)
+	int32 DeathCount = 0;
+	UPROPERTY(BlueprintReadOnly)
+	int32 AssistCount = 0;
+};
+
+/**
  * 
  */
 UCLASS()
@@ -17,6 +33,22 @@ class NETWORKSHOTER_API ANSPlayerState : public APlayerState
 public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-protected:
+	virtual void BeginPlay() override;
+	
+	/** Add 1 kill in player statistic*/
+	UFUNCTION()
+	void AddKill();
 
+	UFUNCTION()
+	void AddAssist();
+
+	UFUNCTION()
+	void AddDeath();
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	FPlayerStatistic GetPlayerStatistic() { return PlayerStatistic; }
+
+protected:
+	UPROPERTY(Replicated)
+	FPlayerStatistic PlayerStatistic;
 };

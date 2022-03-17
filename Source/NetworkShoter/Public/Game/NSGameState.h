@@ -50,10 +50,21 @@ class NETWORKSHOTER_API ANSGameState : public AGameStateBase
 public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+	virtual void BeginPlay() override;
+
 	void ApplyDamageInfo(FDamageInfo DamageInfo);
 	
 	void ApplyDamageInfoFromActors(AController* DamageInstigator, AActor* DamagedActor, AActor* DamageCauser, float Damage);
+
+	/** Return array instigators who damage this actor */
+	TArray<AController*> GetAssist(AActor* DamagedActor);
+
+protected:
+	UFUNCTION()
+	void AddStatisticWhenPawnKilled(APawn* WhoKilled, AController* InstigatedBy, AActor* DamageCauser);
+
 	
+public:
 	/** Add pawn in pawn list, called from game mode when player possess in Pawn */
 	UFUNCTION(BlueprintCallable)
 	virtual void AddPlayerPawn(APawn* Pawn);
@@ -76,6 +87,9 @@ private:
 	UPROPERTY(ReplicatedUsing=OnRep_Team2)
 	TArray<APawn*> Team2;
 
+	/** Keep all damage info for this match */
+	TArray<FDamageInfo> DamageInfoList;
+	
 	UFUNCTION()
 	void OnRep_Team1();
 	UFUNCTION()
