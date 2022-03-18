@@ -7,6 +7,7 @@
 #include "NSPlayerStart.h"
 #include "PCNetShooter.h"
 #include "Game/NSGameState.h"
+#include "GameFramework/GameSession.h"
 #include "GameFramework/SpectatorPawn.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -16,6 +17,83 @@ void ANSGameMode::BeginPlay()
 
 	PlayerDeath.AddDynamic(this, &ANSGameMode::CharacterKilled);
 }
+
+void ANSGameMode::StartPlay()
+{
+	Super::StartPlay();
+}
+
+void ANSGameMode::StartMatch()
+{
+	if (HasMatchStarted())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Match already started"))
+		return;
+	}
+
+	//Let the game session override the StartMatch function, in case it wants to wait for arbitration
+	if (GameSession -> HandleStartMatchRequest()) { return; }
+	
+	SetMatchState(EMatchState::InProgress);
+}
+
+void ANSGameMode::EndMatch()
+{
+	if (!HasMatchStarted())
+	{
+		UE_LOG(LogTemp, Error, TEXT("Cant end not started match"))
+		return;
+	}
+	
+	SetMatchState(EMatchState::PostMatch);
+}
+
+bool ANSGameMode::HasMatchStarted() const
+{
+	//return Super::HasMatchStarted();
+	return MatchState == EMatchState::InProgress;
+}
+
+void ANSGameMode::SetMatchState(EMatchState NewMatchState)
+{
+	if (MatchState == NewMatchState){ return; }
+
+	MatchState = NewMatchState;
+
+	if (MatchState == EMatchState::WaitingToStart)
+    {
+		
+    	return;
+    }
+
+	if (MatchState == EMatchState::InProgress)
+	{
+		StartMatchHandle();
+		return;
+	}
+
+	if (MatchState == EMatchState::PostMatch)
+	{
+		EndMatchHandle();
+		return;
+	}
+}
+
+void ANSGameMode::StartMatchHandle()
+{
+	UE_LOG(LogTemp, Error, TEXT("End match"))
+	
+	BP_MatchStarted();
+}
+
+void ANSGameMode::EndMatchHandle()
+{
+	UE_LOG(LogTemp, Error, TEXT("Start match"))
+	
+	BP_MatchFinished();
+}
+
+
 
 void ANSGameMode::CharacterKilled(APawn* WhoKilled)
 {

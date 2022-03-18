@@ -10,6 +10,14 @@ class ANSPlayerStart;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FNSPlayerDeath, APawn*, WhoKilled);
 
+UENUM()
+enum class EMatchState : uint8
+{
+	WaitingToStart,
+	InProgress,
+	PostMatch
+};
+
 /**
  * Base GameMode Class for network shooter
  */
@@ -24,6 +32,37 @@ public:
 
 	virtual void BeginPlay() override;
 
+
+	virtual void StartPlay() override;
+
+	
+	/**------ Match States ------**/
+	UFUNCTION(BlueprintCallable)
+	virtual void StartMatch();
+
+	UFUNCTION(BlueprintCallable)
+	virtual void EndMatch();
+
+	virtual bool HasMatchStarted() const override;
+
+protected:
+	void SetMatchState(EMatchState NewMatchState);
+
+	/** called on match state set to this state */
+	virtual void StartMatchHandle();
+	virtual void EndMatchHandle();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void BP_MatchStarted();
+	
+	UFUNCTION(BlueprintImplementableEvent)
+	void BP_MatchFinished();
+
+	EMatchState MatchState = EMatchState::WaitingToStart;
+	/**------ Match States end ------**/
+
+	
+	/**----  ----**/
 protected:
 	/** must be called when character kill someone (other character) */
 	UFUNCTION(BlueprintCallable, meta=(DefaultToSelf="WhoKilled"))
