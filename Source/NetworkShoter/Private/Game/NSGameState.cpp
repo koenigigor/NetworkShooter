@@ -16,6 +16,7 @@ void ANSGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 
 	DOREPLIFETIME(ANSGameState, Team1);
 	DOREPLIFETIME(ANSGameState, Team2);
+	DOREPLIFETIME(ANSGameState, MatchTimeLimit);
 }
 
 void ANSGameState::BeginPlay()
@@ -27,6 +28,20 @@ void ANSGameState::BeginPlay()
 		auto NSGameMode = Cast<ANSGameMode>(GetWorld()->GetAuthGameMode());
 		NSGameMode->PlayerDeath.AddDynamic(this, &ANSGameState::AddStatisticWhenPawnKilled);
 	}
+}
+
+void ANSGameState::StartMatchHandle()
+{
+	StartMatchTimer();
+	
+	BP_MatchStarted();
+}
+
+void ANSGameState::EndMatchHandle()
+{
+	MatchTimerHandle.Invalidate();
+	
+	BP_MatchFinished();
 }
 
 void ANSGameState::ApplyDamageInfo(FDamageInfo DamageInfo)
@@ -276,5 +291,31 @@ void ANSGameState::OnRep_Team1()
 
 void ANSGameState::OnRep_Team2()
 {
+}
+
+void ANSGameState::StartMatchTimer()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Start match timer on %f seconds"), MatchTimeLimit.GetTotalSeconds())
+	
+	GetWorld()->GetTimerManager().SetTimer(MatchTimerHandle, this, &ANSGameState::MatchTimerEnd, MatchTimeLimit.GetTotalSeconds());
+}
+
+void ANSGameState::MatchTimerEnd()
+{
+	//if it server, end match
+	if (GetWorld()->IsServer())
+	{
+		auto NSGameMode = Cast<ANSGameMode>(GetWorld()->GetAuthGameMode());
+		NSGameMode -> EndMatch();
+	}
+}
+
+float ANSGameState::GetMatchTimerRemaining()
+{
+	if (MatchTimerHandle.IsValid())
+	{
+		return GetWorld()->GetTimerManager().GetTimerRemaining(MatchTimerHandle);
+	}
+	return -1.f;
 }
 

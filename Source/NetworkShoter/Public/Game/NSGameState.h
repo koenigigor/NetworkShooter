@@ -52,6 +52,18 @@ public:
 
 	virtual void BeginPlay() override;
 
+	/** called from Game mode */
+	virtual void StartMatchHandle();
+	virtual void EndMatchHandle();
+	
+	UFUNCTION(BlueprintImplementableEvent)
+	void BP_MatchStarted();
+	
+	UFUNCTION(BlueprintImplementableEvent)
+	void BP_MatchFinished();
+
+
+	
 	void ApplyDamageInfo(FDamageInfo DamageInfo);
 	
 	void ApplyDamageInfoFromActors(AController* DamageInstigator, AActor* DamagedActor, AActor* DamageCauser, float Damage);
@@ -94,4 +106,20 @@ private:
 	void OnRep_Team1();
 	UFUNCTION()
 	void OnRep_Team2();
+
+public:
+	/**------ Match limits ------**/
+	UPROPERTY(Transient, BlueprintReadOnly, Category="Limits", Replicated)
+	FTimespan MatchTimeLimit;
+
+	FTimerHandle MatchTimerHandle;
+
+	void StartMatchTimer();
+
+	void MatchTimerEnd();
+
+	UFUNCTION(BlueprintPure)
+	float GetMatchTimerRemaining();
+
+	/**------ Match limits end ------**/
 };

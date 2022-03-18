@@ -7,6 +7,7 @@
 #include "NSGameMode.generated.h"
 
 class ANSPlayerStart;
+class ANSGameState;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FNSPlayerDeath, APawn*, WhoKilled);
 
@@ -26,6 +27,8 @@ class NETWORKSHOTER_API ANSGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
 public:
+	virtual void InitGameState() override;
+	
 	/* death characters send this broadcast*/
 	UPROPERTY(BlueprintCallable, BlueprintAssignable)
 	FNSPlayerDeath PlayerDeath;
@@ -61,6 +64,11 @@ protected:
 	EMatchState MatchState = EMatchState::WaitingToStart;
 	/**------ Match States end ------**/
 
+	/**------ Match limits ------**/
+	UPROPERTY(EditDefaultsOnly, Category="Match Limits")
+	FTimespan MatchTimeLimit;
+	
+	/**------ Match limits end ------**/
 	
 	/**----  ----**/
 protected:
@@ -81,4 +89,6 @@ protected:
 	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
 
 	//virtual void SetPlayerDefaults(APawn* PlayerPawn) override;
+	
+	ANSGameState* NSGameState = nullptr;
 };

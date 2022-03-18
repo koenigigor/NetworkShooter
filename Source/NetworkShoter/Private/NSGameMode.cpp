@@ -11,6 +11,17 @@
 #include "GameFramework/SpectatorPawn.h"
 #include "Kismet/GameplayStatics.h"
 
+void ANSGameMode::InitGameState()
+{
+	Super::InitGameState();
+
+	NSGameState = Cast<ANSGameState>(GameState);
+	if (NSGameState)
+	{
+		NSGameState->MatchTimeLimit = MatchTimeLimit;
+	}
+}
+
 void ANSGameMode::BeginPlay()
 {
 	Super::BeginPlay();
@@ -81,16 +92,24 @@ void ANSGameMode::SetMatchState(EMatchState NewMatchState)
 
 void ANSGameMode::StartMatchHandle()
 {
-	UE_LOG(LogTemp, Error, TEXT("End match"))
+	UE_LOG(LogTemp, Error, TEXT("Start match"))
 	
 	BP_MatchStarted();
+	if (NSGameState)
+	{
+		NSGameState->StartMatchHandle();
+	}
 }
 
 void ANSGameMode::EndMatchHandle()
 {
-	UE_LOG(LogTemp, Error, TEXT("Start match"))
+	UE_LOG(LogTemp, Error, TEXT("End match"))
 	
 	BP_MatchFinished();
+	if (NSGameState)
+	{
+		NSGameState->EndMatchHandle();
+	}
 }
 
 
@@ -116,7 +135,7 @@ void ANSGameMode::SpawnPlayer(APlayerController* Controller)
 	RestartPlayer(Controller);
 
 	//add pawn in team list
-	if (auto NSGameState = GetGameState<ANSGameState>())
+	if (NSGameState)
 	{
 		NSGameState -> AddPlayerPawn(Controller->GetPawn());
 	}
