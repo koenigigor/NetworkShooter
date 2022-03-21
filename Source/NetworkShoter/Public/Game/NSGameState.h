@@ -53,17 +53,25 @@ public:
 	virtual void BeginPlay() override;
 
 	/** called from Game mode */
-	virtual void StartMatchHandle();
-	virtual void EndMatchHandle();
-	
+	virtual void StartMatchHandle(bool bFromReply = false);
+	virtual void EndMatchHandle(bool bFromReply = false);
+
+protected:
 	UFUNCTION(BlueprintImplementableEvent)
 	void BP_MatchStarted();
 	
 	UFUNCTION(BlueprintImplementableEvent)
 	void BP_MatchFinished();
 
-
+private:
+	UFUNCTION(NetMulticast, Reliable)
+	void StartMatchClient();
 	
+	UFUNCTION(NetMulticast, Reliable)
+	void EndMatchClient();
+
+
+public:	
 	void ApplyDamageInfo(FDamageInfo DamageInfo);
 	
 	void ApplyDamageInfoFromActors(AController* DamageInstigator, AActor* DamagedActor, AActor* DamageCauser, float Damage);

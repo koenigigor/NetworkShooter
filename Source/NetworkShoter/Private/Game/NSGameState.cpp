@@ -30,18 +30,34 @@ void ANSGameState::BeginPlay()
 	}
 }
 
-void ANSGameState::StartMatchHandle()
+void ANSGameState::StartMatchHandle(bool bFromReply)
 {
+	if (!bFromReply && GetWorld()-> IsServer())
+	{ StartMatchClient(); }
+	
 	StartMatchTimer();
 	
 	BP_MatchStarted();
 }
 
-void ANSGameState::EndMatchHandle()
+void ANSGameState::EndMatchHandle(bool bFromReply)
 {
+	if (!bFromReply && GetWorld()-> IsServer())
+	{ EndMatchClient();	}
+	
 	MatchTimerHandle.Invalidate();
 	
 	BP_MatchFinished();
+}
+
+void ANSGameState::StartMatchClient_Implementation()
+{
+	StartMatchHandle(true);
+}
+
+void ANSGameState::EndMatchClient_Implementation()
+{
+	EndMatchHandle(true);
 }
 
 void ANSGameState::ApplyDamageInfo(FDamageInfo DamageInfo)
