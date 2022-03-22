@@ -9,7 +9,7 @@
 class ANSPlayerStart;
 class ANSGameState;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FNSPlayerDeath, APawn*, WhoKilled);
+//DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FNSPlayerDeath, APawn*, WhoKilled);
 
 UENUM()
 enum class EMatchState : uint8
@@ -30,8 +30,8 @@ public:
 	virtual void InitGameState() override;
 	
 	/* death characters send this broadcast*/
-	UPROPERTY(BlueprintCallable, BlueprintAssignable)
-	FNSPlayerDeath PlayerDeath;
+	//UPROPERTY(BlueprintCallable, BlueprintAssignable)
+	//FNSPlayerDeath PlayerDeath;
 
 	virtual void BeginPlay() override;
 
@@ -71,11 +71,11 @@ protected:
 	/**------ Match limits end ------**/
 	
 	/**----  ----**/
-protected:
-	/** must be called when character kill someone (other character) */
+public:
+	/** Player state call this function when player dead */
 	UFUNCTION(BlueprintCallable, meta=(DefaultToSelf="WhoKilled"))
 	virtual void CharacterKilled(APawn* WhoKilled);
-
+protected:
 	//Spawn Character in his command player start, and possess to it
 	UFUNCTION(BlueprintCallable)
 	void SpawnPlayer(APlayerController* Controller);

@@ -4,6 +4,7 @@
 #include "ShooterPlayer.h"
 #include "AbilitySystemComponent.h"
 #include "NetShooterAttributeSet.h"
+#include "NSPlayerState.h"
 #include "WeaponAttributeSet.h"
 
 // Sets default values
@@ -20,6 +21,25 @@ AShooterPlayer::AShooterPlayer()
 UAbilitySystemComponent* AShooterPlayer::GetAbilitySystemComponent() const
 {
 	return AbilitySystem;
+}
+
+void AShooterPlayer::Death()
+{
+	if (GetWorld()->IsServer())
+	{
+		DeathMulticast();
+	}
+}
+
+void AShooterPlayer::DeathMulticast_Implementation()
+{
+	//notify game state server and client
+	if (auto NSPlayerState = GetPlayerState<ANSPlayerState>())
+	{
+		NSPlayerState->CharacterDeadDelegate.Broadcast();
+	}
+
+	BP_CharacterDead();
 }
 
 // Called when the game starts or when spawned

@@ -22,7 +22,16 @@ public:
 	// Sets default values for this character's properties
 	AShooterPlayer();
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
-	
+
+	/** Called from death gameplay ability */
+	UFUNCTION(BlueprintCallable)
+	void Death();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void DeathMulticast();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void BP_CharacterDead();
 
 protected:
 	// Called when the game starts or when spawned

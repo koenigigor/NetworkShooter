@@ -7,6 +7,8 @@
 #include "NSPlayerState.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FPlayerStatisticUpdateDelegate);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCharacterDeadDelegate); 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCharacterRespawnDelegate);
 
 /**
  * Struct for store battle stat
@@ -38,6 +40,17 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FPlayerStatisticUpdateDelegate PlayerStatisticUpdateDelegate;
+
+	//called from character
+	UPROPERTY(BlueprintAssignable)
+	FCharacterDeadDelegate CharacterDeadDelegate;
+
+	//called from todo when respawned
+	UPROPERTY(BlueprintAssignable)
+	FCharacterRespawnDelegate CharacterRespawnDelegate;
+
+	UFUNCTION()
+	void OnCharacterDeath();
 	
 	/** Add 1 kill in player statistic*/
 	UFUNCTION()

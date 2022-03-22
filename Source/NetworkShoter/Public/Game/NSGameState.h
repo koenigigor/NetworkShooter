@@ -96,7 +96,7 @@ public:
 	/** Return array instigators who damage this actor */
 	TArray<AController*> GetAssist(AActor* DamagedActor);
 
-protected:
+	//Called from gamemode when character killed
 	UFUNCTION()
 	void AddStatisticWhenPawnKilled(APawn* WhoKilled);
 

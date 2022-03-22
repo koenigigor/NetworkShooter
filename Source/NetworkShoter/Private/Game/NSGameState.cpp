@@ -28,7 +28,7 @@ void ANSGameState::BeginPlay()
 	if (GetWorld()->IsServer())
 	{
 		auto NSGameMode = Cast<ANSGameMode>(GetWorld()->GetAuthGameMode());
-		NSGameMode->PlayerDeath.AddDynamic(this, &ANSGameState::AddStatisticWhenPawnKilled);
+		//NSGameMode->PlayerDeath.AddDynamic(this, &ANSGameState::AddStatisticWhenPawnKilled);
 	}
 }
 
@@ -164,7 +164,9 @@ TArray<AController*> ANSGameState::GetAssist(AActor* DamagedActor)
 void ANSGameState::AddStatisticWhenPawnKilled(APawn* WhoKilled)
 {
 	if (DamageInfoList.Num() == 0) { return; } 
-		
+
+	UE_LOG(LogTemp, Warning, TEXT("AddStatistic Called"))
+	
 	//get last damage info for this pawn
 	FDamageInfo DamageInfo;
 	for (auto i = DamageInfoList.Num()-1; i>0; i--)

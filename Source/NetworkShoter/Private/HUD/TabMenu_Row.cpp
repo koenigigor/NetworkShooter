@@ -22,6 +22,7 @@ void UTabMenu_Row::Init(ANSPlayerState* PlayerState)
 
 
 	//bind to death/respawn
+	//TODO
 }
 
 void UTabMenu_Row::OnPawnDeath(ANSPlayerState* PlayerState)

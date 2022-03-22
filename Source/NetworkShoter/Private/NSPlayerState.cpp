@@ -3,6 +3,7 @@
 
 #include "NSPlayerState.h"
 
+#include "NSGameMode.h"
 #include "PCNetShooter.h"
 #include "Net/UnrealNetwork.h"
 
@@ -19,9 +20,23 @@ void ANSPlayerState::BeginPlay()
 
 	auto Controller = Cast<APCNetShooter>(GetInstigatorController());
 
+	GetPawn();
+	
 	//server bind to kill someone
 	//server bind to owning actor death
 	//server asist
+
+	CharacterDeadDelegate.AddDynamic(this, &ANSPlayerState::OnCharacterDeath);
+}
+
+void ANSPlayerState::OnCharacterDeath()
+{
+	//notify gamemode about death
+	if (GetWorld()->IsServer())
+	{
+		if (auto GM = Cast<ANSGameMode>(GetWorld()->GetAuthGameMode()))
+			GM -> CharacterKilled(GetPawn());
+	}
 }
 
 void ANSPlayerState::AddKill()

@@ -78,7 +78,11 @@ FString UTabMenu::GetMatchStatusAndTime()
 	
 	if (MatchState == EMatchState::InProgress)
 	{
-		return FString::SanitizeFloat(GetMatchTime(), 0);
+		//return FString::SanitizeFloat(GetMatchTime(), 0);
+		float MatchTime = GetMatchTime();
+		MatchTime *= 10.f;
+		MatchTime = FMath::RoundToInt(MatchTime) / 10.f;
+		return FString::SanitizeFloat(MatchTime, 0);	
 	}
 
 	if (MatchState == EMatchState::PostMatch)

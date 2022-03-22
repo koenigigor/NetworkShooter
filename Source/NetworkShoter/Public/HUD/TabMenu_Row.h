@@ -24,6 +24,7 @@ public:
 	void BP_OnStatisticUpdate();
 
 protected:
+	UPROPERTY(BlueprintReadOnly)
 	ANSPlayerState* OwningPlayerState = nullptr;
 
 	//called when player who response for this row spawn/death

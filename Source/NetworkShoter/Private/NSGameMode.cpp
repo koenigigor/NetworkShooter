@@ -26,7 +26,7 @@ void ANSGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 
-	PlayerDeath.AddDynamic(this, &ANSGameMode::CharacterKilled);
+	//PlayerDeath.AddDynamic(this, &ANSGameMode::CharacterKilled);
 }
 
 void ANSGameMode::StartPlay()
@@ -129,6 +129,8 @@ void ANSGameMode::CharacterKilled(APawn* WhoKilled)
 		DeathControllers.Add(StaticCast<APlayerController*>(WhoKilled->GetController()));
 
 	GetGameState<ANSGameState>() -> RemovePawn(WhoKilled);
+
+	GetGameState<ANSGameState>() -> AddStatisticWhenPawnKilled(WhoKilled);
 }
 
 void ANSGameMode::SpawnPlayer(APlayerController* Controller)
