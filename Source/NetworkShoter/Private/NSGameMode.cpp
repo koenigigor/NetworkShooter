@@ -70,6 +70,11 @@ void ANSGameMode::SetMatchState(EMatchState NewMatchState)
 	if (MatchState == NewMatchState){ return; }
 
 	MatchState = NewMatchState;
+	
+	if (NSGameState)
+	{
+		NSGameState->MatchState = MatchState;
+	}
 
 	if (MatchState == EMatchState::WaitingToStart)
     {

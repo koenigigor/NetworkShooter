@@ -6,6 +6,7 @@
 #include "GameFramework/PlayerState.h"
 #include "NSPlayerState.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FPlayerStatisticUpdateDelegate);
 
 /**
  * Struct for store battle stat
@@ -34,6 +35,9 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	virtual void BeginPlay() override;
+
+	UPROPERTY(BlueprintAssignable)
+	FPlayerStatisticUpdateDelegate PlayerStatisticUpdateDelegate;
 	
 	/** Add 1 kill in player statistic*/
 	UFUNCTION()
@@ -49,6 +53,9 @@ public:
 	FPlayerStatistic GetPlayerStatistic() { return PlayerStatistic; }
 
 protected:
-	UPROPERTY(Replicated)
+	UPROPERTY(ReplicatedUsing = "OnRep_PlayerStatistic")
 	FPlayerStatistic PlayerStatistic;
+
+	UFUNCTION()
+	void OnRep_PlayerStatistic();
 };

@@ -39,5 +39,12 @@ void ANSPlayerState::AddDeath()
 	PlayerStatistic.DeathCount++;
 }
 
+void ANSPlayerState::OnRep_PlayerStatistic()
+{
+    // notify client about statitic update
+	PlayerStatisticUpdateDelegate.Broadcast();
+	UE_LOG(LogTemp, Error, TEXT("PlayerStatistic rep notify"))
+}
 
+//need update delegate on server side? (in add death and etc.)
 

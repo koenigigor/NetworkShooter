@@ -17,6 +17,8 @@ void ANSGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME(ANSGameState, Team1);
 	DOREPLIFETIME(ANSGameState, Team2);
 	DOREPLIFETIME(ANSGameState, MatchTimeLimit);
+	//DOREPLIFETIME(ANSGameState, MatchStartTime);
+	DOREPLIFETIME(ANSGameState, MatchState);
 }
 
 void ANSGameState::BeginPlay()
@@ -33,11 +35,18 @@ void ANSGameState::BeginPlay()
 void ANSGameState::StartMatchHandle(bool bFromReply)
 {
 	if (!bFromReply && GetWorld()-> IsServer())
-	{ StartMatchClient(); }
+	{
+		//MatchStartTime = GetWorld()->GetTimeSeconds();
+		
+		StartMatchClient();
+	}
 	
 	StartMatchTimer();
 	
 	BP_MatchStarted();
+	MatchStartDelegate.Broadcast();
+	
+	MatchStartTime = GetWorld()->GetTimeSeconds();
 }
 
 void ANSGameState::EndMatchHandle(bool bFromReply)
@@ -48,6 +57,7 @@ void ANSGameState::EndMatchHandle(bool bFromReply)
 	MatchTimerHandle.Invalidate();
 	
 	BP_MatchFinished();
+	MatchEndDelegate.Broadcast();
 }
 
 void ANSGameState::StartMatchClient_Implementation()

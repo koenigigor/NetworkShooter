@@ -3,8 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "NSGameMode.h"
 #include "GameFramework/GameStateBase.h"
 #include "NSGameState.generated.h"
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FMatchStartDelegate);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FMatchEndDelegate);
 
 /**
  * Struct for keep info about last damage
@@ -56,6 +60,11 @@ public:
 	virtual void StartMatchHandle(bool bFromReply = false);
 	virtual void EndMatchHandle(bool bFromReply = false);
 
+	UPROPERTY(BlueprintAssignable)
+	FMatchStartDelegate MatchStartDelegate;
+	UPROPERTY(BlueprintAssignable)
+	FMatchEndDelegate MatchEndDelegate;
+
 protected:
 	UFUNCTION(BlueprintImplementableEvent)
 	void BP_MatchStarted();
@@ -69,7 +78,15 @@ private:
 	
 	UFUNCTION(NetMulticast, Reliable)
 	void EndMatchClient();
+	
+public:
+	/** time when match was started */
+	//UPROPERTY(Replicated)
+	float MatchStartTime = -1.f;
 
+	/** copy match state from game mode, for using in widgets */
+	UPROPERTY(Replicated)
+	EMatchState MatchState = EMatchState::WaitingToStart;
 
 public:	
 	void ApplyDamageInfo(FDamageInfo DamageInfo);
@@ -96,7 +113,6 @@ public:
 	/** @return next actor in team */
 	void GetNextActorInTeam(FName Team, AActor*& NextActorInTeam, int32& NumberInTeam, bool bNext = true);
 	
-protected:
 	/** Return team list for specified team */
 	virtual void GetTeamList(FName Team, TArray<APawn*>*& TeamListPtr);
 
