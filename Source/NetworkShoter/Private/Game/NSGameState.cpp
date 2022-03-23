@@ -201,6 +201,12 @@ void ANSGameState::AddStatisticWhenPawnKilled(APawn* WhoKilled)
     }			
 }
 
+void ANSGameState::CharacterKilled(APawn* WhoKilled)
+{
+	RemovePawn(WhoKilled);
+	AddStatisticWhenPawnKilled(WhoKilled);
+}
+
 
 void ANSGameState::AddPlayerPawn(APawn* Pawn)
 {

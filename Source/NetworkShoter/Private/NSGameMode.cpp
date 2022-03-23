@@ -129,9 +129,7 @@ void ANSGameMode::CharacterKilled(APawn* WhoKilled)
 	if (WhoKilled->GetController()->IsPlayerController())
 		DeathControllers.Add(StaticCast<APlayerController*>(WhoKilled->GetController()));
 
-	GetGameState<ANSGameState>() -> RemovePawn(WhoKilled);
-
-	GetGameState<ANSGameState>() -> AddStatisticWhenPawnKilled(WhoKilled);
+	GetGameState<ANSGameState>() -> CharacterKilled(WhoKilled);
 }
 
 void ANSGameMode::SpawnPlayer(APlayerController* Controller)

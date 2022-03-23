@@ -100,6 +100,7 @@ public:
 	UFUNCTION()
 	void AddStatisticWhenPawnKilled(APawn* WhoKilled);
 
+	virtual void CharacterKilled(APawn* WhoKilled);
 	
 public:
 	/** Add pawn in pawn list, called from game mode when player possess in Pawn */

@@ -3,6 +3,18 @@
 
 #include "GMDeathMatch.h"
 
+#include "Game/NSGameState_DeathMatch.h"
+
+void AGMDeathMatch::InitGameState()
+{
+	Super::InitGameState();
+
+	if (auto DeathMatchState = Cast<ANSGameState_DeathMatch>(GameState))
+	{
+		DeathMatchState -> KillCountLimit = KillCountLimit;
+	}
+}
+
 void AGMDeathMatch::CharacterKilled(APawn* WhoKilled)
 {
 	Super::CharacterKilled(WhoKilled);
