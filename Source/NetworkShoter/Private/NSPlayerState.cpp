@@ -18,14 +18,6 @@ void ANSPlayerState::BeginPlay()
 {
 	Super::BeginPlay();
 
-	auto Controller = Cast<APCNetShooter>(GetInstigatorController());
-
-	GetPawn();
-	
-	//server bind to kill someone
-	//server bind to owning actor death
-	//server asist
-
 	CharacterDeadDelegate.AddDynamic(this, &ANSPlayerState::OnCharacterDeath);
 }
 
@@ -43,8 +35,12 @@ void ANSPlayerState::OnCharacterDeath()
 void ANSPlayerState::RespawnHandle_Implementation()
 {
 	CharacterRespawnDelegate.Broadcast();
+	
 	bDeath = false;
 }
+
+
+/** Statistic **/
 
 void ANSPlayerState::AddKill()
 {
@@ -63,10 +59,6 @@ void ANSPlayerState::AddDeath()
 
 void ANSPlayerState::OnRep_PlayerStatistic()
 {
-    // notify client about statitic update
+    // notify client about statistic is update
 	PlayerStatisticUpdateDelegate.Broadcast();
-	UE_LOG(LogTemp, Error, TEXT("PlayerStatistic rep notify"))
 }
-
-//need update delegate on server side? (in add death and etc.)
-

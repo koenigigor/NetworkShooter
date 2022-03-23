@@ -14,15 +14,16 @@ class NETWORKSHOTER_API ANSGameState_DeathMatch : public ANSGameState
 {
 	GENERATED_BODY()
 public:
-	//set by gamemode
-	UPROPERTY(Replicated)
-	int32 KillCountLimit;
-
-	//Count of kills is this round
-	UPROPERTY(Replicated)
-	int32 KillCount = 0;
-
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	virtual void CharacterKilled(APawn* WhoKilled) override;
+	
+	/** init by GameMode */
+	UPROPERTY(Replicated)
+	int32 KillCountLimit = 999;
+
+protected:
+	/** Count kills on this round */
+	UPROPERTY(Replicated)
+	int32 KillCount = 0;
 };

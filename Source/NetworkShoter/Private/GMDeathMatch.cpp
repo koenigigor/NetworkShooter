@@ -26,7 +26,7 @@ void AGMDeathMatch::CharacterKilled(APawn* WhoKilled)
 
 void AGMDeathMatch::RespawnDeathPlayer()
 {
-	if (DeathControllers.IsValidIndex(0))
+	if (HasMatchStarted() && DeathControllers.IsValidIndex(0))
 	{
 		SpawnPlayer(DeathControllers[0]);
 		DeathControllers.RemoveAt(0);

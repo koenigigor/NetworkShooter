@@ -41,13 +41,14 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FPlayerStatisticUpdateDelegate PlayerStatisticUpdateDelegate;
 
-	//called from character
+	//called from character, when he die
 	UPROPERTY(BlueprintAssignable)
 	FCharacterDeadDelegate CharacterDeadDelegate;
 	
 	UPROPERTY(BlueprintAssignable)
 	FCharacterRespawnDelegate CharacterRespawnDelegate;
 
+	/** [All sides] */
 	UFUNCTION()
 	void OnCharacterDeath();
 
@@ -57,13 +58,15 @@ public:
 
 	bool bDeath = true;
 	
-	/** Add 1 kill in player statistic*/
+	/** Increment kill statistic */
 	UFUNCTION()
 	void AddKill();
 
+	/** Increment assist statistic */
 	UFUNCTION()
 	void AddAssist();
 
+	/** Increment death statistic */
 	UFUNCTION()
 	void AddDeath();
 

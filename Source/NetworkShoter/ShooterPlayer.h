@@ -23,13 +23,10 @@ public:
 	AShooterPlayer();
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
-	/** Called from death gameplay ability */
-	UFUNCTION(BlueprintCallable)
+	/** [Multicast] Called from death gameplay ability, when player Die */
+	UFUNCTION(BlueprintCallable, NetMulticast, Reliable)
 	void Death();
-
-	UFUNCTION(NetMulticast, Reliable)
-	void DeathMulticast();
-
+	
 	UFUNCTION(BlueprintImplementableEvent)
 	void BP_CharacterDead();
 

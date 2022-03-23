@@ -23,17 +23,6 @@ void ANSGameMode::InitGameState()
 	}
 }
 
-void ANSGameMode::BeginPlay()
-{
-	Super::BeginPlay();
-
-	//PlayerDeath.AddDynamic(this, &ANSGameMode::CharacterKilled);
-}
-
-void ANSGameMode::StartPlay()
-{
-	Super::StartPlay();
-}
 
 void ANSGameMode::StartMatch()
 {
@@ -122,10 +111,6 @@ void ANSGameMode::EndMatchHandle()
 
 void ANSGameMode::CharacterKilled(APawn* WhoKilled)
 {
-	//do something
-
-	UE_LOG(LogTemp, Warning, TEXT("GameMode say: %s is died"), *WhoKilled->GetName())
-	
 	if (WhoKilled->GetController()->IsPlayerController())
 		DeathControllers.Add(StaticCast<APlayerController*>(WhoKilled->GetController()));
 

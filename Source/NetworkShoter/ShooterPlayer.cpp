@@ -23,22 +23,15 @@ UAbilitySystemComponent* AShooterPlayer::GetAbilitySystemComponent() const
 	return AbilitySystem;
 }
 
-void AShooterPlayer::Death()
+/** [Multicast] Called from death gameplay ability, when player Die */
+void AShooterPlayer::Death_Implementation()
 {
-	if (GetWorld()->IsServer())
-	{
-		DeathMulticast();
-	}
-}
-
-void AShooterPlayer::DeathMulticast_Implementation()
-{
-	//notify game state server and client
+	//notify player state on server and clients
 	if (auto NSPlayerState = GetPlayerState<ANSPlayerState>())
 	{
 		NSPlayerState->CharacterDeadDelegate.Broadcast();
 	}
-
+	
 	BP_CharacterDead();
 }
 

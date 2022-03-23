@@ -17,30 +17,11 @@ void ANSGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME(ANSGameState, Team1);
 	DOREPLIFETIME(ANSGameState, Team2);
 	DOREPLIFETIME(ANSGameState, MatchTimeLimit);
-	//DOREPLIFETIME(ANSGameState, MatchStartTime);
 	DOREPLIFETIME(ANSGameState, MatchState);
 }
 
-void ANSGameState::BeginPlay()
-{
-	Super::BeginPlay();
-
-	if (GetWorld()->IsServer())
-	{
-		auto NSGameMode = Cast<ANSGameMode>(GetWorld()->GetAuthGameMode());
-		//NSGameMode->PlayerDeath.AddDynamic(this, &ANSGameState::AddStatisticWhenPawnKilled);
-	}
-}
-
-void ANSGameState::StartMatchHandle(bool bFromReply)
-{
-	if (!bFromReply && GetWorld()-> IsServer())
-	{
-		//MatchStartTime = GetWorld()->GetTimeSeconds();
-		
-		StartMatchClient();
-	}
-	
+void ANSGameState::StartMatchHandle_Implementation()
+{	
 	StartMatchTimer();
 	
 	BP_MatchStarted();
@@ -49,26 +30,14 @@ void ANSGameState::StartMatchHandle(bool bFromReply)
 	MatchStartTime = GetWorld()->GetTimeSeconds();
 }
 
-void ANSGameState::EndMatchHandle(bool bFromReply)
-{
-	if (!bFromReply && GetWorld()-> IsServer())
-	{ EndMatchClient();	}
-	
+void ANSGameState::EndMatchHandle_Implementation()
+{	
 	MatchTimerHandle.Invalidate();
 	
 	BP_MatchFinished();
 	MatchEndDelegate.Broadcast();
 }
 
-void ANSGameState::StartMatchClient_Implementation()
-{
-	StartMatchHandle(true);
-}
-
-void ANSGameState::EndMatchClient_Implementation()
-{
-	EndMatchHandle(true);
-}
 
 void ANSGameState::ApplyDamageInfo(FDamageInfo DamageInfo)
 {
@@ -129,7 +98,7 @@ void ANSGameState::ApplyDamageInfoFromActors(AController* DamageInstigator, AAct
 	//Prepare CauserName
 	//DamageInstigator->FindComponentByClass<ANSEquipnent>() -> GetEquippedWeapon() -> WeaponData -> Name;
 	CauserName = "TODO WeaponName";
-
+//TODO
 	
 	
 	DamageInfo.Damage = Damage;
@@ -164,8 +133,6 @@ TArray<AController*> ANSGameState::GetAssist(AActor* DamagedActor)
 void ANSGameState::AddStatisticWhenPawnKilled(APawn* WhoKilled)
 {
 	if (DamageInfoList.Num() == 0) { return; } 
-
-	UE_LOG(LogTemp, Warning, TEXT("AddStatistic Called"))
 	
 	//get last damage info for this pawn
 	FDamageInfo DamageInfo;
@@ -329,8 +296,6 @@ void ANSGameState::OnRep_Team2()
 
 void ANSGameState::StartMatchTimer()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Start match timer on %f seconds"), MatchTimeLimit.GetTotalSeconds())
-	
 	GetWorld()->GetTimerManager().SetTimer(MatchTimerHandle, this, &ANSGameState::MatchTimerEnd, MatchTimeLimit.GetTotalSeconds());
 }
 

@@ -16,7 +16,8 @@ void ANSGameState_DeathMatch::GetLifetimeReplicatedProps(TArray<FLifetimePropert
 void ANSGameState_DeathMatch::CharacterKilled(APawn* WhoKilled)
 {
 	Super::CharacterKilled(WhoKilled);
-	
+
+	//increment kill count and check limits
 	KillCount++;
 	if (KillCount >= KillCountLimit)
 	{

@@ -45,7 +45,11 @@ struct FDamageInfo
 };
 
 /**
- * 
+ * Base GameState class for network shooter game:
+ * send start/end match broadcast
+ * save info about incoming damage
+ * save team lists
+ * check match limits (time)
  */
 UCLASS()
 class NETWORKSHOTER_API ANSGameState : public AGameStateBase
@@ -54,55 +58,40 @@ class NETWORKSHOTER_API ANSGameState : public AGameStateBase
 public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	virtual void BeginPlay() override;
-
 	/** called from Game mode */
-	virtual void StartMatchHandle(bool bFromReply = false);
-	virtual void EndMatchHandle(bool bFromReply = false);
-
-	UPROPERTY(BlueprintAssignable)
-	FMatchStartDelegate MatchStartDelegate;
-	UPROPERTY(BlueprintAssignable)
-	FMatchEndDelegate MatchEndDelegate;
-
-protected:
-	UFUNCTION(BlueprintImplementableEvent)
-	void BP_MatchStarted();
-	
-	UFUNCTION(BlueprintImplementableEvent)
-	void BP_MatchFinished();
-
-private:
 	UFUNCTION(NetMulticast, Reliable)
-	void StartMatchClient();
-	
+	virtual void StartMatchHandle();
 	UFUNCTION(NetMulticast, Reliable)
-	void EndMatchClient();
-	
-public:
-	/** time when match was started */
-	//UPROPERTY(Replicated)
-	float MatchStartTime = -1.f;
+	virtual void EndMatchHandle();
 
-	/** copy match state from game mode, for using in widgets */
-	UPROPERTY(Replicated)
-	EMatchState MatchState = EMatchState::WaitingToStart;
+	/** remove pawn from team list and add statistic
+	 *	trigger by GameMode */
+	virtual void CharacterKilled(APawn* WhoKilled);
 
-public:	
-	void ApplyDamageInfo(FDamageInfo DamageInfo);
 	
+	/**-----------------**/
+	/** Match Statistic **/
+	/**-----------------**/
+	
+	/** Create damage info struct in and add it in struct array
+	 *  Called from damage execution calculation */
 	void ApplyDamageInfoFromActors(AController* DamageInstigator, AActor* DamagedActor, AActor* DamageCauser, float Damage);
 
+	/** Add damage info in list */
+	void ApplyDamageInfo(FDamageInfo DamageInfo);
+	
 	/** Return array instigators who damage this actor */
 	TArray<AController*> GetAssist(AActor* DamagedActor);
 
-	//Called from gamemode when character killed
+	//Called from GameMode when character killed
 	UFUNCTION()
 	void AddStatisticWhenPawnKilled(APawn* WhoKilled);
 
-	virtual void CharacterKilled(APawn* WhoKilled);
 	
-public:
+	/**-----------------**/
+	/**    Team List    **/
+	/**-----------------**/
+
 	/** Add pawn in pawn list, called from game mode when player possess in Pawn */
 	UFUNCTION(BlueprintCallable)
 	virtual void AddPlayerPawn(APawn* Pawn);
@@ -116,6 +105,41 @@ public:
 	
 	/** Return team list for specified team */
 	virtual void GetTeamList(FName Team, TArray<APawn*>*& TeamListPtr);
+
+
+	/**-----------------**/
+	/**   Match timer   **/
+	/**-----------------**/
+	
+	void StartMatchTimer();
+	
+	UFUNCTION(BlueprintPure)
+	float GetMatchTimerRemaining();
+	
+protected:
+	void MatchTimerEnd();
+
+
+	
+public:	
+	UPROPERTY(BlueprintAssignable)
+	FMatchStartDelegate MatchStartDelegate;
+	UPROPERTY(BlueprintAssignable)
+	FMatchEndDelegate MatchEndDelegate;
+
+protected:
+	UFUNCTION(BlueprintImplementableEvent)
+	void BP_MatchStarted();
+	UFUNCTION(BlueprintImplementableEvent)
+	void BP_MatchFinished();
+	
+public:
+	/** time when match was started */
+	float MatchStartTime = -1.f;
+
+	/** copy match state from game mode, for using in widgets */
+	UPROPERTY(Replicated)
+	EMatchState MatchState = EMatchState::WaitingToStart;
 
 private:
 	UPROPERTY(ReplicatedUsing=OnRep_Team1)
@@ -133,18 +157,8 @@ private:
 	void OnRep_Team2();
 
 public:
-	/**------ Match limits ------**/
 	UPROPERTY(Transient, BlueprintReadOnly, Category="Limits", Replicated)
 	FTimespan MatchTimeLimit;
 
 	FTimerHandle MatchTimerHandle;
-
-	void StartMatchTimer();
-
-	void MatchTimerEnd();
-
-	UFUNCTION(BlueprintPure)
-	float GetMatchTimerRemaining();
-
-	/**------ Match limits end ------**/
 };

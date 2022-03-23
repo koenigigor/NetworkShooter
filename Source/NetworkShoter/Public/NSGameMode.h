@@ -9,7 +9,6 @@
 class ANSPlayerStart;
 class ANSGameState;
 
-//DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FNSPlayerDeath, APawn*, WhoKilled);
 
 UENUM()
 enum class EMatchState : uint8
@@ -28,15 +27,6 @@ class NETWORKSHOTER_API ANSGameMode : public AGameModeBase
 	GENERATED_BODY()
 public:
 	virtual void InitGameState() override;
-	
-	/* death characters send this broadcast*/
-	//UPROPERTY(BlueprintCallable, BlueprintAssignable)
-	//FNSPlayerDeath PlayerDeath;
-
-	virtual void BeginPlay() override;
-
-
-	virtual void StartPlay() override;
 
 	
 	/**------ Match States ------**/
@@ -84,11 +74,12 @@ protected:
 	UPROPERTY()
 	TArray<APlayerController*> DeathControllers;
 	
-		/**  FindPlayerStart @IncomingName PlayerStart tag*/
+		
 	/** Support function for FindPlayerStart */
 	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
 
 	//virtual void SetPlayerDefaults(APawn* PlayerPawn) override;
+
 	
 	ANSGameState* NSGameState = nullptr;
 };
