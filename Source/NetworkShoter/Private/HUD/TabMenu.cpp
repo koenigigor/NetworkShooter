@@ -15,6 +15,8 @@ void UTabMenu::NativeConstruct()
 
 	GameState = GetWorld()->GetGameState<ANSGameState>();
 
+	//Prepare rows array, todo re init rows and destroy if more, 
+	Rows.Empty();
 	auto PlayerArray = GetWorld()->GetGameState()->PlayerArray;
     	for (const auto& Player : PlayerArray)
     	{

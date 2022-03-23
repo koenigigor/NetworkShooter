@@ -44,13 +44,16 @@ public:
 	//called from character
 	UPROPERTY(BlueprintAssignable)
 	FCharacterDeadDelegate CharacterDeadDelegate;
-
-	//called from todo when respawned
+	
 	UPROPERTY(BlueprintAssignable)
 	FCharacterRespawnDelegate CharacterRespawnDelegate;
 
 	UFUNCTION()
 	void OnCharacterDeath();
+
+	/** [Multicast] GameMode call this when character respawn, for send respawn delegate to all client*/
+	UFUNCTION(NetMulticast, Reliable)
+	void RespawnHandle();
 	
 	/** Add 1 kill in player statistic*/
 	UFUNCTION()

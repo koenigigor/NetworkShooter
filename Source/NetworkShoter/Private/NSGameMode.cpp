@@ -5,6 +5,7 @@
 
 #include "EngineUtils.h"
 #include "NSPlayerStart.h"
+#include "NSPlayerState.h"
 #include "PCNetShooter.h"
 #include "Game/NSGameState.h"
 #include "GameFramework/GameSession.h"
@@ -146,6 +147,13 @@ void ANSGameMode::SpawnPlayer(APlayerController* Controller)
 	{
 		NSGameState -> AddPlayerPawn(Controller->GetPawn());
 	}
+
+	//send respawn notify to player state
+	if (auto NSPlayerState = Controller -> GetPlayerState<ANSPlayerState>())
+	{
+		NSPlayerState -> RespawnHandle();
+	}
+	//for AI, change PlayerController to Controller
 }
 
 AActor* ANSGameMode::ChoosePlayerStart_Implementation(AController* Player)

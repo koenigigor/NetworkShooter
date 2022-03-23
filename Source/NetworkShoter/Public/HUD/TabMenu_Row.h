@@ -23,6 +23,12 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void BP_OnStatisticUpdate();
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void BP_OnCharacterDead();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void BP_OnCharacterRespawn();
+
 protected:
 	UPROPERTY(BlueprintReadOnly)
 	ANSPlayerState* OwningPlayerState = nullptr;

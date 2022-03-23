@@ -22,7 +22,8 @@ void UTabMenu_Row::Init(ANSPlayerState* PlayerState)
 
 
 	//bind to death/respawn
-	//TODO
+	OwningPlayerState->CharacterDeadDelegate.AddDynamic(this, &UTabMenu_Row::BP_OnCharacterDead);
+	OwningPlayerState->CharacterRespawnDelegate.AddDynamic(this, &UTabMenu_Row::BP_OnCharacterRespawn);
 }
 
 void UTabMenu_Row::OnPawnDeath(ANSPlayerState* PlayerState)

@@ -39,6 +39,11 @@ void ANSPlayerState::OnCharacterDeath()
 	}
 }
 
+void ANSPlayerState::RespawnHandle_Implementation()
+{
+	CharacterRespawnDelegate.Broadcast();
+}
+
 void ANSPlayerState::AddKill()
 {
 	PlayerStatistic.KillCount++;
