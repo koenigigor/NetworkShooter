@@ -5,6 +5,24 @@
 
 #include "NSPlayerState.h"
 
+void UTabMenu_Row::NativeConstruct()
+{
+	Super::NativeConstruct();
+
+	//check player if dead
+	if (OwningPlayerState)
+	{
+		if (OwningPlayerState->bDeath)
+		{
+			BP_OnCharacterDead();
+		}
+		else
+		{
+			BP_OnCharacterRespawn();
+		}
+	} 
+}
+
 void UTabMenu_Row::Init(ANSPlayerState* PlayerState)
 {
 	

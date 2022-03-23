@@ -37,11 +37,13 @@ void ANSPlayerState::OnCharacterDeath()
 		if (auto GM = Cast<ANSGameMode>(GetWorld()->GetAuthGameMode()))
 			GM -> CharacterKilled(GetPawn());
 	}
+	bDeath = true;
 }
 
 void ANSPlayerState::RespawnHandle_Implementation()
 {
 	CharacterRespawnDelegate.Broadcast();
+	bDeath = false;
 }
 
 void ANSPlayerState::AddKill()

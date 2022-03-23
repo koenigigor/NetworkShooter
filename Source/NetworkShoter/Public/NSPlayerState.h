@@ -54,6 +54,8 @@ public:
 	/** [Multicast] GameMode call this when character respawn, for send respawn delegate to all client*/
 	UFUNCTION(NetMulticast, Reliable)
 	void RespawnHandle();
+
+	bool bDeath = true;
 	
 	/** Add 1 kill in player statistic*/
 	UFUNCTION()

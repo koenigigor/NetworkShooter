@@ -18,6 +18,8 @@ class NETWORKSHOTER_API UTabMenu_Row : public UUserWidget
 {
 	GENERATED_BODY()
 public:
+	virtual void NativeConstruct() override;
+	
 	void Init(ANSPlayerState* PlayerState = nullptr);
 	
 	UFUNCTION(BlueprintImplementableEvent)
