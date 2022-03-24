@@ -27,6 +27,16 @@ class NETWORKSHOTER_API APCNetShooter : public APlayerController
 	UFUNCTION(BlueprintPure)
 	ANSHUD* GetNSHUD();
 
+	virtual void OnPossess(APawn* InPawn) override;
+
+	virtual void OnRep_Pawn() override;
+
+public:
+	UFUNCTION(BlueprintImplementableEvent)
+	void BP_ClientOnPossess(APawn* InPawn);
+
+	
+protected:
 	//TODO check Spectator be garbage collected on Possess to character
 	//UPROPERTY()
 	//APawn* Spectator = nullptr;

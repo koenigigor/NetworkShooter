@@ -8,6 +8,7 @@
 #include "NSHUD.generated.h"
 
 class UTabMenu;
+class UHUDWidget;
 
 /**
  * 
@@ -20,6 +21,12 @@ class NETWORKSHOTER_API ANSHUD : public AHUD
 	UPROPERTY(EditDefaultsOnly, Category="Settings")
 	TSubclassOf<UUserWidget> PreMatchWidgetClass;
 
+	UPROPERTY(EditDefaultsOnly, Category="Settings")
+	TSubclassOf<UHUDWidget> CharacterHUDClass;
+
+	UPROPERTY(EditDefaultsOnly, Category="Settings")
+	TSubclassOf<UHUDWidget> SpectatorHUDClass;
+	
 	UPROPERTY(EditDefaultsOnly, Category="Settings") //, meta=(BlueprintBaseOnly=true)) not work
 	TSubclassOf<UTabMenu> TabMenuClass;
 
@@ -34,14 +41,27 @@ class NETWORKSHOTER_API ANSHUD : public AHUD
 	
 	UFUNCTION()
 	void OnMatchEnd();
+
+public:
+	/** Triggered when owner possess, in character/in spectator */
+	void OnPossess(APawn* InPawn);
+	
 public:
 	UFUNCTION(BlueprintCallable)
 	void ShowTabMenu(const bool bShow = true);
 
 	
 private:
+	UUserWidget* CurrentActiveHUD = nullptr;
+	
 	UPROPERTY()
 	UUserWidget* PreMatchWidget = nullptr;
+
+	UPROPERTY()
+	UHUDWidget* CharacterHUD = nullptr;
+
+	UPROPERTY()
+	UHUDWidget* SpectatorHUD = nullptr;
 	
 	UPROPERTY()
 	UTabMenu* TabMenu = nullptr;

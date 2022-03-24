@@ -101,3 +101,24 @@ ANSHUD* APCNetShooter::GetNSHUD()
 	
 	return NSHUD;
 }
+
+void APCNetShooter::OnPossess(APawn* InPawn)
+{
+	Super::OnPossess(InPawn);
+
+	//if it local client possess (spectator)
+	if (!GetWorld()->IsServer())
+	{
+		OnRep_Pawn();
+	}
+}
+
+void APCNetShooter::OnRep_Pawn()
+{
+	Super::OnRep_Pawn();
+//пока не стоит объявлять делегат ради 2х функций
+	
+	BP_ClientOnPossess(GetPawn());
+    
+	GetNSHUD()->OnPossess(GetPawn());
+}
