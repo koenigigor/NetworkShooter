@@ -34,7 +34,11 @@ class NETWORKSHOTER_API ANSHUD : public AHUD
 	
 	UFUNCTION()
 	void OnMatchEnd();
+public:
+	UFUNCTION(BlueprintCallable)
+	void ShowTabMenu(const bool bShow = true);
 
+	
 private:
 	UPROPERTY()
 	UUserWidget* PreMatchWidget = nullptr;

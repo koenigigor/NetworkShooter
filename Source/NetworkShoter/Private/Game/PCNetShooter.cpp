@@ -5,6 +5,7 @@
 
 #include "GameFramework/GameStateBase.h"
 #include "GameFramework/SpectatorPawn.h"
+#include "HUD/NSHUD.h"
 
 //#include "WeaponAttributeSet.h"
 
@@ -88,4 +89,15 @@ APawn* APCNetShooter::SpawnSpectator()
 	bCanPossessWithoutAuthority = false;
 	
 	return SpawnedSpectator;
+}
+
+ANSHUD* APCNetShooter::GetNSHUD()
+{
+	if (!NSHUD) 
+	{
+		//protect for cast every call
+		NSHUD = Cast<ANSHUD>(GetHUD());
+	}
+	
+	return NSHUD;
 }

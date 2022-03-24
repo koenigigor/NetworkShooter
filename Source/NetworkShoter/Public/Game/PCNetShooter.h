@@ -7,6 +7,7 @@
 #include "GameFramework/PlayerController.h"
 #include "PCNetShooter.generated.h"
 
+class ANSHUD;
 /**
  * 
  */
@@ -22,6 +23,9 @@ class NETWORKSHOTER_API APCNetShooter : public APlayerController
 	/** Enter spectator mode */
 	UFUNCTION(BlueprintCosmetic, BlueprintCallable)
 	APawn* SpawnSpectator();
+
+	UFUNCTION(BlueprintPure)
+	ANSHUD* GetNSHUD();
 
 	//TODO check Spectator be garbage collected on Possess to character
 	//UPROPERTY()
@@ -42,4 +46,7 @@ public:
 
 	void OnAbilityActivate(UGameplayAbility* ActivatedAbility);
 	*/
+
+private:
+	ANSHUD* NSHUD = nullptr;
 };

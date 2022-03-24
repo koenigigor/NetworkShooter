@@ -53,3 +53,17 @@ void ANSHUD::OnMatchEnd()
 		PostMatchWidget -> AddToViewport();
 	}
 }
+
+void ANSHUD::ShowTabMenu(const bool bShow)
+{
+	if (!TabMenu) { return; }
+
+	if (bShow)
+	{
+		TabMenu->AddToViewport();
+	}
+	else
+	{
+		TabMenu->RemoveFromParent();
+	}
+}
