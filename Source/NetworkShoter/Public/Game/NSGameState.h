@@ -70,7 +70,12 @@ public:
 	/** remove pawn from team list and add statistic
 	 *	trigger by GameMode */
 	virtual void CharacterKilled(APawn* WhoKilled);
+
+	UFUNCTION(BlueprintCallable)
+	EMatchState GetMatchState();
 	
+	//UFUNCTION(BlueprintCallable)
+	virtual bool HasMatchStarted() const override;
 public:
 	/** time when match was started */
 	float MatchStartTime = -1.f;

@@ -48,6 +48,17 @@ void ANSGameState::CharacterKilled(APawn* WhoKilled)
 	AddStatisticWhenPawnKilled(WhoKilled);
 }
 
+EMatchState ANSGameState::GetMatchState()
+{
+	return MatchState;
+}
+
+bool ANSGameState::HasMatchStarted() const
+{
+	//return Super::HasMatchStarted();
+	return MatchState == EMatchState::InProgress;
+}
+
 
 //~==============================================================================================
 // Match Statistic
