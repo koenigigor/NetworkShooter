@@ -40,7 +40,8 @@ void ANSPlayerState::RespawnHandle_Implementation()
 }
 
 
-/** Statistic **/
+//~==============================================================================================
+// PlayerStatistic
 
 void ANSPlayerState::AddKill()
 {

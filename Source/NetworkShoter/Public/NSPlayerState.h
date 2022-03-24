@@ -38,6 +38,8 @@ public:
 
 	virtual void BeginPlay() override;
 
+	//~==============================================================================================
+	// Delegates
 	UPROPERTY(BlueprintAssignable)
 	FPlayerStatisticUpdateDelegate PlayerStatisticUpdateDelegate;
 
@@ -48,6 +50,7 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FCharacterRespawnDelegate CharacterRespawnDelegate;
 
+	
 	/** [All sides] */
 	UFUNCTION()
 	void OnCharacterDeath();
@@ -57,6 +60,13 @@ public:
 	void RespawnHandle();
 
 	bool bDeath = true;
+
+	
+	//~==============================================================================================
+	// PlayerStatistic
+	
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	FPlayerStatistic GetPlayerStatistic() { return PlayerStatistic; }
 	
 	/** Increment kill statistic */
 	UFUNCTION()
@@ -69,14 +79,10 @@ public:
 	/** Increment death statistic */
 	UFUNCTION()
 	void AddDeath();
-
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	FPlayerStatistic GetPlayerStatistic() { return PlayerStatistic; }
-
 protected:
-	UPROPERTY(ReplicatedUsing = "OnRep_PlayerStatistic")
-	FPlayerStatistic PlayerStatistic;
-
 	UFUNCTION()
 	void OnRep_PlayerStatistic();
+	
+	UPROPERTY(ReplicatedUsing = "OnRep_PlayerStatistic")
+	FPlayerStatistic PlayerStatistic;
 };

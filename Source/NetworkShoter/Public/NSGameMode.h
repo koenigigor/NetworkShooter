@@ -28,11 +28,14 @@ class NETWORKSHOTER_API ANSGameMode : public AGameModeBase
 public:
 	virtual void InitGameState() override;
 
+	//~==============================================================================================
+	// Change Match State
 	
-	/**------ Match States ------**/
+	/** Call for start match */
 	UFUNCTION(BlueprintCallable)
 	virtual void StartMatch();
 
+	/** Call for end match */
 	UFUNCTION(BlueprintCallable)
 	virtual void EndMatch();
 
@@ -52,34 +55,37 @@ protected:
 	void BP_MatchFinished();
 
 	EMatchState MatchState = EMatchState::WaitingToStart;
-	/**------ Match States end ------**/
 
-	/**------ Match limits ------**/
+	
+	//~==============================================================================================
+	// Respawn player
+protected:	
+	/** Spawn Character in his command player start, and possess to it */
+    UFUNCTION(BlueprintCallable)
+    void SpawnPlayer(APlayerController* Controller);
+    	
+    //virtual void SetPlayerDefaults(APawn* PlayerPawn) override;
+    	
+    /** Support function for FindPlayerStart */
+    virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
+	
+public:
+   	/** Player state call this function when player dead */
+   	UFUNCTION(BlueprintCallable, meta=(DefaultToSelf="WhoKilled"))
+  	virtual void CharacterKilled(APawn* WhoKilled);
+
+	
+	//~==============================================================================================
+	// Match Limits
+protected:
 	UPROPERTY(EditDefaultsOnly, Category="Match Limits")
 	FTimespan MatchTimeLimit;
 	
-	/**------ Match limits end ------**/
-	
-	/**----  ----**/
-public:
-	/** Player state call this function when player dead */
-	UFUNCTION(BlueprintCallable, meta=(DefaultToSelf="WhoKilled"))
-	virtual void CharacterKilled(APawn* WhoKilled);
-protected:
-	//Spawn Character in his command player start, and possess to it
-	UFUNCTION(BlueprintCallable)
-	void SpawnPlayer(APlayerController* Controller);
+
 	
 	/** Death controllers to respawn */
 	UPROPERTY()
 	TArray<APlayerController*> DeathControllers;
-	
-		
-	/** Support function for FindPlayerStart */
-	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
-
-	//virtual void SetPlayerDefaults(APawn* PlayerPawn) override;
-
 	
 	ANSGameState* NSGameState = nullptr;
 };

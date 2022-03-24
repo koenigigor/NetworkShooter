@@ -23,6 +23,8 @@ void ANSGameMode::InitGameState()
 	}
 }
 
+//~==============================================================================================
+// Change Match State
 
 void ANSGameMode::StartMatch()
 {
@@ -108,6 +110,8 @@ void ANSGameMode::EndMatchHandle()
 }
 
 
+//~==============================================================================================
+// Respawn player
 
 void ANSGameMode::CharacterKilled(APawn* WhoKilled)
 {

@@ -58,6 +58,9 @@ class NETWORKSHOTER_API ANSGameState : public AGameStateBase
 public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+	//~==============================================================================================
+	// Match State
+	
 	/** called from Game mode */
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void StartMatchHandle();
@@ -67,11 +70,18 @@ public:
 	/** remove pawn from team list and add statistic
 	 *	trigger by GameMode */
 	virtual void CharacterKilled(APawn* WhoKilled);
+	
+public:
+	/** time when match was started */
+	float MatchStartTime = -1.f;
+
+	/** copy match state from game mode, for using in widgets */
+	UPROPERTY(Replicated)
+	EMatchState MatchState = EMatchState::WaitingToStart;
 
 	
-	/**-----------------**/
-	/** Match Statistic **/
-	/**-----------------**/
+	//~==============================================================================================
+	// Match Statistic
 	
 	/** Create damage info struct in and add it in struct array
 	 *  Called from damage execution calculation */
@@ -87,10 +97,9 @@ public:
 	UFUNCTION()
 	void AddStatisticWhenPawnKilled(APawn* WhoKilled);
 
-	
-	/**-----------------**/
-	/**    Team List    **/
-	/**-----------------**/
+
+	//~==============================================================================================
+	// Team List
 
 	/** Add pawn in pawn list, called from game mode when player possess in Pawn */
 	UFUNCTION(BlueprintCallable)
@@ -107,9 +116,8 @@ public:
 	virtual void GetTeamList(FName Team, TArray<APawn*>*& TeamListPtr);
 
 
-	/**-----------------**/
-	/**   Match timer   **/
-	/**-----------------**/
+	//~==============================================================================================
+	// Match timer
 	
 	void StartMatchTimer();
 	
@@ -118,9 +126,17 @@ public:
 	
 protected:
 	void MatchTimerEnd();
+	
+public:
+	UPROPERTY(Transient, BlueprintReadOnly, Category="Limits", Replicated)
+	FTimespan MatchTimeLimit;
 
+	/** Handle for match timer, if match can be ended by time  */
+	FTimerHandle MatchTimerHandle;
 
 	
+	//~==============================================================================================
+	// Match Delegates	
 public:	
 	UPROPERTY(BlueprintAssignable)
 	FMatchStartDelegate MatchStartDelegate;
@@ -132,14 +148,7 @@ protected:
 	void BP_MatchStarted();
 	UFUNCTION(BlueprintImplementableEvent)
 	void BP_MatchFinished();
-	
-public:
-	/** time when match was started */
-	float MatchStartTime = -1.f;
 
-	/** copy match state from game mode, for using in widgets */
-	UPROPERTY(Replicated)
-	EMatchState MatchState = EMatchState::WaitingToStart;
 
 private:
 	UPROPERTY(ReplicatedUsing=OnRep_Team1)
@@ -155,10 +164,4 @@ private:
 	void OnRep_Team1();
 	UFUNCTION()
 	void OnRep_Team2();
-
-public:
-	UPROPERTY(Transient, BlueprintReadOnly, Category="Limits", Replicated)
-	FTimespan MatchTimeLimit;
-
-	FTimerHandle MatchTimerHandle;
 };

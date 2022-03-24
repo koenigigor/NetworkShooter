@@ -20,6 +20,10 @@ void ANSGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME(ANSGameState, MatchState);
 }
 
+
+//~==============================================================================================
+// Match State
+
 void ANSGameState::StartMatchHandle_Implementation()
 {	
 	StartMatchTimer();
@@ -38,7 +42,15 @@ void ANSGameState::EndMatchHandle_Implementation()
 	MatchEndDelegate.Broadcast();
 }
 
+void ANSGameState::CharacterKilled(APawn* WhoKilled)
+{
+	RemovePawn(WhoKilled);
+	AddStatisticWhenPawnKilled(WhoKilled);
+}
 
+
+//~==============================================================================================
+// Match Statistic
 void ANSGameState::ApplyDamageInfo(FDamageInfo DamageInfo)
 {
 	//if (!DamageInfo.IsValid) { return; }
@@ -168,12 +180,9 @@ void ANSGameState::AddStatisticWhenPawnKilled(APawn* WhoKilled)
     }			
 }
 
-void ANSGameState::CharacterKilled(APawn* WhoKilled)
-{
-	RemovePawn(WhoKilled);
-	AddStatisticWhenPawnKilled(WhoKilled);
-}
 
+//~==============================================================================================
+// Team List
 
 void ANSGameState::AddPlayerPawn(APawn* Pawn)
 {
@@ -294,6 +303,9 @@ void ANSGameState::OnRep_Team2()
 {
 }
 
+
+//~==============================================================================================
+// Match timer
 void ANSGameState::StartMatchTimer()
 {
 	GetWorld()->GetTimerManager().SetTimer(MatchTimerHandle, this, &ANSGameState::MatchTimerEnd, MatchTimeLimit.GetTotalSeconds());
