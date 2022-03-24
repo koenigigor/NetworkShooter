@@ -1,8 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "GE_ExplodeCalculation.h"
-#include "NetShooterAttributeSet.h"
+#include "GAS/GameplayEffectExecution/GE_ExplodeCalculation.h"
+#include "GAS/AttributeSet/NetShooterAttributeSet.h"
 #include "AbilitySystemComponent.h"
 #include "GameplayTagContainer.h"
 

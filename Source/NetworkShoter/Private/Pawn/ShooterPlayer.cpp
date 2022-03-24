@@ -1,11 +1,11 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "ShooterPlayer.h"
+#include "Pawn/ShooterPlayer.h"
 #include "AbilitySystemComponent.h"
-#include "NetShooterAttributeSet.h"
-#include "NSPlayerState.h"
-#include "WeaponAttributeSet.h"
+#include "GAS/AttributeSet/NetShooterAttributeSet.h"
+#include "Game/NSPlayerState.h"
+#include "GAS/AttributeSet/WeaponAttributeSet.h"
 
 // Sets default values
 AShooterPlayer::AShooterPlayer()

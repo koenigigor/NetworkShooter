@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "NSPlayerState.h"
+#include "Game/NSPlayerState.h"
 #include "Blueprint/UserWidget.h"
 #include "TabMenu_Row.generated.h"
 

@@ -1,12 +1,12 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "NSGameMode.h"
+#include "Game/NSGameMode.h"
 
 #include "EngineUtils.h"
 #include "NSPlayerStart.h"
-#include "NSPlayerState.h"
-#include "PCNetShooter.h"
+#include "Game/NSPlayerState.h"
+#include "Game/PCNetShooter.h"
 #include "Game/NSGameState.h"
 #include "GameFramework/GameSession.h"
 #include "GameFramework/SpectatorPawn.h"

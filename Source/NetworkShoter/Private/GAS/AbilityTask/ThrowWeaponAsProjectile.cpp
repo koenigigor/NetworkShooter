@@ -1,11 +1,11 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "AbilityTask/ThrowWeaponAsProjectile.h"
+#include "GAS/AbilityTask/ThrowWeaponAsProjectile.h"
 
 #include "DrawDebugHelpers.h"
 #include "Kismet/GameplayStatics.h"
-#include "NetworkShoter/Weapon.h"
+#include "Items/Weapon.h"
 
 UThrowWeaponAsProjectile::UThrowWeaponAsProjectile()
 {

@@ -1,11 +1,11 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "GEEShooting.h"
+#include "GAS/GameplayEffectExecution/GEEShooting.h"
 
 #include "AbilitySystemComponent.h"
 #include "NSEquipment.h"
-#include "NetworkShoter/Weapon.h"
+#include "Items/Weapon.h"
 
 void UGEEShooting::Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams,
                                           FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const

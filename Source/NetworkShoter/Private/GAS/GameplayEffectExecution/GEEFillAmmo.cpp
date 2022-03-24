@@ -1,8 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "GameplayExecutionCalculation/GEEFillAmmo.h"
-#include "WeaponAttributeSet.h"
+#include "GAS/GameplayEffectExecution/GEEFillAmmo.h"
+#include "GAS/AttributeSet/WeaponAttributeSet.h"
 #include "AbilitySystemComponent.h"
 
 struct FAttribCapture

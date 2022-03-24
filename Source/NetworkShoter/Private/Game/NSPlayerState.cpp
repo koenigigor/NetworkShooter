@@ -1,10 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "NSPlayerState.h"
+#include "Game/NSPlayerState.h"
 
-#include "NSGameMode.h"
-#include "PCNetShooter.h"
+#include "Game/NSGameMode.h"
 #include "Net/UnrealNetwork.h"
 
 void ANSPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

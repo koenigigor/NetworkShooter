@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "WeaponAttributeSet.h"
+#include "GAS/AttributeSet/WeaponAttributeSet.h"
 #include "Engine/DataAsset.h"
 #include "WeaponData.generated.h"
 

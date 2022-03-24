@@ -1,12 +1,12 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "AbilityTask/AbilityTask_PlayerShootTrace.h"
+#include "GAS/AbilityTask/AbilityTask_PlayerShootTrace.h"
 
 #include "DrawDebugHelpers.h"
 #include "NSEquipment.h"
 #include "Camera/CameraComponent.h"
-#include "NetworkShoter/Weapon.h"
+#include "Items/Weapon.h"
 
 void UAbilityTask_PlayerShootTrace::Activate()
 {

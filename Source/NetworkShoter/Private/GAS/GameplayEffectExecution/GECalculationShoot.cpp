@@ -1,12 +1,12 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "GECalculationShoot.h"
-#include "NetShooterAttributeSet.h"
-#include "WeaponAttributeSet.h"
+#include "GAS/GameplayEffectExecution/GECalculationShoot.h"
+#include "GAS/AttributeSet/NetShooterAttributeSet.h"
+#include "GAS/AttributeSet/WeaponAttributeSet.h"
 #include "AbilitySystemComponent.h"
-#include "NSPlayerState.h"
-#include "PCNetShooter.h"
+#include "Game/NSPlayerState.h"
+#include "Game/PCNetShooter.h"
 #include "Game/NSGameState.h"
 
 struct FAttribCapture

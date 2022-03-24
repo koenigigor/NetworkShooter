@@ -1,9 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "AbilityTask/AbilityTask_WaitGrenadeExplode.h"
+#include "GAS/AbilityTask/AbilityTask_WaitGrenadeExplode.h"
 
-#include "NetworkShoter/Weapon.h"
+#include "Items/Weapon.h"
 
 UAbilityTask_WaitGrenadeExplode::UAbilityTask_WaitGrenadeExplode()
 {

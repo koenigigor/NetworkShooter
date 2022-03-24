@@ -3,7 +3,7 @@
 
 #include "HUD/TabMenu_Row.h"
 
-#include "NSPlayerState.h"
+#include "Game/NSPlayerState.h"
 
 void UTabMenu_Row::NativeConstruct()
 {

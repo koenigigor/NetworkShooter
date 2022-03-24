@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "PCNetShooter.h"
+#include "Game/PCNetShooter.h"
 
 #include "GameFramework/GameStateBase.h"
 #include "GameFramework/SpectatorPawn.h"

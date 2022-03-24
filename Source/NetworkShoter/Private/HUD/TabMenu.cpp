@@ -3,9 +3,8 @@
 
 #include "HUD/TabMenu.h"
 
-#include <string>
 
-#include "NSPlayerState.h"
+#include "Game/NSPlayerState.h"
 #include "Game/NSGameState.h"
 #include "GameFramework/GameStateBase.h"
 

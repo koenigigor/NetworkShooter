@@ -3,9 +3,9 @@
 
 #include "Game/NSGameState.h"
 
-#include "NSGameMode.h"
-#include "NSPlayerState.h"
-#include "PCNetShooter.h"
+#include "Game/NSGameMode.h"
+#include "Game/NSPlayerState.h"
+#include "Game/PCNetShooter.h"
 #include "GameFramework/PlayerState.h"
 #include "Net/UnrealNetwork.h"
 

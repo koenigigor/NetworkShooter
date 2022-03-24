@@ -5,7 +5,7 @@
 
 #include "AbilitySystemInterface.h"
 #include "Net/UnrealNetwork.h"
-#include "NetworkShoter/Weapon.h"
+#include "Items/Weapon.h"
 
 
 UNSEquipment::UNSEquipment()
