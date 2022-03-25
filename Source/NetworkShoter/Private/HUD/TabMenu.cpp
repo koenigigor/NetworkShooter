@@ -49,37 +49,3 @@ void UTabMenu::UpdateRows()
 	//send bp event add widgets on table
 	BP_RowsUpdated();
 }
-
-
-/** MATCH TIME **/
-
-float UTabMenu::GetMatchTime()
-{
-	if (GameState)
-	{
-		float MatchTime = GetWorld()->TimeSeconds - GameState->MatchStartTime;
-		return MatchTime;
-	}
-	return -1.f;
-}
-
-float UTabMenu::GetMatchTimeProgress()
-{
-	auto MatchState = GameState->MatchState;
-	if (MatchState == EMatchState::WaitingToStart)
-	{
-		return 0.f;
-	}
-	
-	if (MatchState == EMatchState::InProgress)
-	{
-		return GetMatchTime() / (GameState->MatchTimeLimit.GetSeconds() + GameState->MatchTimeLimit.GetMinutes() * 60);
-	}
-
-	if (MatchState == EMatchState::PostMatch)
-	{
-		return 1.f;
-	}
-	
-	return 0.f;
-}

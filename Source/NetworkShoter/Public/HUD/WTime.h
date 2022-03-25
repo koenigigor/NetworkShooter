@@ -21,6 +21,10 @@ class NETWORKSHOTER_API UWTime : public UUserWidget
 
 	UFUNCTION(BlueprintCallable)
 	void GetReadableMatchTime(int32& Minutes, int32& Seconds);
+
+	/** if match in progress return time end percentage */
+	UFUNCTION(BlueprintPure)
+	float GetMatchTimeProgress();
 	
 	ANSGameState* GameState = nullptr;
 };

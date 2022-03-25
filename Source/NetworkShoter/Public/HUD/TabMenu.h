@@ -36,17 +36,5 @@ protected:
 	UPROPERTY(BlueprintReadOnly)
 	TArray<UTabMenu_Row*> Rows;
 
-	
-	/** return time in seconds from start match */
-	UFUNCTION(BlueprintPure)
-	float GetMatchTime();
-	
-	/** return percent when match time end
-	 *	@0 Start
-	 *	@1 End
-	 */
-	UFUNCTION(BlueprintPure)
-	float GetMatchTimeProgress();
-
 	ANSGameState* GameState = nullptr;
 };

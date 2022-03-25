@@ -29,3 +29,24 @@ void UWTime::GetReadableMatchTime(int32& Minutes, int32& Seconds)
 	Seconds = FMath::RoundToInt(MatchTime) % 60;
 	Minutes = (FMath::RoundToInt(MatchTime) - Seconds) / 60;
 }
+
+float UWTime::GetMatchTimeProgress()
+{
+	auto MatchState = GameState->MatchState;
+	if (MatchState == EMatchState::WaitingToStart)
+	{
+		return 0.f;
+	}
+	
+	if (MatchState == EMatchState::InProgress)
+	{
+		return GetMatchTime() / GameState->MatchTimeLimit.GetTotalSeconds();
+	}
+
+	if (MatchState == EMatchState::PostMatch)
+	{
+		return 1.f;
+	}
+	
+	return 0.f;
+}
