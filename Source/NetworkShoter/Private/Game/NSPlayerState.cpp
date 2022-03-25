@@ -32,6 +32,11 @@ void ANSPlayerState::OnCharacterDeath()
 	bDeath = true;
 }
 
+bool ANSPlayerState::IsLife()
+{
+	return bDeath;
+}
+
 void ANSPlayerState::RespawnHandle_Implementation()
 {
 	CharacterRespawnDelegate.Broadcast();

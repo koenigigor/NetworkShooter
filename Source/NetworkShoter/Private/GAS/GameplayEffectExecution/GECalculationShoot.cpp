@@ -24,7 +24,7 @@ struct FAttribCapture_CalculationShoot
 
 
 
-static const FAttribCapture_CalculationShoot& GetAttributeCapture()
+static const FAttribCapture_CalculationShoot& GetAttributeCapture_CalculationShoot()
 {
 	static FAttribCapture_CalculationShoot Capture;
 	return Capture;
@@ -32,9 +32,9 @@ static const FAttribCapture_CalculationShoot& GetAttributeCapture()
 
 UGECalculationShoot::UGECalculationShoot()
 {
-	RelevantAttributesToCapture.Add(GetAttributeCapture().WeaponDamageDef);
-	RelevantAttributesToCapture.Add(GetAttributeCapture().ArmorDef);
-	RelevantAttributesToCapture.Add(GetAttributeCapture().HealthDef);
+	RelevantAttributesToCapture.Add(GetAttributeCapture_CalculationShoot().WeaponDamageDef);
+	RelevantAttributesToCapture.Add(GetAttributeCapture_CalculationShoot().ArmorDef);
+	RelevantAttributesToCapture.Add(GetAttributeCapture_CalculationShoot().HealthDef);
 }
 
 void UGECalculationShoot::Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams,
@@ -58,14 +58,14 @@ void UGECalculationShoot::Execute_Implementation(const FGameplayEffectCustomExec
 
 	//get attributes
 	float AttackPower = 0.f;
-	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(GetAttributeCapture().WeaponDamageDef, EvaluationParameters, AttackPower);
+	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(GetAttributeCapture_CalculationShoot().WeaponDamageDef, EvaluationParameters, AttackPower);
 	if (AttackPower <= 0.f) { AttackPower = 1.f; }
 
 	float Armor = 0.f;
-	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(GetAttributeCapture().ArmorDef, EvaluationParameters, Armor);
+	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(GetAttributeCapture_CalculationShoot().ArmorDef, EvaluationParameters, Armor);
 
 	float Health = 0.f;
-	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(GetAttributeCapture().HealthDef, EvaluationParameters, Health);
+	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(GetAttributeCapture_CalculationShoot().HealthDef, EvaluationParameters, Health);
 	
 	//calculation results
 	float ResultDamage = AttackPower + 1; //TODO make some formula
@@ -79,13 +79,13 @@ void UGECalculationShoot::Execute_Implementation(const FGameplayEffectCustomExec
 		//SetResults
 		if (Armor > 0) //not trigger replication if already has been 0
 		{
-			OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(GetAttributeCapture().ArmorProperty, EGameplayModOp::Override, OutArmor));
+			OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(GetAttributeCapture_CalculationShoot().ArmorProperty, EGameplayModOp::Override, OutArmor));
 		}
-		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(GetAttributeCapture().HealthProperty, EGameplayModOp::Override, OutHealth));
+		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(GetAttributeCapture_CalculationShoot().HealthProperty, EGameplayModOp::Override, OutHealth));
 	}
 	else
 	{
-		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(GetAttributeCapture().ArmorProperty, EGameplayModOp::Override, OutArmor));
+		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(GetAttributeCapture_CalculationShoot().ArmorProperty, EGameplayModOp::Override, OutArmor));
 	}
 
 /**********  TODO  **********/

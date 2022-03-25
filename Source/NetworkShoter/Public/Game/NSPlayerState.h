@@ -59,6 +59,8 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	void RespawnHandle();
 
+	bool IsLife();
+	
 	bool bDeath = true;
 
 	//~==============================================================================================

@@ -41,5 +41,9 @@ void AGMTeamMatch::ShuffleTeam()
 		TeamProtection[TeamIndex]++;
 
 		NSPlayer->TeamIndex = TeamIndex;
-	} 
+
+		//AddPlayerInTeamList(Cast<AController>(NSPlayer->GetOwner()));
+	}
+
+	//get game state, refresh team lists
 }

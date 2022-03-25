@@ -108,25 +108,14 @@ public:
 	//~==============================================================================================
 	// Team List
 
-	/** Add pawn in pawn list, called from game mode when player possess in Pawn */
-	//UFUNCTION(BlueprintCallable)
-	//virtual void AddPlayerPawn(APawn* Pawn);
-
 	/** Add player in team list  */
 	UFUNCTION(BlueprintCallable)
 	void AddPlayerInTeamList(ANSPlayerState* Player);
 
-	/** Remove pawn in pawn from list, called from game mode when player possess in Pawn */
-	//UFUNCTION(BlueprintCallable)
-	//virtual void RemovePawn(APawn* Pawn);
-
 	/** Remove player from team list */
 	UFUNCTION(BlueprintCallable)
 	void RemovePlayerFromTeamList(ANSPlayerState* Player);
-
-	/** @return next actor in team */
-	//void GetNextActorInTeam(FName Team, AActor*& NextActorInTeam, int32& NumberInTeam, bool bNext = true);
-
+	
 	void GetNextPlayerInTeam(int32 TeamIndex, ANSPlayerState*& NextPlayerInTeam, int32& NumberInTeam, bool bNext = true);
 	
 	/** Return team list for specified team */

@@ -34,7 +34,8 @@ public:
 
 	//~==============================================================================================
 	// Teams
-	
+
+	/** Add player in team list based on his TeamId*/
 	UFUNCTION(BlueprintCallable)
 	void AddPlayerInTeamList(AController* Player);
 
