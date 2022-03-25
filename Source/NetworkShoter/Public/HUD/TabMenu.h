@@ -28,11 +28,7 @@ protected:
 	
 	virtual void NativeConstruct() override;
 
-	/* Called when controlled pawn Spawned */
-	void OnPawnSpawned(ANSPlayerState* PlayerState);
-	
-	/* Called when controlled pawn Death */
-	void OnPawnDeath(ANSPlayerState* PlayerState);
+	void UpdateRows();
 
 	/** array for store team info, for more team create derived class and add array */
 	//TArray<ANSPlayerState> Team0;
@@ -44,10 +40,6 @@ protected:
 	/** return time in seconds from start match */
 	UFUNCTION(BlueprintPure)
 	float GetMatchTime();
-
-	/** return string format "Waiting match 0:30" or "match in progress 1:27" */
-	UFUNCTION(BlueprintPure)
-	FString GetMatchStatusAndTime();
 	
 	/** return percent when match time end
 	 *	@0 Start

@@ -14,40 +14,40 @@ void UTabMenu::NativeConstruct()
 
 	GameState = GetWorld()->GetGameState<ANSGameState>();
 
-	//Prepare rows array, todo re init rows and destroy if more, 
-	Rows.Empty();
+	UpdateRows();
+}
+
+void UTabMenu::UpdateRows()
+{
 	auto PlayerArray = GetWorld()->GetGameState()->PlayerArray;
-    	for (const auto& Player : PlayerArray)
-    	{
-    		if (auto PlayerState = Cast<ANSPlayerState>(Player))
-    		{
-    			//create and init 
-    			auto Row = CreateWidget<UTabMenu_Row>(this, TabMenuRowClass);
 
-				Row->Init(PlayerState);
-    			
-    			//add in widgets array
-    			Rows.Add(Row);
-    		}
-    	}
-		//send bp event add widgets on table
-		BP_RowsUpdated();
-}
-
-void UTabMenu::OnPawnSpawned(ANSPlayerState* PlayerState)
-{
-	//enable line
-	
-}
-
-void UTabMenu::OnPawnDeath(ANSPlayerState* PlayerState)
-{
-	//get player state line
-	//for (const auto& Widget : WidgetList)
+	int32 RowIndex = 0;
+	for (const auto& Player : PlayerArray) 
 	{
-		//Widget
+		auto PlayerState = Cast<ANSPlayerState>(Player);
+			
+		//reinit row, or create new
+		if (Rows.IsValidIndex(RowIndex))
+		{
+			Rows[RowIndex]->Init(PlayerState);
+		}
+		else
+		{
+			auto Row = CreateWidget<UTabMenu_Row>(this, TabMenuRowClass);
+
+			Row->Init(PlayerState);
+    			
+			//add in widgets array
+			Rows.Add(Row);
+		}
+		
+		RowIndex++;
 	}
+	//delete other rows
+	Rows.SetNum(PlayerArray.Num(), true);
 	
+	//send bp event add widgets on table
+	BP_RowsUpdated();
 }
 
 
@@ -63,43 +63,6 @@ float UTabMenu::GetMatchTime()
 	return -1.f;
 }
 
-FString UTabMenu::GetMatchStatusAndTime()
-{
-	FString Output = "";
-	if (!GameState) { return Output; }
-	
-	auto MatchState = GameState->MatchState;
-	if (MatchState == EMatchState::WaitingToStart)
-	{
-		Output = "Wait start match";
-		//time to start
-		
-		return Output;
-	}
-	
-	if (MatchState == EMatchState::InProgress)
-	{
-		//return FString::SanitizeFloat(GetMatchTime(), 0);
-		float MatchTime = GetMatchTime();
-		int32 MatchSeconds = FMath::RoundToInt(MatchTime) % 60;
-		int32 MatchMinutes = (FMath::RoundToInt(MatchTime) - MatchSeconds) / 60;
-		Output = FString::FromInt(MatchMinutes) + " : " + FString::FromInt(MatchSeconds);
-		return Output;
-		
-		MatchTime *= 10.f;
-		MatchTime = FMath::RoundToInt(MatchTime) / 10.f;
-		return FString::SanitizeFloat(MatchTime, 0);	
-	}
-
-	if (MatchState == EMatchState::PostMatch)
-	{
-		Output = "Match ended";
-		return Output;
-	}
-
-	return Output;
-}
-
 float UTabMenu::GetMatchTimeProgress()
 {
 	auto MatchState = GameState->MatchState;
@@ -110,7 +73,7 @@ float UTabMenu::GetMatchTimeProgress()
 	
 	if (MatchState == EMatchState::InProgress)
 	{
-		return GetMatchTime() / GameState->MatchTimeLimit.GetSeconds();
+		return GetMatchTime() / (GameState->MatchTimeLimit.GetSeconds() + GameState->MatchTimeLimit.GetMinutes() * 60);
 	}
 
 	if (MatchState == EMatchState::PostMatch)
