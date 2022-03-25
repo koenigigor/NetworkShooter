@@ -4,6 +4,7 @@
 #include "Pawn/NSSpectator.h"
 
 #include "Game/NSGameState.h"
+#include "Game/NSPlayerState.h"
 
 
 ANSSpectator::ANSSpectator()
@@ -28,8 +29,15 @@ void ANSSpectator::UpdateAttachedActor(bool bNext)
 {
     if (auto NSGameState = Cast<ANSGameState>(GetWorld()->GetGameState()))
     {
-    	//TODO team
-    	NSGameState -> GetNextActorInTeam("Team1", AttachedActor.Key, AttachedActor.Value);
+    	if (auto NSPlayerState = GetPlayerState<ANSPlayerState>())
+    	{
+    		ANSPlayerState* NextPlayer = nullptr;
+    		if (AttachedActor.Key)
+    			NextPlayer = AttachedActor.Key->GetInstigatorController()->GetPlayerState<ANSPlayerState>();
+    		NSGameState -> GetNextPlayerInTeam(NSPlayerState->TeamIndex, NextPlayer, AttachedActor.Value);
+			if (NextPlayer)
+    			AttachedActor.Key = NextPlayer->GetPawn();
+    	}
     }
     
     if (!AttachedActor.Key)

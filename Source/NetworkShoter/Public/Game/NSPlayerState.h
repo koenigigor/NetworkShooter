@@ -64,9 +64,9 @@ public:
 	//~==============================================================================================
 	// Team
 
-	/** Team name, setup on login */
+	/** Team index, setup on login */
 	UPROPERTY(BlueprintReadOnly, Replicated)
-	FName Team;
+	int32 TeamIndex;
 	
 	//~==============================================================================================
 	// PlayerStatistic

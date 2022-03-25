@@ -6,7 +6,6 @@
 #include "GAS/AttributeSet/WeaponAttributeSet.h"
 #include "AbilitySystemComponent.h"
 #include "Game/NSPlayerState.h"
-#include "Game/PCNetShooter.h"
 #include "Game/NSGameState.h"
 
 struct FAttribCapture_CalculationShoot

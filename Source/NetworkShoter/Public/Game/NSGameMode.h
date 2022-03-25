@@ -33,6 +33,12 @@ public:
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 
 	//~==============================================================================================
+	// Teams
+	
+	UFUNCTION(BlueprintCallable)
+	void AddPlayerInTeamList(AController* Player);
+
+	//~==============================================================================================
 	// Change Match State
 	
 	/** Call for start match */

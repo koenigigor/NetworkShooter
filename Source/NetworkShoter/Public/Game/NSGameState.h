@@ -7,6 +7,8 @@
 #include "GameFramework/GameStateBase.h"
 #include "NSGameState.generated.h"
 
+class ANSPlayerState;
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FMatchStartDelegate);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FMatchEndDelegate);
 
@@ -107,18 +109,28 @@ public:
 	// Team List
 
 	/** Add pawn in pawn list, called from game mode when player possess in Pawn */
+	//UFUNCTION(BlueprintCallable)
+	//virtual void AddPlayerPawn(APawn* Pawn);
+
+	/** Add player in team list  */
 	UFUNCTION(BlueprintCallable)
-	virtual void AddPlayerPawn(APawn* Pawn);
+	void AddPlayerInTeamList(ANSPlayerState* Player);
 
 	/** Remove pawn in pawn from list, called from game mode when player possess in Pawn */
+	//UFUNCTION(BlueprintCallable)
+	//virtual void RemovePawn(APawn* Pawn);
+
+	/** Remove player from team list */
 	UFUNCTION(BlueprintCallable)
-	virtual void RemovePawn(APawn* Pawn);
+	void RemovePlayerFromTeamList(ANSPlayerState* Player);
 
 	/** @return next actor in team */
-	void GetNextActorInTeam(FName Team, AActor*& NextActorInTeam, int32& NumberInTeam, bool bNext = true);
+	//void GetNextActorInTeam(FName Team, AActor*& NextActorInTeam, int32& NumberInTeam, bool bNext = true);
+
+	void GetNextPlayerInTeam(int32 TeamIndex, ANSPlayerState*& NextPlayerInTeam, int32& NumberInTeam, bool bNext = true);
 	
 	/** Return team list for specified team */
-	virtual void GetTeamList(FName Team, TArray<APawn*>*& TeamListPtr);
+	virtual void GetTeamList(int32 TeamIndex, TArray<ANSPlayerState*>*& TeamListPtr);
 
 
 	//~==============================================================================================
@@ -156,17 +168,12 @@ protected:
 
 
 private:
-	UPROPERTY(ReplicatedUsing=OnRep_Team1)
-	TArray<APawn*> Team1;
-	
-	UPROPERTY(ReplicatedUsing=OnRep_Team2)
-	TArray<APawn*> Team2;
+	UPROPERTY(ReplicatedUsing=OnRep_Team0)
+	TArray<ANSPlayerState*> Team0;
 
 	/** Keep all damage info for this match */
 	TArray<FDamageInfo> DamageInfoList;
 	
 	UFUNCTION()
-	void OnRep_Team1();
-	UFUNCTION()
-	void OnRep_Team2();
+	void OnRep_Team0();
 };

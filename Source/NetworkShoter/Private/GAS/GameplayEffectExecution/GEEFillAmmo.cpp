@@ -19,7 +19,7 @@ struct FAttribCapture_FillAmmo
 
 
 
-static const FAttribCapture_FillAmmo& GetAttributeCapture()
+static const FAttribCapture_FillAmmo& GetAttributeCapture_FillAmmo()
 {
 	static FAttribCapture_FillAmmo Capture;
 	return Capture;
@@ -27,8 +27,8 @@ static const FAttribCapture_FillAmmo& GetAttributeCapture()
 
 UGEEFillAmmo::UGEEFillAmmo()
 {
-	RelevantAttributesToCapture.Add(GetAttributeCapture().AmmoDef);
-	RelevantAttributesToCapture.Add(GetAttributeCapture().MaxAmmoDef);
+	RelevantAttributesToCapture.Add(GetAttributeCapture_FillAmmo().AmmoDef);
+	RelevantAttributesToCapture.Add(GetAttributeCapture_FillAmmo().MaxAmmoDef);
 }
 
 void UGEEFillAmmo::Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams,
@@ -37,14 +37,14 @@ void UGEEFillAmmo::Execute_Implementation(const FGameplayEffectCustomExecutionPa
 	Super::Execute_Implementation(ExecutionParams, OutExecutionOutput);
 	
 	
-	float MaxAmmo = ExecutionParams.GetSourceAbilitySystemComponent()->GetNumericAttribute(GetAttributeCapture().MaxAmmoProperty);
+	float MaxAmmo = ExecutionParams.GetSourceAbilitySystemComponent()->GetNumericAttribute(GetAttributeCapture_FillAmmo().MaxAmmoProperty);
 	//ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(GetAttributeCapture().MaxAmmoDef,  FAggregatorEvaluateParameters(), MaxAmmo);
 	
-	float CurrentAmmo = ExecutionParams.GetSourceAbilitySystemComponent()->GetNumericAttribute(GetAttributeCapture().AmmoProperty);
+	float CurrentAmmo = ExecutionParams.GetSourceAbilitySystemComponent()->GetNumericAttribute(GetAttributeCapture_FillAmmo().AmmoProperty);
 	//ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(GetAttributeCapture().AmmoDef,  FAggregatorEvaluateParameters(), CurrentAmmo);
 	
 	
 	float AmmoToAdd = MaxAmmo - CurrentAmmo;
 
-	OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(GetAttributeCapture().AmmoProperty, EGameplayModOp::Additive, AmmoToAdd));
+	OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(GetAttributeCapture_FillAmmo().AmmoProperty, EGameplayModOp::Additive, AmmoToAdd));
 }

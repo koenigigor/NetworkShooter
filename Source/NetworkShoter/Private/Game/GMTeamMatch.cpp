@@ -20,7 +20,7 @@ void AGMTeamMatch::ShuffleTeam()
 
 	//team overflow protection
 	TMap<int32, int32> TeamProtection;
-	for (int32 i = 1; i<=CountOfTeams; i++)
+	for (int32 i = 0; i<CountOfTeams; i++)
 	{
 		TeamProtection.Add(i, 0);
 	}
@@ -30,20 +30,16 @@ void AGMTeamMatch::ShuffleTeam()
 	{
 		auto NSPlayer = Cast<ANSPlayerState>(Player);
 
-		//Get number team to add
-		int32 TeamNumber;
+		//Get index team to add
+		int32 TeamIndex;
 		do {
-			TeamNumber = FMath::RandRange(int32(1), CountOfTeams);
-			UE_LOG(LogTemp, Error, TEXT("Test team number : %d, Team count : %d, Players per team : %d"), TeamNumber, TeamProtection[TeamNumber], PlayersPerTeam)
-		} while (TeamProtection[TeamNumber] >= PlayersPerTeam);
+			TeamIndex = FMath::RandRange(int32(0), CountOfTeams-1);
+			UE_LOG(LogTemp, Error, TEXT("Test team number : %d, Team count : %d, Players per team : %d"), TeamIndex, TeamProtection[TeamIndex], PlayersPerTeam)
+		} while (TeamProtection[TeamIndex] >= PlayersPerTeam);
 
 		//add player in team
-		TeamProtection[TeamNumber]++;
-			
-		if (TeamNumber == 1)
-			NSPlayer->Team = "Team 1";
+		TeamProtection[TeamIndex]++;
 
-		if (TeamNumber == 2)
-			NSPlayer->Team = "Team 2";
+		NSPlayer->TeamIndex = TeamIndex;
 	} 
 }
