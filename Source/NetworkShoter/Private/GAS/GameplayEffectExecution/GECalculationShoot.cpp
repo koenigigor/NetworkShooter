@@ -9,13 +9,13 @@
 #include "Game/PCNetShooter.h"
 #include "Game/NSGameState.h"
 
-struct FAttribCapture
+struct FAttribCapture_CalculationShoot
 {
 	DECLARE_ATTRIBUTE_CAPTUREDEF(WeaponDamage);
 	DECLARE_ATTRIBUTE_CAPTUREDEF(Armor);
 	DECLARE_ATTRIBUTE_CAPTUREDEF(Health);
 	
-	FAttribCapture()
+	FAttribCapture_CalculationShoot()
 	{
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UWeaponAttributeSet, WeaponDamage, Source, false);
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UNetShooterAttributeSet, Armor, Target, false);
@@ -25,9 +25,9 @@ struct FAttribCapture
 
 
 
-static const FAttribCapture& GetAttributeCapture()
+static const FAttribCapture_CalculationShoot& GetAttributeCapture()
 {
-	static FAttribCapture Capture;
+	static FAttribCapture_CalculationShoot Capture;
 	return Capture;
 }
 

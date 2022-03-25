@@ -5,12 +5,12 @@
 #include "GAS/AttributeSet/WeaponAttributeSet.h"
 #include "AbilitySystemComponent.h"
 
-struct FAttribCapture
+struct FAttribCapture_FillAmmo
 {
 	DECLARE_ATTRIBUTE_CAPTUREDEF(Ammo);
 	DECLARE_ATTRIBUTE_CAPTUREDEF(MaxAmmo);
 	
-	FAttribCapture()
+	FAttribCapture_FillAmmo()
 	{
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UWeaponAttributeSet, Ammo, Source, false);
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UWeaponAttributeSet, MaxAmmo, Source, false);
@@ -19,9 +19,9 @@ struct FAttribCapture
 
 
 
-static const FAttribCapture& GetAttributeCapture()
+static const FAttribCapture_FillAmmo& GetAttributeCapture()
 {
-	static FAttribCapture Capture;
+	static FAttribCapture_FillAmmo Capture;
 	return Capture;
 }
 
