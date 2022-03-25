@@ -61,6 +61,12 @@ public:
 
 	bool bDeath = true;
 
+	//~==============================================================================================
+	// Team
+
+	/** Team name, setup on login */
+	UPROPERTY(BlueprintReadOnly, Replicated)
+	FName Team;
 	
 	//~==============================================================================================
 	// PlayerStatistic

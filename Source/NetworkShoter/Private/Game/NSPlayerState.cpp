@@ -11,6 +11,7 @@ void ANSPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(ANSPlayerState, PlayerStatistic);
+	DOREPLIFETIME(ANSPlayerState, Team);
 }
 
 void ANSPlayerState::BeginPlay()

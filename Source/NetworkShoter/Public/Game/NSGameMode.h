@@ -26,7 +26,11 @@ class NETWORKSHOTER_API ANSGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
 public:
+	ANSGameMode();
+	
 	virtual void InitGameState() override;
+
+	virtual void PostLogin(APlayerController* NewPlayer) override;
 
 	//~==============================================================================================
 	// Change Match State

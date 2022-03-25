@@ -12,6 +12,11 @@
 #include "GameFramework/SpectatorPawn.h"
 #include "Kismet/GameplayStatics.h"
 
+ANSGameMode::ANSGameMode()
+{
+	bStartPlayersAsSpectators = true;
+}
+
 void ANSGameMode::InitGameState()
 {
 	Super::InitGameState();
@@ -21,6 +26,13 @@ void ANSGameMode::InitGameState()
 	{
 		NSGameState->MatchTimeLimit = MatchTimeLimit;
 	}
+}
+
+void ANSGameMode::PostLogin(APlayerController* NewPlayer)
+{
+	Super::PostLogin(NewPlayer);
+
+	//NewPlayer -> GetPlayerState<ANSPlayerState>() -> Team = "Team A";
 }
 
 //~==============================================================================================
