@@ -81,6 +81,11 @@ FString UTabMenu::GetMatchStatusAndTime()
 	{
 		//return FString::SanitizeFloat(GetMatchTime(), 0);
 		float MatchTime = GetMatchTime();
+		int32 MatchSeconds = FMath::RoundToInt(MatchTime) % 60;
+		int32 MatchMinutes = (FMath::RoundToInt(MatchTime) - MatchSeconds) / 60;
+		Output = FString::FromInt(MatchMinutes) + " : " + FString::FromInt(MatchSeconds);
+		return Output;
+		
 		MatchTime *= 10.f;
 		MatchTime = FMath::RoundToInt(MatchTime) / 10.f;
 		return FString::SanitizeFloat(MatchTime, 0);	
