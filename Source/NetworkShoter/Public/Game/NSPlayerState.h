@@ -4,27 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerState.h"
+#include "NSStructures.h"
 #include "NSPlayerState.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FPlayerStatisticUpdateDelegate);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCharacterDeadDelegate); 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCharacterRespawnDelegate);
 
-/**
- * Struct for store battle stat
- */
-USTRUCT(BlueprintType)
-struct FPlayerStatistic
-{
-	GENERATED_BODY()
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	int32 KillCount = 0;
-	UPROPERTY(BlueprintReadOnly)
-	int32 DeathCount = 0;
-	UPROPERTY(BlueprintReadOnly)
-	int32 AssistCount = 0;
-};
 
 /**
  * 

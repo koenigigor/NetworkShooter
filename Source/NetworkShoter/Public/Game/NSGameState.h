@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "NSGameMode.h"
 #include "GameFramework/GameStateBase.h"
+#include "NSStructures.h"
 #include "NSGameState.generated.h"
 
 class ANSPlayerState;
@@ -107,6 +108,14 @@ public:
 
 	//~==============================================================================================
 	// Team List
+
+	/** Get count kills by team id */
+	UFUNCTION(BlueprintPure)
+	int32 GetTeamKills(int32 TeamId);
+
+	/** Get team statistic by team id */
+	UFUNCTION(BlueprintPure)
+	FPlayerStatistic GetTeamStatistic(int32 TeamId);
 
 	/** Add player in team list  */
 	UFUNCTION(BlueprintCallable)
