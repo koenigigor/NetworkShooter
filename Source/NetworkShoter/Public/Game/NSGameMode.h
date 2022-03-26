@@ -73,7 +73,7 @@ protected:
 protected:	
 	/** Spawn Character in his command player start, and possess to it */
     UFUNCTION(BlueprintCallable)
-    void SpawnPlayer(APlayerController* Controller);
+    void SpawnPlayer(AController* Controller);
     	
     //virtual void SetPlayerDefaults(APawn* PlayerPawn) override;
     	

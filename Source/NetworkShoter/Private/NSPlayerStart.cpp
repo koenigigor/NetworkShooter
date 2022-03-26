@@ -3,32 +3,19 @@
 
 #include "NSPlayerStart.h"
 
-//#include "Components/CapsuleComponent.h"
+#include "Game/NSPlayerState.h"
 
 bool ANSPlayerStart::CanSpawn(AController* Controller)
 {
 	//Get team name from controller
+	int32 PlayerTeamIndex = -1;
+	if (auto NSPlayerState = Controller->GetPlayerState<ANSPlayerState>())
+		PlayerTeamIndex = NSPlayerState->TeamIndex;
+	
+	if (PlayerTeamIndex == -1 || TeamIndexes.Contains(PlayerTeamIndex))
+		return true;
 
-	//test team name with Start team
-
-
-	/** overlap tested in GameMode::ChoosePlayerStart
-	auto Capsule = Cast<UCapsuleComponent>(GetRootComponent());
-	Capsule->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Overlap);
-	Capsule->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	return false;
 	
-	//get owerlaping actors
-	TArray<AActor*> OverlappingActors;
-	GetOverlappingActors(OverlappingActors, APawn::StaticClass());
-	
-	Capsule->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	
-	//must be not any pawn
-	if (OverlappingActors.IsValidIndex(0))
-	{
-		return false;
-	}
-	*/
-	
-	return true;
+	/** overlap tested in GameMode::ChoosePlayerStart */
 }

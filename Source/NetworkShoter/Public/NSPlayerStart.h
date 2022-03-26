@@ -13,9 +13,12 @@ UCLASS()
 class NETWORKSHOTER_API ANSPlayerStart : public APlayerStart
 {
 	GENERATED_BODY()
-public:
+public:	
 	/** Return true if pawn can be spawned in this point
-	 * @CommandName Actor has this tag
 	 */
 	bool CanSpawn(AController* Controller);
+protected:
+	/** indexes of teams who can be spawned here */
+	UPROPERTY(EditAnywhere)
+	TArray<int32> TeamIndexes;
 };

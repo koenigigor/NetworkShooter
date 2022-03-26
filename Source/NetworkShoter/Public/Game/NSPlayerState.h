@@ -68,7 +68,7 @@ public:
 
 	/** Team index, setup on login */
 	UPROPERTY(BlueprintReadOnly, Replicated)
-	int32 TeamIndex;
+	int32 TeamIndex = -1;
 	
 	//~==============================================================================================
 	// PlayerStatistic

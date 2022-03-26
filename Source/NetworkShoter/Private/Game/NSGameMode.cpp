@@ -142,11 +142,10 @@ void ANSGameMode::CharacterKilled(APawn* WhoKilled)
 	GetGameState<ANSGameState>() -> CharacterKilled(WhoKilled);
 }
 
-void ANSGameMode::SpawnPlayer(APlayerController* Controller)
+void ANSGameMode::SpawnPlayer(AController* Controller)
 {
-	//just restart player can teleport current possessed pawns to start point,
-	//here need spawn a new pawn
-	Controller->SetPawn(nullptr); //clear previous pawn (spectator)
+	Controller->SetPawn(nullptr); //clear previous pawn, for not teleport it (spectator)
+	Controller->StartSpot = nullptr; //clear start spot for get new spot
 	
 	RestartPlayer(Controller);
 
@@ -155,7 +154,6 @@ void ANSGameMode::SpawnPlayer(APlayerController* Controller)
 	{
 		NSPlayerState -> RespawnHandle();
 	}
-	//for AI, change PlayerController to Controller
 }
 
 AActor* ANSGameMode::ChoosePlayerStart_Implementation(AController* Player)
