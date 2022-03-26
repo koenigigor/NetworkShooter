@@ -13,8 +13,7 @@
 void ANSGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(ANSGameState, Team0);
+	
 	DOREPLIFETIME(ANSGameState, MatchTimeLimit);
 	DOREPLIFETIME(ANSGameState, MatchState);
 }
@@ -194,6 +193,20 @@ void ANSGameState::AddStatisticWhenPawnKilled(APawn* WhoKilled)
 //~==============================================================================================
 // Team List
 
+TArray<ANSPlayerState*> ANSGameState::GetTeam(int32 TeamIndex)
+{
+	TArray<ANSPlayerState*> Output;
+	
+	for (auto Player : PlayerArray)
+	{
+		auto NSPlayer = StaticCast<ANSPlayerState*>(Player);
+		if (NSPlayer->TeamIndex == TeamIndex)
+			Output.Add(NSPlayer);
+	}
+
+	return Output;
+}
+
 int32 ANSGameState::GetTeamKills(int32 TeamId)
 {
 	return GetTeamStatistic(TeamId).KillCount;
@@ -202,46 +215,24 @@ int32 ANSGameState::GetTeamKills(int32 TeamId)
 FPlayerStatistic ANSGameState::GetTeamStatistic(int32 TeamId)
 {
 	FPlayerStatistic Statistic;
-	//Get players in team
-	for (auto Player : PlayerArray)
+
+	auto Team = GetTeam(TeamId);
+	for (const auto& Player : Team)
 	{
-		auto NSPlayer = StaticCast<ANSPlayerState*>(Player);
-		if (NSPlayer->TeamIndex == TeamId)
-			Statistic += NSPlayer->GetPlayerStatistic();
+		Statistic += Player->GetPlayerStatistic();
 	}
 	
 	return Statistic;
 }
 
-void ANSGameState::AddPlayerInTeamList(ANSPlayerState* Player)
-{
-	auto TeamIndex = Player->TeamIndex;
-
-	//Get Team Array
-	TArray<ANSPlayerState*>* TeamListPtr = nullptr;
-	GetTeamList(TeamIndex, TeamListPtr);
-	if (!TeamListPtr) { return; }
-	
-	TeamListPtr -> AddUnique(Player);
-}
-
-void ANSGameState::RemovePlayerFromTeamList(ANSPlayerState* Player)
-{
-	auto TeamIndex = Player->TeamIndex;
-	
-	//remove pawn from team array
-	TArray<ANSPlayerState*>* TeamListPtr = nullptr;
-	GetTeamList(TeamIndex, TeamListPtr);
-	
-	if (TeamListPtr)
-		TeamListPtr -> Remove(Player);
-}
-
 void ANSGameState::GetNextPlayerInTeam(int32 TeamIndex, ANSPlayerState*& NextPlayerInTeam, int32& NumberInTeam, bool bNext)
 {
+	//TODO
+	return;
+	
 	//Get Team array
 	TArray<ANSPlayerState*>* TeamListPtr = nullptr;
-	GetTeamList(TeamIndex, TeamListPtr);
+	//GetTeamList(TeamIndex, TeamListPtr);
 	if (!ensure(TeamListPtr)) { return; }
 
 	//if Empty return failed result
@@ -307,18 +298,6 @@ void ANSGameState::GetNextPlayerInTeam(int32 TeamIndex, ANSPlayerState*& NextPla
 	return;
 }
 
-void ANSGameState::GetTeamList(int32 TeamIndex, TArray<ANSPlayerState*>*& TeamListPtr)
-{
-	if (TeamIndex == 0)
-	{
-		TeamListPtr = &Team0;
-		return;
-	}
-}
-
-void ANSGameState::OnRep_Team0()
-{
-}
 
 
 

@@ -108,6 +108,8 @@ public:
 
 	//~==============================================================================================
 	// Team List
+	
+	TArray<ANSPlayerState*> GetTeam(int32 TeamIndex);
 
 	/** Get count kills by team id */
 	UFUNCTION(BlueprintPure)
@@ -116,19 +118,8 @@ public:
 	/** Get team statistic by team id */
 	UFUNCTION(BlueprintPure)
 	FPlayerStatistic GetTeamStatistic(int32 TeamId);
-
-	/** Add player in team list  */
-	UFUNCTION(BlueprintCallable)
-	void AddPlayerInTeamList(ANSPlayerState* Player);
-
-	/** Remove player from team list */
-	UFUNCTION(BlueprintCallable)
-	void RemovePlayerFromTeamList(ANSPlayerState* Player);
 	
 	void GetNextPlayerInTeam(int32 TeamIndex, ANSPlayerState*& NextPlayerInTeam, int32& NumberInTeam, bool bNext = true);
-	
-	/** Return team list for specified team */
-	virtual void GetTeamList(int32 TeamIndex, TArray<ANSPlayerState*>*& TeamListPtr);
 
 
 	//~==============================================================================================
@@ -166,12 +157,6 @@ protected:
 
 
 private:
-	UPROPERTY(ReplicatedUsing=OnRep_Team0)
-	TArray<ANSPlayerState*> Team0;
-
 	/** Keep all damage info for this match */
 	TArray<FDamageInfo> DamageInfoList;
-	
-	UFUNCTION()
-	void OnRep_Team0();
 };

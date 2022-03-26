@@ -35,15 +35,6 @@ void ANSGameMode::PostLogin(APlayerController* NewPlayer)
 	//NewPlayer -> GetPlayerState<ANSPlayerState>() -> Team = "Team A";
 }
 
-void ANSGameMode::AddPlayerInTeamList(AController* Player)
-{
-	//add pawn in team list
-	if (NSGameState)
-	{
-		NSGameState -> AddPlayerInTeamList(Player->GetPlayerState<ANSPlayerState>());
-	}
-}
-
 //~==============================================================================================
 // Change Match State
 
