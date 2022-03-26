@@ -34,7 +34,7 @@ void ANSPlayerState::OnCharacterDeath()
 
 bool ANSPlayerState::IsLife()
 {
-	return bDeath;
+	return !bDeath;
 }
 
 void ANSPlayerState::RespawnHandle_Implementation()

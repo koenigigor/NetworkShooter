@@ -225,77 +225,102 @@ FPlayerStatistic ANSGameState::GetTeamStatistic(int32 TeamId)
 	return Statistic;
 }
 
-void ANSGameState::GetNextPlayerInTeam(int32 TeamIndex, ANSPlayerState*& NextPlayerInTeam, int32& NumberInTeam, bool bNext)
+void ANSGameState::GetNextPlayerInTeam(int32 TeamIndex, ANSPlayerState*& NextPlayerInTeam, bool bNext, bool bLifePlayer)
 {
-	//TODO
-	return;
-	
-	//Get Team array
-	TArray<ANSPlayerState*>* TeamListPtr = nullptr;
-	//GetTeamList(TeamIndex, TeamListPtr);
-	if (!ensure(TeamListPtr)) { return; }
+	auto Team = GetTeam(TeamIndex);
 
 	//if Empty return failed result
-	if (TeamListPtr -> Num() <= 0)
+	if (Team.Num() <= 0)
 	{
 		NextPlayerInTeam = nullptr;
-		NumberInTeam = -1;
 		return;
 	}
 
-	//if Previous actor or index was been set
-	auto PreviousPlayerInTeam = NextPlayerInTeam;
-	if (PreviousPlayerInTeam || (NumberInTeam>-1))
+	//if Previous actor not set
+	if (!NextPlayerInTeam)
 	{
-		//Get his index in array
-		int32 PreviousActorIndex = -1;
-		if (PreviousPlayerInTeam)
+		//get first actor in team, or first life actor if need
+		for (const auto& Player : Team)
 		{
-			for (int32 i = 0; i < TeamListPtr->Num(); i++)
-			{	
-				if ((*TeamListPtr)[i] == PreviousPlayerInTeam)
-				{
-					PreviousActorIndex = i;
-					break;
-				}
-			}
-		}
-		
-		//if previous actor not founded, check index
-		if (PreviousActorIndex == -1)
-		{
-			PreviousActorIndex = TeamListPtr->IsValidIndex(NumberInTeam) ? NumberInTeam : -1;
-			//todo if dead character give self number, maybe need do -1, and protect 0 -> -1
-		}
-
-		
-		//if index successfully founded founded
-		if (PreviousActorIndex > -1)
-		{
-			//return next or previous element
-			if (bNext)
+			if (!bLifePlayer || Player->IsLife())
 			{
-				int32 NextIndex = (PreviousActorIndex+1 < TeamListPtr->Num()) ? PreviousActorIndex+1 : 0;
-				
-				PreviousPlayerInTeam = (*TeamListPtr)[NextIndex];
-				NumberInTeam = NextIndex;
+				NextPlayerInTeam = Player;
 				return;
 			}
-			else
+		}
+		NextPlayerInTeam = nullptr;
+		return;
+	}
+	
+	
+	auto PreviousPlayerInTeam = NextPlayerInTeam;
+	//Get his index in array
+	int32 PreviousActorIndex = -1;
+	if (PreviousPlayerInTeam)
+	{
+		for (int32 i = 0; i < Team.Num(); i++)
+		{	
+			if (Team[i] == PreviousPlayerInTeam)
 			{
-				int32 PreviousIndex = (PreviousActorIndex-1 >= 0) ? PreviousActorIndex-1 : TeamListPtr->Num()-1;
-				
-				PreviousPlayerInTeam = (*TeamListPtr)[PreviousIndex];
-				NumberInTeam = PreviousIndex;
-				return;
+				PreviousActorIndex = i;
+				break;
 			}
 		}
 	}
 
-	//if not set or not find, return 0 element
-	PreviousPlayerInTeam = (*TeamListPtr)[0];
-	NumberInTeam = 0;
-	return;
+	//if previous actor not found
+	if (PreviousActorIndex == -1)
+	{
+		//get first actor in team, or first life actor if need
+		for (const auto& Player : Team)
+		{
+			if (!bLifePlayer || Player->IsLife())
+			{
+				NextPlayerInTeam = Player;
+				return;
+			}
+		}
+		NextPlayerInTeam = nullptr;
+		return;
+	}
+
+	
+	//if index successfully founded founded
+	
+	//return next or previous element, life if need
+	if (bNext)
+	{
+		int32 NextIndex = (PreviousActorIndex+1 < Team.Num()) ? PreviousActorIndex+1 : 0;
+		while (NextIndex != PreviousActorIndex)
+		{
+			if (!bLifePlayer || Team[NextIndex]->IsLife())
+			{
+				NextPlayerInTeam = Team[NextIndex];
+				return;
+			}
+			NextIndex = (NextIndex+1 < Team.Num()) ? NextIndex+1 : 0;
+		}
+
+		NextPlayerInTeam = nullptr;
+		return;
+	}
+	else
+	{
+		int32 PreviousIndex = (PreviousActorIndex-1 >= 0) ? PreviousActorIndex-1 : Team.Num()-1;
+		
+		while (PreviousIndex != PreviousActorIndex)
+		{
+			if (!bLifePlayer || Team[PreviousIndex]->IsLife())
+			{
+				NextPlayerInTeam = Team[PreviousIndex];
+				return;
+			}
+			PreviousIndex = (PreviousIndex-1 >= 0) ? PreviousIndex-1 : Team.Num()-1;
+		}
+
+		NextPlayerInTeam = nullptr;
+		return;
+	}
 }
 
 

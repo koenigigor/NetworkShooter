@@ -9,12 +9,7 @@
 
 ANSSpectator::ANSSpectator()
 {
- 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
-
-	AttachedActor.Key = nullptr;
-	AttachedActor.Value = -1;
-	
+	PrimaryActorTick.bCanEverTick = false;
 	bReplicates = false;
 }
 
@@ -25,35 +20,26 @@ void ANSSpectator::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 }
 
 
-void ANSSpectator::UpdateAttachedActor(bool bNext)
+void ANSSpectator::GetNextPlayerToAttach(bool bNext)
 {
-    if (auto NSGameState = Cast<ANSGameState>(GetWorld()->GetGameState()))
-    {
-    	if (auto NSPlayerState = GetPlayerState<ANSPlayerState>())
-    	{
-    		ANSPlayerState* NextPlayer = nullptr;
-    		if (AttachedActor.Key)
-    			NextPlayer = AttachedActor.Key->GetInstigatorController()->GetPlayerState<ANSPlayerState>();
-    		NSGameState -> GetNextPlayerInTeam(NSPlayerState->TeamIndex, NextPlayer, AttachedActor.Value);
-			if (NextPlayer)
-    			AttachedActor.Key = NextPlayer->GetPawn();
-    	}
-    }
-    
-    if (!AttachedActor.Key)
-    {
-    	UE_LOG(LogTemp, Warning, TEXT("ANSSpectator nothing to attach"))
-    }
+	auto NSGameState = GetWorld() -> GetGameState<ANSGameState>();
+	
+	auto NSPlayerState = GetInstigatorController()->GetPlayerState<ANSPlayerState>();
+	
+	if (!(NSGameState && NSPlayerState)){ return; }
+	
+	int32 TeamIndex = NSPlayerState->TeamIndex;
+	NSGameState -> GetNextPlayerInTeam(TeamIndex, CurrentAttachedPlayer);
 }
 
-/*-----------------------------*/
-/* Action with Spectator modes */
+//~==============================================================================================
+// Control Spectating
 
-void ANSSpectator::SwapAttachedActor(bool bNext)
+void ANSSpectator::ChangeAttachedActor(bool bNext)
 {
 	if (SpectatorMode == ESpectatorMode::Free) { return; }
 	
-	UpdateAttachedActor(bNext);
+	GetNextPlayerToAttach(bNext);
 	
 	SetSpectatorMode(SpectatorMode);
 }
@@ -84,16 +70,19 @@ void ANSSpectator::SetSpectatorMode(ESpectatorMode Mode)
 }
 
 
-/*------------------------------------*/
-/* internal Begin/End Spectator modes */
+//~==============================================================================================
+// spectator modes Begin/End
 
 void ANSSpectator::SetModeAttachToActor()
 {
 	//get next actor to attach
-	if (!AttachedActor.Key)
-		UpdateAttachedActor();
+	if (!CurrentAttachedPlayer)
+		GetNextPlayerToAttach();
+
+	if (!CurrentAttachedPlayer)
+		return;
 	
-	AActor* ActorToAttach = AttachedActor.Key;
+	AActor* ActorToAttach = CurrentAttachedPlayer->GetPawn();
 	
 	if (!ActorToAttach)
 		return;
@@ -111,10 +100,13 @@ void ANSSpectator::SetModeAttachToActor()
 void ANSSpectator::SetModeAroundActor()
 {
 	//get next actor to attach
-	if (!AttachedActor.Key)
-		UpdateAttachedActor();
+	if (!CurrentAttachedPlayer)
+		GetNextPlayerToAttach();
 	
-	AActor* ActorToAttach = AttachedActor.Key;
+	if (!CurrentAttachedPlayer)
+		return;
+
+	AActor* ActorToAttach = CurrentAttachedPlayer->GetPawn();
 	
 	if (!ActorToAttach)
 		return;

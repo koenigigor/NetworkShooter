@@ -118,8 +118,13 @@ public:
 	/** Get team statistic by team id */
 	UFUNCTION(BlueprintPure)
 	FPlayerStatistic GetTeamStatistic(int32 TeamId);
-	
-	void GetNextPlayerInTeam(int32 TeamIndex, ANSPlayerState*& NextPlayerInTeam, int32& NumberInTeam, bool bNext = true);
+
+	/** Return next player in team
+	 *	@NextPlayerInTeam - if set nullptr return first player
+	 *	@bNext - return next or previous actor
+	 *	@bLifePlayer - player must be live
+	 */
+	void GetNextPlayerInTeam(int32 TeamIndex, ANSPlayerState*& NextPlayerInTeam, bool bNext = true, bool bLifePlayer = true);
 
 
 	//~==============================================================================================

@@ -6,6 +6,8 @@
 #include "GameFramework/SpectatorPawn.h"
 #include "NSSpectator.generated.h"
 
+class ANSPlayerState;
+
 UENUM()
 enum class ESpectatorMode : uint8
 {
@@ -31,21 +33,25 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	
+	//~==============================================================================================
+	// Control Spectating
+	
 	/* if mode Attached, swap actor to next */
 	UFUNCTION(BlueprintCallable)
-	void SwapAttachedActor(bool bNext=true);
+	void ChangeAttachedActor(bool bNext=true);
 
 	/* Set spectator mode */
     UFUNCTION(BlueprintCallable)
     void SetSpectatorMode(ESpectatorMode Mode);
 	
 protected:
-	//Update AttachedActor reference
-	void UpdateAttachedActor(bool bNext=true);
+	//Update CurrentAttachedPlayer reference
+	void GetNextPlayerToAttach(bool bNext=true);
 
-	/*----------------------------------*/
-	/** Begin/End from spectator modes **/
-	/*----------------------------------*/
+	
+	//~==============================================================================================
+	// spectator modes Begin/End
 
 	/** can fly arround all map */
 	void SetModeFree();
@@ -64,12 +70,12 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	ESpectatorMode SpectatorMode = ESpectatorMode::Free;
 	
-	/** Actor who we attach (in AttachTo mode) */
-	TPair<AActor*, int32> AttachedActor;
+	/** Player who we attach (in AttachTo mode) */	
+	ANSPlayerState* CurrentAttachedPlayer = nullptr;
 
 public:
 	UFUNCTION(BlueprintPure)
-	AActor* GetAttachedActor() const { return AttachedActor.Key; };
+	ANSPlayerState* GetAttachedActor() const { return CurrentAttachedPlayer; };
 
 	UFUNCTION(BlueprintPure)
 	ESpectatorMode GetSpectatorMode() const { return SpectatorMode; };
