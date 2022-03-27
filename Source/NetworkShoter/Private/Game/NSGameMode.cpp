@@ -138,6 +138,16 @@ void ANSGameMode::CharacterKilled(APawn* WhoKilled)
 		FTimerHandle TimerHandle;
 		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ANSGameMode::RespawnDeathPlayer, RespawnDelay);
 	}
+
+	if (bLimitByTeamKills)
+	{
+		auto TeamIndex = WhoKilled->GetPlayerState<ANSPlayerState>()->TeamIndex;
+		if (NSGameState && NSGameState -> GetTeamStatistic(TeamIndex).DeathCount >= LimitByTeamKills)
+		{
+			EndMatch();
+		}
+	}
+		
 }
 
 void ANSGameMode::SpawnPlayer(AController* Controller)

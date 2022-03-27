@@ -97,6 +97,12 @@ protected:
 	FTimespan MatchTimeLimit;
 
 	UPROPERTY(EditDefaultsOnly, meta=(InlineEditConditionToggle))
+	bool bLimitByTeamKills = false;
+	
+	UPROPERTY(EditDefaultsOnly, Category="Match | Limits", meta=(EditCondition="bLimitByTeamKills"))
+	int32 LimitByTeamKills = 5;
+
+	UPROPERTY(EditDefaultsOnly, meta=(InlineEditConditionToggle))
 	bool bRespawnAfterDeath = false;
 	
 	UPROPERTY(EditDefaultsOnly, Category="Match | Setup", meta=(EditCondition="bRespawnAfterDeath"))	
