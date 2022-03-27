@@ -140,6 +140,9 @@ protected:
 	
 public:
 	UPROPERTY(Transient, BlueprintReadOnly, Category="Limits", Replicated)
+	bool bMatchTimeLimit = false;
+	
+	UPROPERTY(Transient, BlueprintReadOnly, Category="Limits", Replicated)
 	FTimespan MatchTimeLimit;
 
 	/** Handle for match timer, if match can be ended by time  */

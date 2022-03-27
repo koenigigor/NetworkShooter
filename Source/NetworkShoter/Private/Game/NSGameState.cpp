@@ -16,6 +16,7 @@ void ANSGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	
 	DOREPLIFETIME(ANSGameState, MatchTimeLimit);
 	DOREPLIFETIME(ANSGameState, MatchState);
+	DOREPLIFETIME(ANSGameState, bMatchTimeLimit);
 }
 
 
@@ -23,8 +24,9 @@ void ANSGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 // Match State
 
 void ANSGameState::StartMatchHandle_Implementation()
-{	
-	StartMatchTimer();
+{
+	if (bMatchTimeLimit)
+		StartMatchTimer();
 	
 	BP_MatchStarted();
 	MatchStartDelegate.Broadcast();

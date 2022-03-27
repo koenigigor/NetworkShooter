@@ -25,6 +25,7 @@ void ANSGameMode::InitGameState()
 	if (NSGameState)
 	{
 		NSGameState->MatchTimeLimit = MatchTimeLimit;
+		NSGameState->bMatchTimeLimit = bMatchTimeLimit;
 	}
 }
 
@@ -131,6 +132,12 @@ void ANSGameMode::CharacterKilled(APawn* WhoKilled)
 		DeathControllers.Add(StaticCast<APlayerController*>(WhoKilled->GetController()));
 
 	GetGameState<ANSGameState>() -> CharacterKilled(WhoKilled);
+
+	if (bRespawnAfterDeath)
+	{
+		FTimerHandle TimerHandle;
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ANSGameMode::RespawnDeathPlayer, RespawnDelay);
+	}
 }
 
 void ANSGameMode::SpawnPlayer(AController* Controller)
@@ -144,6 +151,15 @@ void ANSGameMode::SpawnPlayer(AController* Controller)
 	if (auto NSPlayerState = Controller -> GetPlayerState<ANSPlayerState>())
 	{
 		NSPlayerState -> RespawnHandle();
+	}
+}
+
+void ANSGameMode::RespawnDeathPlayer()
+{
+	if (HasMatchStarted() && DeathControllers.IsValidIndex(0))
+	{
+		SpawnPlayer(DeathControllers[0]);
+		DeathControllers.RemoveAt(0);
 	}
 }
 

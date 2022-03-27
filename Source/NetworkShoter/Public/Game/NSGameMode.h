@@ -72,6 +72,9 @@ protected:
 	/** Spawn Character in his command player start, and possess to it */
     UFUNCTION(BlueprintCallable)
     void SpawnPlayer(AController* Controller);
+
+	/** respawn first death player*/
+	void RespawnDeathPlayer();
     	
     //virtual void SetPlayerDefaults(APawn* PlayerPawn) override;
     	
@@ -87,9 +90,17 @@ public:
 	//~==============================================================================================
 	// Match Limits
 protected:
-	UPROPERTY(EditDefaultsOnly, Category="Match Limits")
-	FTimespan MatchTimeLimit;
+	UPROPERTY(EditDefaultsOnly, meta=(InlineEditConditionToggle))
+	bool bMatchTimeLimit = false;
 	
+	UPROPERTY(EditDefaultsOnly, Category="Match | Limits", meta=(EditCondition="bMatchTimeLimit"))
+	FTimespan MatchTimeLimit;
+
+	UPROPERTY(EditDefaultsOnly, meta=(InlineEditConditionToggle))
+	bool bRespawnAfterDeath = false;
+	
+	UPROPERTY(EditDefaultsOnly, Category="Match | Setup", meta=(EditCondition="bRespawnAfterDeath"))	
+	float RespawnDelay;
 
 	
 	/** Death controllers to respawn */

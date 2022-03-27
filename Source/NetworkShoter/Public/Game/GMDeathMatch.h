@@ -17,12 +17,4 @@ class NETWORKSHOTER_API AGMDeathMatch : public ANSGameMode
 
 	UPROPERTY(EditDefaultsOnly, Category="Match Limits")
 	int32 KillCountLimit = 2;
-
-	UPROPERTY(EditAnywhere, Category="Deathmatch")
-	float RespawnDelay = 5.f;
-	
-	
-	virtual void CharacterKilled(APawn* WhoKilled) override;
-
-	void RespawnDeathPlayer();
 };

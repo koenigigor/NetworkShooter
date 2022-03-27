@@ -14,21 +14,3 @@ void AGMDeathMatch::InitGameState()
 		DeathMatchState -> KillCountLimit = KillCountLimit;
 	}
 }
-
-void AGMDeathMatch::CharacterKilled(APawn* WhoKilled)
-{
-	Super::CharacterKilled(WhoKilled);
-
-	//respawn after delay when he killed
-	FTimerHandle TimerHandle;
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &AGMDeathMatch::RespawnDeathPlayer, RespawnDelay);
-}
-
-void AGMDeathMatch::RespawnDeathPlayer()
-{
-	if (HasMatchStarted() && DeathControllers.IsValidIndex(0))
-	{
-		SpawnPlayer(DeathControllers[0]);
-		DeathControllers.RemoveAt(0);
-	}
-}
