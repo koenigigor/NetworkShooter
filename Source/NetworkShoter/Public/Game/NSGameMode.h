@@ -106,7 +106,10 @@ protected:
 	bool bRespawnAfterDeath = false;
 	
 	UPROPERTY(EditDefaultsOnly, Category="Match | Setup", meta=(EditCondition="bRespawnAfterDeath"))	
-	float RespawnDelay;
+	float RespawnDelay = 5.f;
+
+	UPROPERTY(EditDefaultsOnly, Category="Match | Setup")	
+	bool bFriendlyFire = false;
 
 	
 	/** Death controllers to respawn */

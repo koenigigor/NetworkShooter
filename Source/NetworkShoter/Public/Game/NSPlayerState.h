@@ -64,7 +64,7 @@ public:
 	
 	/** Increment kill statistic */
 	UFUNCTION()
-	void AddKill();
+	void AddKill(int32 Count = 1);
 
 	/** Increment assist statistic */
 	UFUNCTION()

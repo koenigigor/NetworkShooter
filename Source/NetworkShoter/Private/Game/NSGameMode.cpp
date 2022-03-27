@@ -26,6 +26,7 @@ void ANSGameMode::InitGameState()
 	{
 		NSGameState->MatchTimeLimit = MatchTimeLimit;
 		NSGameState->bMatchTimeLimit = bMatchTimeLimit;
+		NSGameState->bFriendlyFire = bFriendlyFire;
 	}
 }
 

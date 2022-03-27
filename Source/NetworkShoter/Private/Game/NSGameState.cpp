@@ -17,6 +17,7 @@ void ANSGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME(ANSGameState, MatchTimeLimit);
 	DOREPLIFETIME(ANSGameState, MatchState);
 	DOREPLIFETIME(ANSGameState, bMatchTimeLimit);
+	DOREPLIFETIME(ANSGameState, bFriendlyFire);
 }
 
 
@@ -79,6 +80,32 @@ void ANSGameState::ApplyDamageInfo(FDamageInfo DamageInfo)
 	{
 		PCNetShooter->NotifyReceiveDamage_Implementation(DamageInfo.Damage, FVector::ZeroVector, FName(DamageInfo.InstigatorName), DamageInfo.DamageCauser);
 	}
+}
+
+bool ANSGameState::CanDamage(AActor* DamagedActor, AActor* DamageCauser)
+{
+	if (bFriendlyFire)
+	{
+		//todo get team id interface
+		if (DamagedActor->GetInstigator()->GetPlayerState<ANSPlayerState>())
+		{
+			if (DamageCauser->GetInstigator()->GetPlayerState<ANSPlayerState>())
+			{
+				auto TeamDamagedActor = DamagedActor->GetInstigator()->GetPlayerState<ANSPlayerState>()->TeamIndex;
+				auto TeamDamageCauser = DamageCauser->GetInstigator()->GetPlayerState<ANSPlayerState>()->TeamIndex;
+				if (TeamDamagedActor == TeamDamageCauser && TeamDamagedActor!=-1)
+				{
+					UE_LOG(LogTemp, Warning, TEXT("CanDamage: Cant damage your timmates"))
+					return false;
+				}
+				UE_LOG(LogTemp, Warning, TEXT("CanDamage: Team not equal, damage accept"))
+			}
+			UE_LOG(LogTemp, Warning, TEXT("CanDamage: DamageCauser player state not fount"))
+		}
+		UE_LOG(LogTemp, Warning, TEXT("CanDamage: DamagedActor player state not fount"))
+	}
+	UE_LOG(LogTemp, Warning, TEXT("CanDamage: Damage accept"))
+	return true;
 }
 
 void ANSGameState::ApplyDamageInfoFromActors(AController* DamageInstigator, AActor* DamagedActor, AActor* DamageCauser, float Damage)
@@ -167,14 +194,26 @@ void ANSGameState::AddStatisticWhenPawnKilled(APawn* WhoKilled)
 			break;
 		}
 	}
+
+	int32 DeathActorTeam = WhoKilled->GetPlayerState<ANSPlayerState>()->TeamIndex;
 	
-	//add death count
+	//add kill count
     if (DamageInfo.Instigator)
     {
-    	DamageInfo.Instigator -> GetPlayerState<ANSPlayerState>() -> AddKill();
+		int32 InstigatorTeam = DamageInfo.Instigator -> GetPlayerState<ANSPlayerState>() ->TeamIndex;
+
+    	//if same team, decrease
+    	if (DeathActorTeam == -1 || DeathActorTeam != InstigatorTeam)
+    	{
+    		DamageInfo.Instigator -> GetPlayerState<ANSPlayerState>() -> AddKill();
+    	}
+        else
+        {
+        	DamageInfo.Instigator -> GetPlayerState<ANSPlayerState>() -> AddKill(-1);
+        }
     }
     
-    //add kill count
+    //add death count
     if (DamageInfo.DamagedActor && DamageInfo.DamagedActor->GetInstigatorController())
     {
     	DamageInfo.DamagedActor->GetInstigatorController() -> GetPlayerState<ANSPlayerState>() -> AddDeath();
@@ -186,7 +225,12 @@ void ANSGameState::AddStatisticWhenPawnKilled(APawn* WhoKilled)
 	{
 		if (Assistant != DamageInfo.Instigator)
 		{
-			Assistant->GetPlayerState<ANSPlayerState>() -> AddAssist();
+			int32 AssistantTeam = Assistant -> GetPlayerState<ANSPlayerState>() ->TeamIndex;
+
+			if (DeathActorTeam == -1 || DeathActorTeam != AssistantTeam)
+			{
+				Assistant->GetPlayerState<ANSPlayerState>() -> AddAssist();
+			}
         }
     }			
 }

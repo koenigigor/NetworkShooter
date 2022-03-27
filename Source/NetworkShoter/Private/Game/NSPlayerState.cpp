@@ -48,9 +48,9 @@ void ANSPlayerState::RespawnHandle_Implementation()
 //~==============================================================================================
 // PlayerStatistic
 
-void ANSPlayerState::AddKill()
+void ANSPlayerState::AddKill(int32 Count)
 {
-	PlayerStatistic.KillCount++;
+	PlayerStatistic.KillCount += Count;
 }
 
 void ANSPlayerState::AddAssist()

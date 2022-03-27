@@ -90,6 +90,9 @@ public:
 	
 	//~==============================================================================================
 	// Match Statistic
+
+	UFUNCTION(BlueprintPure)
+	bool CanDamage(AActor* DamagedActor, AActor* DamageCauser);
 	
 	/** Create damage info struct in and add it in struct array
 	 *  Called from damage execution calculation */
@@ -147,6 +150,9 @@ public:
 
 	/** Handle for match timer, if match can be ended by time  */
 	FTimerHandle MatchTimerHandle;
+
+	UPROPERTY(Transient, Replicated)
+	bool bFriendlyFire = false;
 
 	
 	//~==============================================================================================
