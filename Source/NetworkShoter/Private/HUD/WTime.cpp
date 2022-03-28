@@ -17,8 +17,9 @@ float UWTime::GetMatchTime()
 {
 	if (GameState)
 	{
-		float MatchTime = GetWorld()->TimeSeconds - GameState->MatchStartTime;
-		return MatchTime;
+		//float MatchTime = GetWorld()->TimeSeconds - GameState->MatchStartTime;
+		//return MatchTime;
+		return GameState->GetMatchTime();
 	}
 	return -1.f;
 }

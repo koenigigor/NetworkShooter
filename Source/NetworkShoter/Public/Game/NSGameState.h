@@ -59,7 +59,13 @@ class NETWORKSHOTER_API ANSGameState : public AGameStateBase
 {
 	GENERATED_BODY()
 public:
+	ANSGameState();
+	
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	virtual void BeginPlay() override;
+
+	virtual void Tick(float DeltaSeconds) override;
 
 	//~==============================================================================================
 	// Match State
@@ -132,14 +138,26 @@ public:
 
 	//~==============================================================================================
 	// Match timer
+	UPROPERTY(Replicated)
+	float MatchTime = 0;
+
+	/** Time when connected players wait start match */
+	float WaitStartMatchTime = 999.f;
+
+	/** return match timers based on match state
+	 *	if waiting start, return time before start
+	 *	if match in progress, return time from start match
+	 */
+	UFUNCTION(BlueprintPure)
+	float GetMatchTime();
 	
-	void StartMatchTimer();
+	//void StartMatchTimer();
 	
 	UFUNCTION(BlueprintPure)
 	float GetMatchTimerRemaining();
 	
 protected:
-	void MatchTimerEnd();
+	//void MatchTimerEnd();
 	
 public:
 	UPROPERTY(Transient, BlueprintReadOnly, Category="Limits", Replicated)

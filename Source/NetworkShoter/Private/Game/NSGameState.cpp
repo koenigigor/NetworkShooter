@@ -10,6 +10,12 @@
 #include "Net/UnrealNetwork.h"
 
 
+ANSGameState::ANSGameState()
+{
+	SetActorTickEnabled(true);
+	SetActorTickInterval(1.f);
+}
+
 void ANSGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -18,6 +24,43 @@ void ANSGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME(ANSGameState, MatchState);
 	DOREPLIFETIME(ANSGameState, bMatchTimeLimit);
 	DOREPLIFETIME(ANSGameState, bFriendlyFire);
+	DOREPLIFETIME(ANSGameState, MatchTime);
+}
+
+void ANSGameState::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (MatchState == EMatchState::WaitingToStart)
+	{
+		//start countdown
+		MatchTime = WaitStartMatchTime;
+	}
+}
+
+void ANSGameState::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	
+	if (MatchState == EMatchState::WaitingToStart)
+	{
+		MatchTime--;
+		
+		if (MatchTime<=0 && GetWorld()->IsServer())
+		{
+			Cast<ANSGameMode>(GetWorld()->GetAuthGameMode())->StartMatch();
+		}
+	} else
+	if (MatchState == EMatchState::InProgress)
+	{
+		MatchTime++;
+		
+		if (bMatchTimeLimit && GetWorld()->IsServer() && MatchTime >= MatchTimeLimit.GetTotalSeconds())
+		{
+			Cast<ANSGameMode>(GetWorld()->GetAuthGameMode())->EndMatch();
+		}
+	}
 }
 
 
@@ -27,12 +70,13 @@ void ANSGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 void ANSGameState::StartMatchHandle_Implementation()
 {
 	if (bMatchTimeLimit)
-		StartMatchTimer();
+//		StartMatchTimer();
 	
 	BP_MatchStarted();
 	MatchStartDelegate.Broadcast();
 	
 	MatchStartTime = GetWorld()->GetTimeSeconds();
+	MatchTime = 0.f;
 }
 
 void ANSGameState::EndMatchHandle_Implementation()
@@ -374,11 +418,18 @@ void ANSGameState::GetNextPlayerInTeam(int32 TeamIndex, ANSPlayerState*& NextPla
 
 //~==============================================================================================
 // Match timer
+float ANSGameState::GetMatchTime()
+{
+	return MatchTime;
+}
+
+/*
 void ANSGameState::StartMatchTimer()
 {
 	GetWorld()->GetTimerManager().SetTimer(MatchTimerHandle, this, &ANSGameState::MatchTimerEnd, MatchTimeLimit.GetTotalSeconds());
-}
+}*/
 
+/*
 void ANSGameState::MatchTimerEnd()
 {
 	//if it server, end match
@@ -387,14 +438,21 @@ void ANSGameState::MatchTimerEnd()
 		auto NSGameMode = Cast<ANSGameMode>(GetWorld()->GetAuthGameMode());
 		NSGameMode -> EndMatch();
 	}
-}
+}*/
 
 float ANSGameState::GetMatchTimerRemaining()
 {
+	if (MatchState==EMatchState::InProgress)
+	{
+		return MatchTimeLimit.GetTotalSeconds() - MatchTime;
+	}
+	
+	/*
 	if (MatchTimerHandle.IsValid())
 	{
 		return GetWorld()->GetTimerManager().GetTimerRemaining(MatchTimerHandle);
-	}
+	}*/
+	
 	return -1.f;
 }
 
