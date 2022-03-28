@@ -69,9 +69,6 @@ void ANSGameState::Tick(float DeltaSeconds)
 
 void ANSGameState::StartMatchHandle_Implementation()
 {
-	if (bMatchTimeLimit)
-//		StartMatchTimer();
-	
 	BP_MatchStarted();
 	MatchStartDelegate.Broadcast();
 	
@@ -81,8 +78,6 @@ void ANSGameState::StartMatchHandle_Implementation()
 
 void ANSGameState::EndMatchHandle_Implementation()
 {	
-	MatchTimerHandle.Invalidate();
-	
 	BP_MatchFinished();
 	MatchEndDelegate.Broadcast();
 }
@@ -418,27 +413,6 @@ void ANSGameState::GetNextPlayerInTeam(int32 TeamIndex, ANSPlayerState*& NextPla
 
 //~==============================================================================================
 // Match timer
-float ANSGameState::GetMatchTime()
-{
-	return MatchTime;
-}
-
-/*
-void ANSGameState::StartMatchTimer()
-{
-	GetWorld()->GetTimerManager().SetTimer(MatchTimerHandle, this, &ANSGameState::MatchTimerEnd, MatchTimeLimit.GetTotalSeconds());
-}*/
-
-/*
-void ANSGameState::MatchTimerEnd()
-{
-	//if it server, end match
-	if (GetWorld()->IsServer())
-	{
-		auto NSGameMode = Cast<ANSGameMode>(GetWorld()->GetAuthGameMode());
-		NSGameMode -> EndMatch();
-	}
-}*/
 
 float ANSGameState::GetMatchTimerRemaining()
 {
@@ -446,12 +420,6 @@ float ANSGameState::GetMatchTimerRemaining()
 	{
 		return MatchTimeLimit.GetTotalSeconds() - MatchTime;
 	}
-	
-	/*
-	if (MatchTimerHandle.IsValid())
-	{
-		return GetWorld()->GetTimerManager().GetTimerRemaining(MatchTimerHandle);
-	}*/
 	
 	return -1.f;
 }

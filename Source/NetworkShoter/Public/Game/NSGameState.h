@@ -76,15 +76,16 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void EndMatchHandle();
 
-	/** remove pawn from team list and add statistic
+	/** Character killed notification
 	 *	trigger by GameMode */
 	virtual void CharacterKilled(APawn* WhoKilled);
 
 	UFUNCTION(BlueprintCallable)
 	EMatchState GetMatchState();
 	
-	//UFUNCTION(BlueprintCallable)
 	virtual bool HasMatchStarted() const override;
+
+	
 public:
 	/** time when match was started */
 	float MatchStartTime = -1.f;
@@ -138,10 +139,9 @@ public:
 
 	//~==============================================================================================
 	// Match timer
-	UPROPERTY(Replicated)
-	float MatchTime = 0;
 
-	/** Time when connected players wait start match */
+	/** Time when connected players wait start match, set by GameMode */
+	UPROPERTY(Transient)
 	float WaitStartMatchTime = 999.f;
 
 	/** return match timers based on match state
@@ -149,15 +149,11 @@ public:
 	 *	if match in progress, return time from start match
 	 */
 	UFUNCTION(BlueprintPure)
-	float GetMatchTime();
-	
-	//void StartMatchTimer();
-	
+	float GetMatchTime(){ return MatchTime; };
+
+	/** if match hac EndByTime condition, return remaining time for match end */
 	UFUNCTION(BlueprintPure)
 	float GetMatchTimerRemaining();
-	
-protected:
-	//void MatchTimerEnd();
 	
 public:
 	UPROPERTY(Transient, BlueprintReadOnly, Category="Limits", Replicated)
@@ -165,9 +161,7 @@ public:
 	
 	UPROPERTY(Transient, BlueprintReadOnly, Category="Limits", Replicated)
 	FTimespan MatchTimeLimit;
-
-	/** Handle for match timer, if match can be ended by time  */
-	FTimerHandle MatchTimerHandle;
+	
 
 	UPROPERTY(Transient, Replicated)
 	bool bFriendlyFire = false;
@@ -191,4 +185,8 @@ protected:
 private:
 	/** Keep all damage info for this match */
 	TArray<FDamageInfo> DamageInfoList;
+
+	/** Current match time, see GetMatchTime() */
+	UPROPERTY(Replicated, Transient)
+	float MatchTime = 0;
 };
