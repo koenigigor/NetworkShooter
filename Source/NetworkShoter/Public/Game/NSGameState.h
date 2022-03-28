@@ -91,7 +91,7 @@ public:
 	virtual void CharacterKilled(APawn* WhoKilled);
 
 	UFUNCTION(BlueprintCallable)
-	EMatchState GetMatchState();
+	EMatchState GetMatchState() { return MatchState; }
 	
 	virtual bool HasMatchStarted() const override;
 
@@ -108,6 +108,7 @@ public:
 	//~==============================================================================================
 	// Match Statistic
 
+	/** Can damage this actor (friendly fire, etc) */
 	UFUNCTION(BlueprintPure)
 	bool CanDamage(AActor* DamagedActor, AActor* DamageCauser);
 	

@@ -91,7 +91,7 @@ public:
 	// Match Limits
 protected:
 	/** Time when connected players wait start match */
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category="Match | Setup")
 	int32 WaitStartMatchTime = 30;
 	
 	UPROPERTY(EditDefaultsOnly, meta=(InlineEditConditionToggle))

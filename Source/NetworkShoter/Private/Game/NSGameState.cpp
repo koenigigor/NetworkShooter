@@ -98,13 +98,7 @@ void ANSGameState::EndMatchHandle_Implementation()
 
 void ANSGameState::CharacterKilled(APawn* WhoKilled)
 {
-	//RemovePawn(WhoKilled); //todo
 	AddStatisticWhenPawnKilled(WhoKilled);
-}
-
-EMatchState ANSGameState::GetMatchState()
-{
-	return MatchState;
 }
 
 bool ANSGameState::HasMatchStarted() const

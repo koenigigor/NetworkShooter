@@ -10,6 +10,7 @@ void UWConnectedPlayers::NativeConstruct()
 {
 	Super::NativeConstruct();
 
+	//do once
 	if (bConstructed) return;
 	bConstructed = true;
 	
