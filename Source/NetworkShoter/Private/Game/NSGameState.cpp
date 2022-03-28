@@ -63,6 +63,20 @@ void ANSGameState::Tick(float DeltaSeconds)
 	}
 }
 
+void ANSGameState::AddPlayerState(APlayerState* PlayerState)
+{
+	Super::AddPlayerState(PlayerState);
+
+	PlayerAddedDelegate.Broadcast(PlayerState);
+}
+
+void ANSGameState::RemovePlayerState(APlayerState* PlayerState)
+{
+	Super::RemovePlayerState(PlayerState);
+
+	PlayerRemovedDelegate.Broadcast(PlayerState);
+}
+
 
 //~==============================================================================================
 // Match State

@@ -12,6 +12,8 @@ class ANSPlayerState;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FMatchStartDelegate);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FMatchEndDelegate);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPlayerAddedDelegare, APlayerState*, PlayerState);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPlayerRemovedDelegare, APlayerState*, PlayerState);
 
 /**
  * Struct for keep info about last damage
@@ -66,6 +68,14 @@ public:
 	virtual void BeginPlay() override;
 
 	virtual void Tick(float DeltaSeconds) override;
+	
+	virtual void AddPlayerState(APlayerState* PlayerState) override;
+	virtual void RemovePlayerState(APlayerState* PlayerState) override;
+
+	UPROPERTY(BlueprintAssignable)
+	FPlayerAddedDelegare PlayerAddedDelegate;
+	UPROPERTY(BlueprintAssignable)
+	FPlayerRemovedDelegare PlayerRemovedDelegate;
 
 	//~==============================================================================================
 	// Match State
