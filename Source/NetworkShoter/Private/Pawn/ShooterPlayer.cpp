@@ -29,7 +29,7 @@ void AShooterPlayer::Death_Implementation()
 	//notify player state on server and clients
 	if (auto NSPlayerState = GetPlayerState<ANSPlayerState>())
 	{
-		NSPlayerState->CharacterDeadDelegate.Broadcast();
+		NSPlayerState->OnCharacterDeath();
 	}
 	
 	BP_CharacterDead();

@@ -37,9 +37,7 @@ protected:
 
 	//called when player who response for this row spawn/death
 	UFUNCTION()
-	void OnPawnDeath(ANSPlayerState* PlayerState);
-	UFUNCTION()
-	void OnPawnSpawn(ANSPlayerState* PlayerState);
+	void OnCharacterDeath(APawn* DeadPawn);
 
 	UFUNCTION(BlueprintPure)
 	FPlayerStatistic GetPlayerStatistic();

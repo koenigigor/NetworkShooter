@@ -40,18 +40,13 @@ void UTabMenu_Row::Init(ANSPlayerState* PlayerState)
 
 
 	//bind to death/respawn
-	OwningPlayerState->CharacterDeadDelegate.AddDynamic(this, &UTabMenu_Row::BP_OnCharacterDead);
+	OwningPlayerState->CharacterDeadDelegate.AddDynamic(this, &UTabMenu_Row::OnCharacterDeath);
 	OwningPlayerState->CharacterRespawnDelegate.AddDynamic(this, &UTabMenu_Row::BP_OnCharacterRespawn);
 }
 
-void UTabMenu_Row::OnPawnDeath(ANSPlayerState* PlayerState)
+void UTabMenu_Row::OnCharacterDeath(APawn* DeadPawn)
 {
-	SetIsEnabled(false);
-}
-
-void UTabMenu_Row::OnPawnSpawn(ANSPlayerState* PlayerState)
-{
-	SetIsEnabled(true);
+	BP_OnCharacterDead();
 }
 
 FPlayerStatistic UTabMenu_Row::GetPlayerStatistic()

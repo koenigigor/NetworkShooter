@@ -18,11 +18,13 @@ void ANSPlayerState::BeginPlay()
 {
 	Super::BeginPlay();
 
-	CharacterDeadDelegate.AddDynamic(this, &ANSPlayerState::OnCharacterDeath);
+
 }
 
 void ANSPlayerState::OnCharacterDeath()
 {
+	CharacterDeadDelegate.Broadcast(GetPawn());
+	
 	//notify gamemode about death
 	if (GetWorld()->IsServer())
 	{

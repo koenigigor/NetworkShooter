@@ -8,7 +8,7 @@
 #include "NSPlayerState.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FPlayerStatisticUpdateDelegate);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCharacterDeadDelegate); 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCharacterDeadDelegate, APawn*, DeadPawn);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCharacterRespawnDelegate);
 
 
