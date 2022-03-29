@@ -18,34 +18,34 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPlayerRemovedDelegare, APlayerState
 /**
  * Struct for keep info about last damage
  */
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FDamageInfo
 {
 	GENERATED_BODY()
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly)
 	FString InstigatorName = "None";
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly)
 	AController* Instigator = nullptr;
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly)
 	FString DamagedActorName = "None";
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly)
 	AActor* DamagedActor = nullptr;
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly)
 	FString DamageCauserName = "None";
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly)
 	AActor* DamageCauser = nullptr;
 	
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly)
 	float Damage;
 
 	/** Time when damage was been applied */
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly)
 	float Time;
 };
 
@@ -122,6 +122,9 @@ public:
 	/** Return array instigators who damage this actor */
 	TArray<AController*> GetAssist(AActor* DamagedActor);
 
+	/** Return last damage info about this pawn */
+	FDamageInfo GetKillInfo(APawn* WhoKilled);
+	
 	//Called from GameMode when character killed
 	UFUNCTION()
 	void AddStatisticWhenPawnKilled(APawn* WhoKilled);
@@ -195,6 +198,7 @@ protected:
 
 private:
 	/** Keep all damage info for this match */
+	UPROPERTY(Replicated)
 	TArray<FDamageInfo> DamageInfoList;
 
 	/** Current match time, see GetMatchTime() */

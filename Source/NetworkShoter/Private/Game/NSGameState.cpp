@@ -25,6 +25,7 @@ void ANSGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME(ANSGameState, bMatchTimeLimit);
 	DOREPLIFETIME(ANSGameState, bFriendlyFire);
 	DOREPLIFETIME(ANSGameState, MatchTime);
+	DOREPLIFETIME(ANSGameState, DamageInfoList);
 }
 
 void ANSGameState::BeginPlay()
@@ -227,20 +228,26 @@ TArray<AController*> ANSGameState::GetAssist(AActor* DamagedActor)
 	return Assists;
 }
 
-void ANSGameState::AddStatisticWhenPawnKilled(APawn* WhoKilled)
+FDamageInfo ANSGameState::GetKillInfo(APawn* WhoKilled)
 {
-	if (DamageInfoList.Num() == 0) { return; } 
-	
-	//get last damage info for this pawn
 	FDamageInfo DamageInfo;
 	for (auto i = DamageInfoList.Num()-1; i>0; i--)
 	{
 		if (DamageInfoList[i].DamagedActor == WhoKilled)
 		{
 			DamageInfo = DamageInfoList[i];
-			break;
+			return DamageInfo;
 		}
 	}
+	return DamageInfo;
+}
+
+void ANSGameState::AddStatisticWhenPawnKilled(APawn* WhoKilled)
+{
+	if (DamageInfoList.Num() == 0) { return; } 
+	
+	//get last damage info for this pawn
+	FDamageInfo DamageInfo = GetKillInfo(WhoKilled);
 
 	int32 DeathActorTeam = WhoKilled->GetPlayerState<ANSPlayerState>()->TeamIndex;
 	
