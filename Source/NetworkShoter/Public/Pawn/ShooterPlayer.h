@@ -30,6 +30,8 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void BP_CharacterDead();
 
+	virtual FVector GetPawnViewLocation() const override;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

@@ -3,6 +3,7 @@
 
 #include "Pawn/ShooterPlayer.h"
 #include "AbilitySystemComponent.h"
+#include "Camera/CameraComponent.h"
 #include "GAS/AttributeSet/NetShooterAttributeSet.h"
 #include "Game/NSPlayerState.h"
 #include "GAS/AttributeSet/WeaponAttributeSet.h"
@@ -33,6 +34,17 @@ void AShooterPlayer::Death_Implementation()
 	}
 	
 	BP_CharacterDead();
+}
+
+FVector AShooterPlayer::GetPawnViewLocation() const
+{
+	auto Camera = FindComponentByClass<UCameraComponent>();
+	if (Camera)
+	{
+		return Camera->GetComponentLocation();
+	}
+	
+	return Super::GetPawnViewLocation();
 }
 
 // Called when the game starts or when spawned
