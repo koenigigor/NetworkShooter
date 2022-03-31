@@ -3,6 +3,8 @@
 
 #include "Game/PCNetShooter.h"
 
+#include "ChatController.h"
+#include "Game/NSPlayerState.h"
 #include "GameFramework/GameStateBase.h"
 #include "GameFramework/SpectatorPawn.h"
 #include "HUD/NSHUD.h"
@@ -121,4 +123,12 @@ void APCNetShooter::OnRep_Pawn()
 	BP_ClientOnPossess(GetPawn());
     
 	GetNSHUD()->OnPossess(GetPawn());
+}
+
+void APCNetShooter::SendChatMessage_Implementation(const FString& Message)
+{
+	if (auto ChatController = GetWorld()->GetGameState()->FindComponentByClass<UChatController>())
+	{
+		ChatController->SendMessage_Player(Message, GetPlayerState<ANSPlayerState>());
+	}
 }

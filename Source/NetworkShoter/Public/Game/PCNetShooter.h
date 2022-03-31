@@ -35,6 +35,9 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void BP_ClientOnPossess(APawn* InPawn);
 
+	/** Proxy function for send chat message from chat widget to server */
+	UFUNCTION(Server, Unreliable, BlueprintCallable)
+	void SendChatMessage(const FString& Message);
 	
 protected:
 	//TODO check Spectator be garbage collected on Possess to character
