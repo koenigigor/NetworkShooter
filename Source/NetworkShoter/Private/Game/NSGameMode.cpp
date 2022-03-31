@@ -28,6 +28,7 @@ void ANSGameMode::InitGameState()
 		NSGameState->bMatchTimeLimit = bMatchTimeLimit;
 		NSGameState->bFriendlyFire = bFriendlyFire;
 		NSGameState->WaitStartMatchTime = WaitStartMatchTime;
+		NSGameState->MatchState = MatchState;
 	}
 }
 
@@ -35,6 +36,11 @@ void ANSGameMode::PostLogin(APlayerController* NewPlayer)
 {
 	Super::PostLogin(NewPlayer);
 
+	if (MatchState==EMatchState::WaitingConnection && GameState->PlayerArray.Num() >= MinConnectedPlayersForStart)
+	{
+		SetMatchState(EMatchState::WaitingToStart);
+	}
+		
 	//NewPlayer -> GetPlayerState<ANSPlayerState>() -> Team = "Team A";
 }
 
@@ -85,7 +91,7 @@ void ANSGameMode::SetMatchState(EMatchState NewMatchState)
 
 	if (MatchState == EMatchState::WaitingToStart)
     {
-		
+		WaitingToStartMatchHandle();
     	return;
     }
 
@@ -99,6 +105,14 @@ void ANSGameMode::SetMatchState(EMatchState NewMatchState)
 	{
 		EndMatchHandle();
 		return;
+	}
+}
+
+void ANSGameMode::WaitingToStartMatchHandle()
+{
+	if (NSGameState)
+	{
+		NSGameState->WaitingToStartMatchHandle();
 	}
 }
 

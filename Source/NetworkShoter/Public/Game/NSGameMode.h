@@ -13,6 +13,7 @@ class ANSGameState;
 UENUM()
 enum class EMatchState : uint8
 {
+	WaitingConnection,
 	WaitingToStart,
 	InProgress,
 	PostMatch
@@ -54,16 +55,20 @@ protected:
 	void SetMatchState(EMatchState NewMatchState);
 
 	/** called on match state set to this state */
+	virtual void WaitingToStartMatchHandle();
 	virtual void StartMatchHandle();
 	virtual void EndMatchHandle();
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void BP_RequiredPlayersConnected();
+	
 	UFUNCTION(BlueprintImplementableEvent)
 	void BP_MatchStarted();
 	
 	UFUNCTION(BlueprintImplementableEvent)
 	void BP_MatchFinished();
 
-	EMatchState MatchState = EMatchState::WaitingToStart;
+	EMatchState MatchState = EMatchState::WaitingConnection;
 
 	
 	//~==============================================================================================
@@ -90,6 +95,10 @@ public:
 	//~==============================================================================================
 	// Match Limits
 protected:
+	/** Minimum connected players for can start match */
+	UPROPERTY(EditDefaultsOnly, Category="Match | Setup")
+	int32 MinConnectedPlayersForStart = 2;
+	
 	/** Time when connected players wait start match */
 	UPROPERTY(EditDefaultsOnly, Category="Match | Setup")
 	int32 WaitStartMatchTime = 30;

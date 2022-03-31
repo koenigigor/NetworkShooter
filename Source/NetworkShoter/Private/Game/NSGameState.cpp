@@ -26,17 +26,15 @@ void ANSGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME(ANSGameState, bFriendlyFire);
 	DOREPLIFETIME(ANSGameState, MatchTime);
 	DOREPLIFETIME(ANSGameState, DamageInfoList);
+	DOREPLIFETIME_CONDITION(ANSGameState, WaitStartMatchTime, COND_InitialOnly);
 }
 
 void ANSGameState::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (MatchState == EMatchState::WaitingToStart)
-	{
-		//start countdown
+	if (GetMatchState() == EMatchState::WaitingConnection || GetMatchState() == EMatchState::WaitingToStart)
 		MatchTime = WaitStartMatchTime;
-	}
 }
 
 void ANSGameState::Tick(float DeltaSeconds)
@@ -81,6 +79,12 @@ void ANSGameState::RemovePlayerState(APlayerState* PlayerState)
 
 //~==============================================================================================
 // Match State
+
+void ANSGameState::WaitingToStartMatchHandle_Implementation()
+{
+	MatchTime = WaitStartMatchTime;
+	WaitingToStartMatch.Broadcast();
+}
 
 void ANSGameState::StartMatchHandle_Implementation()
 {

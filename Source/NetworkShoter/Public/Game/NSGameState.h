@@ -10,6 +10,7 @@
 
 class ANSPlayerState;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWaitingToStartMatchDelegate);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FMatchStartDelegate);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FMatchEndDelegate);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPlayerAddedDelegare, APlayerState*, PlayerState);
@@ -73,6 +74,8 @@ public:
 	virtual void RemovePlayerState(APlayerState* PlayerState) override;
 
 	UPROPERTY(BlueprintAssignable)
+	FWaitingToStartMatchDelegate WaitingToStartMatch;
+	UPROPERTY(BlueprintAssignable)
 	FPlayerAddedDelegare PlayerAddedDelegate;
 	UPROPERTY(BlueprintAssignable)
 	FPlayerRemovedDelegare PlayerRemovedDelegate;
@@ -81,6 +84,8 @@ public:
 	// Match State
 	
 	/** called from Game mode */
+	UFUNCTION(NetMulticast, Reliable)
+	virtual void WaitingToStartMatchHandle();
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void StartMatchHandle();
 	UFUNCTION(NetMulticast, Reliable)
@@ -102,7 +107,7 @@ public:
 
 	/** copy match state from game mode, for using in widgets */
 	UPROPERTY(Replicated)
-	EMatchState MatchState = EMatchState::WaitingToStart;
+	EMatchState MatchState = EMatchState::WaitingConnection;
 
 	
 	//~==============================================================================================
@@ -155,7 +160,7 @@ public:
 	// Match timer
 
 	/** Time when connected players wait start match, set by GameMode */
-	UPROPERTY(Transient)
+	UPROPERTY(Transient, Replicated)
 	float WaitStartMatchTime = 999.f;
 
 	/** return match timers based on match state
