@@ -5,13 +5,17 @@
 
 
 UAbilityTask_DoExplosiveDamage* UAbilityTask_DoExplosiveDamage::AbilityTask_DoExplosiveDamage(
-	UGameplayAbility* OwningAbility, FVector ExplodeLocation, float ExplodeRadius, float ExplodeBaseDamage, UCurveFloat* ExplodeDamping)
+	UGameplayAbility* OwningAbility, FVector ExplodeLocation, float ExplodeRadius, float ExplodeBaseDamage, TSubclassOf<UGameplayEffect> DamageGameplayEffectClass, UCurveFloat* ExplodeDamping)
 {
 	auto abilityTask = NewAbilityTask<UAbilityTask_DoExplosiveDamage>(OwningAbility);
 	abilityTask->Location = ExplodeLocation;
 	abilityTask->Radius = ExplodeRadius;
 	abilityTask->BaseDamage = ExplodeBaseDamage;
 	abilityTask->Damping = ExplodeDamping;
+	abilityTask->GameplayEffectClass = DamageGameplayEffectClass;
+	
+	ensure(DamageGameplayEffectClass);
+	
 	return abilityTask;
 }
 
@@ -19,7 +23,11 @@ void UAbilityTask_DoExplosiveDamage::Activate()
 {
 	Super::Activate();
 
-	if (Location==FVector::ZeroVector || Radius <= 0.f || BaseDamage <= 0.f) { return; }
+	if (Location==FVector::ZeroVector || Radius <= 0.f || BaseDamage <= 0.f)
+	{
+		FinishExecute.Broadcast(nullptr, nullptr);
+		return;
+	}
 
 	//get overlap actors
 	TArray<FOverlapResult> DamagedActors;
@@ -29,10 +37,14 @@ void UAbilityTask_DoExplosiveDamage::Activate()
 		ECollisionChannel::ECC_GameTraceChannel2,
 		FCollisionShape::MakeSphere(Radius));
 
-	if (!OverlapSomething){ return; }
+	if (!OverlapSomething)
+	{
+		FinishExecute.Broadcast(nullptr, nullptr);
+		return;
+	}
 
+	//calculate result damage
 	TMap<AActor*, float> ResultDamageMap;
-	
 	for (const auto& DamagedActor : DamagedActors)
 	{
 		//calculate damage percent
@@ -44,17 +56,29 @@ void UAbilityTask_DoExplosiveDamage::Activate()
 			ResultDamage = BaseDamage * DamagePercent;
 		}
 
-		//Same actor secure
+		//Same actor protection
 		ResultDamageMap.Add(DamagedActor.GetActor(), ResultDamage);
 	} 
 
-	//Same actor secure
+	//Apply results
 	for (const auto& DamageMap : ResultDamageMap)
 	{
-		CalculatedDamage.Broadcast(DamageMap.Key, DamageMap.Value);
+		//make gameplay effect
+		auto SpecHandle = Ability->MakeOutgoingGameplayEffectSpec(GameplayEffectClass, 1);
+		if (auto Spec = SpecHandle.Data.Get())
+		{
+			Spec->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag("Magnitude.Damage"), DamageMap.Value);
+		}
+		
+		// Construct TargetData
+		FGameplayAbilityTargetData_ActorArray*	TargetData = new FGameplayAbilityTargetData_ActorArray();
+		TargetData->TargetActorArray.Add(DamageMap.Key);
+		FGameplayAbilityTargetDataHandle Handle(TargetData);
+
+		Damaged.Broadcast(SpecHandle, Handle);
+		
+		//UGameplayAbility::ApplyGameplayEffectSpecToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, SpecHandle, TargetData);
 	}
 
-	
-	//apply damage
-	
+	FinishExecute.Broadcast(nullptr, nullptr);
 }
