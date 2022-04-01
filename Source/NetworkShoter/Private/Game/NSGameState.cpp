@@ -7,6 +7,7 @@
 #include "Game/NSPlayerState.h"
 #include "Game/PCNetShooter.h"
 #include "GameFramework/PlayerState.h"
+#include "Items/Weapon.h"
 #include "Net/UnrealNetwork.h"
 
 
@@ -121,10 +122,6 @@ void ANSGameState::ApplyDamageInfo(FDamageInfo DamageInfo)
 
 	//add info in list
 	DamageInfoList.Add(DamageInfo);
-
-	UE_LOG(LogTemp, Warning, TEXT("%s deal %f damage to %s from %s"), *DamageInfo.InstigatorName, DamageInfo.Damage, *DamageInfo.DamagedActorName, *DamageInfo.DamageCauserName);
-
-
 	
 	//temp prototype
 	auto PCNetShooter = Cast<APCNetShooter>(DamageInfo.DamagedActor->GetInstigatorController());
@@ -199,9 +196,22 @@ void ANSGameState::ApplyDamageInfoFromActors(AController* DamageInstigator, AAct
 
 	//Prepare CauserName
 	//DamageInstigator->FindComponentByClass<ANSEquipnent>() -> GetEquippedWeapon() -> WeaponData -> Name;
-	CauserName = "TODO WeaponName";
-//TODO
 	
+	if (DamageCauser)
+	{
+		if (auto Weapon = Cast<AWeapon>(DamageCauser))
+		{
+			CauserName = Weapon -> WeaponData -> Name.ToString();
+		}
+		else
+		{
+			CauserName = DamageCauser->GetName();
+		}
+	}
+	else
+	{
+		CauserName = "No WeaponName";
+	}
 	
 	DamageInfo.Damage = Damage;
 

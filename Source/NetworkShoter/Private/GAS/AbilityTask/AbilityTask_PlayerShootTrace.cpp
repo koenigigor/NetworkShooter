@@ -15,6 +15,7 @@ void UAbilityTask_PlayerShootTrace::Activate()
 	if (ShootDistantion <= 0) { return; }
 
 	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(GetOwnerActor());
 	QueryParams.AddIgnoredActor(GetAvatarActor());
 	
 	//Get point where character view

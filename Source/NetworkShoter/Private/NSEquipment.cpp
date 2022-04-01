@@ -153,6 +153,8 @@ bool UNSEquipment::EquipWeapon(int32 Slot)
 		
 		//depricated //AbilitySystem->InitStats(UWeaponAttributeSet::StaticClass(), WeaponToEquip->WeaponData->AttributeSet);
 
+		AbilitySystem->InitAbilityActorInfo(GetOwner(), WeaponToEquip);
+		
 		//get weapon attribute
 		TArray<UAttributeSet*> AllAttributes = AbilitySystem->GetSpawnedAttributes();
 		for (const auto& Attribute : AllAttributes)

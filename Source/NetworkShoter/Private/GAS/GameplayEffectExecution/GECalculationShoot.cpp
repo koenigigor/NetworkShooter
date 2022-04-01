@@ -90,9 +90,11 @@ void UGECalculationShoot::Execute_Implementation(const FGameplayEffectCustomExec
 
 /**********  TODO  **********/
 	//Notify GameState about damage
-	AActor* DamageCauser = nullptr;
-	if (SourceActor->GetWorld() && SourceActor->GetWorld() -> GetGameState<ANSGameState>())
+	auto OwnerActor = SourceAbilityComponent->GetOwnerActor();
+	auto DamagedActor = TargetAbilityComponent->GetOwnerActor();
+	AActor* DamageCauser = SourceAbilityComponent->GetAvatarActor();
+	if (OwnerActor->GetWorld() && OwnerActor -> GetWorld() -> GetGameState<ANSGameState>())
 	{
-		SourceActor->GetWorld() -> GetGameState<ANSGameState>() -> ApplyDamageInfoFromActors(SourceActor->GetInstigatorController(), TargetActor, DamageCauser, ResultDamage);
+		OwnerActor->GetWorld() -> GetGameState<ANSGameState>() -> ApplyDamageInfoFromActors(OwnerActor->GetInstigatorController(), DamagedActor, DamageCauser, ResultDamage);
 	}
 }
