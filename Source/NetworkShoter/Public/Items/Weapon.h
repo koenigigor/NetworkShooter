@@ -23,7 +23,6 @@ class NETWORKSHOTER_API AWeapon : public AActor
 	GENERATED_BODY()
 	
 public:	
-	// Sets default values for this actor's properties
 	AWeapon();
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
@@ -33,12 +32,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	virtual void SetupData(UWeaponData* WeaponData);
 
-	UPROPERTY(BlueprintReadOnly, Replicated)
-	UWeaponData* WeaponData;
-
-	UPROPERTY()
-	UWeaponAttributeSet* WeaponAttributeSet = nullptr;
-
 	/** set velocity and activate projectile movement */
 	UFUNCTION(BlueprintCallable)
 	void LaunchAsProjectile(FVector Velocity);
@@ -47,6 +40,18 @@ public:
 	void SetStatus(EWeaponStatus NewStatus);
 
 protected:
+	UFUNCTION()
+	void OnRep_Status();
+	
+
+public:
+	UPROPERTY(BlueprintReadOnly, Replicated)
+    UWeaponData* WeaponData;
+    
+	UPROPERTY()
+	UWeaponAttributeSet* WeaponAttributeSet = nullptr;	
+	
+protected:
 	UPROPERTY() //Replicated)
 	UStaticMeshComponent* WeaponMesh = nullptr;
 
@@ -54,8 +59,5 @@ protected:
 	EWeaponStatus Status;
 
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)  //todo need blueprint and visible?
-	UProjectileMovementComponent* ProjectileMovement;
-
-	UFUNCTION()
-	void OnRep_Status();
+	UProjectileMovementComponent* ProjectileMovement;	
 };

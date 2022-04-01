@@ -19,10 +19,33 @@ class NETWORKSHOTER_API AShooterPlayer : public ACharacter, public IAbilitySyste
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this character's properties
 	AShooterPlayer();
+
+protected:
+	virtual void BeginPlay() override;
+
+	
+	//~==============================================================================================
+	// Ability System
+public:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
+	UFUNCTION(BlueprintCallable)
+	void AddAbility(TSubclassOf<UGameplayAbility> Ability);
+
+	// Attribute delegates
+protected:
+	void BindAttributeDelegates();
+	
+	void OnHealthChange(const FOnAttributeChangeData& Data);
+	
+	UFUNCTION(BlueprintImplementableEvent)
+	void HealthChanged(float OldValue);
+	
+	void OnArmorChange(const FOnAttributeChangeData& Data);
+
+	
+public:
 	/** [Multicast] Called from death gameplay ability, when player Die */
 	UFUNCTION(BlueprintCallable, NetMulticast, Reliable)
 	void Death();
@@ -30,12 +53,12 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void BP_CharacterDead();
 
+	
 	virtual FVector GetPawnViewLocation() const override;
+	
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	UAbilitySystemComponent* AbilitySystem;
 	
@@ -45,31 +68,7 @@ protected:
 	UPROPERTY(BlueprintReadOnly)
 	UWeaponAttributeSet* WeaponAttributeSet;
 
-	/** Abilities register on begin ply and binds with input actions */
+	/** Abilities register on begin play and binds with input actions */
 	UPROPERTY(EditDefaultsOnly)
 	TArray<TSubclassOf<UGameplayAbility>> StartupAbilities;
-
-	UFUNCTION(BlueprintCallable)
-	void AddAbility(TSubclassOf<UGameplayAbility> Ability);
-
-///Attribute delegates
-	void BindAttributeDelegates();
-
-	//UFUNCTION() //not work with FOnAttributeChangeData
-	void OnHealthChange(const FOnAttributeChangeData& Data);
-	
-	UFUNCTION(BlueprintImplementableEvent)
-	void HealthChanged(float OldValue);
-	
-	//UFUNCTION()
-	void OnArmorChange(const FOnAttributeChangeData& Data);
-	
-	
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
 };

@@ -7,7 +7,6 @@
 
 AWeapon::AWeapon()
 {
-	//PrimaryActorTick.bCanEverTick = true;
 	bReplicates = true;
 
 	//create component
@@ -56,8 +55,13 @@ void AWeapon::LaunchAsProjectile(FVector Velocity)
 {
 	ProjectileMovement->Velocity = Velocity;
 	ProjectileMovement->Activate();
-	//WeaponMesh->SetNotifyRigidBodyCollision(true); //activate hit events
-//	WeaponMesh->SetSimulatePhysics(true);
+}
+
+void AWeapon::SetStatus(EWeaponStatus NewStatus)
+{
+	//place for validation, server changes etc
+	Status = NewStatus;
+	OnRep_Status();
 }
 
 void AWeapon::OnRep_Status()
@@ -79,11 +83,4 @@ void AWeapon::OnRep_Status()
 		SetActorHiddenInGame(false);
 		break;
 	}
-}
-
-void AWeapon::SetStatus(EWeaponStatus NewStatus)
-{
-	//place for validation, server changes etc
-	Status = NewStatus;
-	OnRep_Status();
 }
