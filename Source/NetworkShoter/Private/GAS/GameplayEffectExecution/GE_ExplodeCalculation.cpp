@@ -5,6 +5,7 @@
 #include "GAS/AttributeSet/NetShooterAttributeSet.h"
 #include "AbilitySystemComponent.h"
 #include "GameplayTagContainer.h"
+#include "Game/NSGameState.h"
 
 
 struct FAttributeCapture
@@ -55,6 +56,16 @@ void UGE_ExplodeCalculation::Execute_Implementation(const FGameplayEffectCustomE
 	Damage *= -1.f;
 
 	OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(GetAttributeCapture().HealthProperty, EGameplayModOp::Additive, Damage));
+
+	
+	//Notify GameState about damage
+	auto OwnerActor = ExecutionParams.GetSourceAbilitySystemComponent()->GetAvatarActor();
+	auto DamagedActor = ExecutionParams.GetTargetAbilitySystemComponent()->GetAvatarActor();
+	AActor* DamageCauser = Spec.GetEffectContext().GetEffectCauser();
+	if (OwnerActor->GetWorld() && OwnerActor -> GetWorld() -> GetGameState<ANSGameState>())
+	{
+		OwnerActor->GetWorld() -> GetGameState<ANSGameState>() -> ApplyDamageInfoFromActors(OwnerActor->GetInstigatorController(), DamagedActor, DamageCauser, Damage);
+	}
 }
 
 

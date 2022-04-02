@@ -3,9 +3,11 @@
 
 #include "GAS/AbilityTask/AbilityTask_DoExplosiveDamage.h"
 
+#include "GAS/MyGameplayEffectSpec.h"
+
 
 UAbilityTask_DoExplosiveDamage* UAbilityTask_DoExplosiveDamage::AbilityTask_DoExplosiveDamage(
-	UGameplayAbility* OwningAbility, FVector ExplodeLocation, float ExplodeRadius, float ExplodeBaseDamage, TSubclassOf<UGameplayEffect> DamageGameplayEffectClass, UCurveFloat* ExplodeDamping)
+	UGameplayAbility* OwningAbility, FVector ExplodeLocation, float ExplodeRadius, float ExplodeBaseDamage, TSubclassOf<UGameplayEffect> DamageGameplayEffectClass, AActor* DamageCauser, UCurveFloat* ExplodeDamping)
 {
 	auto abilityTask = NewAbilityTask<UAbilityTask_DoExplosiveDamage>(OwningAbility);
 	abilityTask->Location = ExplodeLocation;
@@ -13,6 +15,7 @@ UAbilityTask_DoExplosiveDamage* UAbilityTask_DoExplosiveDamage::AbilityTask_DoEx
 	abilityTask->BaseDamage = ExplodeBaseDamage;
 	abilityTask->Damping = ExplodeDamping;
 	abilityTask->GameplayEffectClass = DamageGameplayEffectClass;
+	abilityTask->Causer = DamageCauser;
 	
 	ensure(DamageGameplayEffectClass);
 	
@@ -68,6 +71,7 @@ void UAbilityTask_DoExplosiveDamage::Activate()
 		if (auto Spec = SpecHandle.Data.Get())
 		{
 			Spec->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag("Magnitude.Damage"), DamageMap.Value);
+			UMyGameplayEffectSpec::SetEffectCauser(SpecHandle, Causer);
 		}
 		
 		// Construct TargetData

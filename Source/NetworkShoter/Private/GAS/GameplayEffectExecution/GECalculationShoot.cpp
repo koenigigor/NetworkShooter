@@ -86,9 +86,8 @@ void UGECalculationShoot::Execute_Implementation(const FGameplayEffectCustomExec
 		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(GetAttributeCapture_CalculationShoot().ArmorProperty, EGameplayModOp::Override, OutArmor));
 	}
 
-/**********  TODO  **********/
+
 	//Notify GameState about damage
-	
 	auto OwnerActor = SourceAbilityComponent->GetOwnerActor();
 	auto DamagedActor = TargetAbilityComponent->GetOwnerActor();
 	AActor* DamageCauser = Spec.GetEffectContext().GetEffectCauser();

@@ -23,12 +23,14 @@ class NETWORKSHOTER_API UAbilityTask_DoExplosiveDamage : public UAbilityTask
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Ability|Tasks", meta = (HidePin = "OwningAbility", DefaultToSelf = "OwningAbility"))
 	static UAbilityTask_DoExplosiveDamage* AbilityTask_DoExplosiveDamage(UGameplayAbility* OwningAbility, FVector ExplodeLocation,
-		float ExplodeRadius, float ExplodeBaseDamage, TSubclassOf<UGameplayEffect> DamageGameplayEffectClass, UCurveFloat* ExplodeDamping = nullptr);
+		float ExplodeRadius, float ExplodeBaseDamage, TSubclassOf<UGameplayEffect> DamageGameplayEffectClass, AActor* DamageCauser = nullptr, UCurveFloat* ExplodeDamping = nullptr);
 	
 	FVector Location;
 	float Radius = 0.f;
 	float BaseDamage = 0.f;
 	UCurveFloat* Damping = nullptr;
+
+	AActor* Causer = nullptr;
 
 	TSubclassOf<UGameplayEffect> GameplayEffectClass;
 

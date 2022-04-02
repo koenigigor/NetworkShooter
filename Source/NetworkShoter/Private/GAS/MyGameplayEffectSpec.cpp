@@ -21,8 +21,10 @@ FGameplayEffectSpecHandle UMyGameplayEffectSpec::SetPeriod(FGameplayEffectSpecHa
 	return SpecHandle;
 }
 
-FGameplayEffectSpecHandle UMyGameplayEffectSpec::SetEffectCauser(FGameplayEffectSpecHandle SpecHandle, AActor* Causer)
+FGameplayEffectSpecHandle UMyGameplayEffectSpec::SetEffectCauser(const FGameplayEffectSpecHandle& SpecHandle, AActor* Causer)
 {
+	if (!Causer) return SpecHandle;
+	
 	FGameplayEffectSpec* Spec = SpecHandle.Data.Get();
 	if (Spec)
 	{
