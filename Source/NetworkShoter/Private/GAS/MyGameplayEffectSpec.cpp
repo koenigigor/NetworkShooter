@@ -20,3 +20,19 @@ FGameplayEffectSpecHandle UMyGameplayEffectSpec::SetPeriod(FGameplayEffectSpecHa
 
 	return SpecHandle;
 }
+
+FGameplayEffectSpecHandle UMyGameplayEffectSpec::SetEffectCauser(FGameplayEffectSpecHandle SpecHandle, AActor* Causer)
+{
+	FGameplayEffectSpec* Spec = SpecHandle.Data.Get();
+	if (Spec)
+	{
+		//Spec->SetDuration(Duration, true);
+		Spec->GetContext().AddInstigator(Spec->GetContext().GetInstigator(), Causer);
+	}
+	else
+	{
+		ABILITY_LOG(Warning, TEXT("UUMyGameplayEffectSpec::SetPeriod called with invalid SpecHandle"));
+	}
+
+	return SpecHandle;
+}

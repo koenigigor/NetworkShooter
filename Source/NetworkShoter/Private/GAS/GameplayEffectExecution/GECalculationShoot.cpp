@@ -45,8 +45,6 @@ void UGECalculationShoot::Execute_Implementation(const FGameplayEffectCustomExec
 	//Prep variables
 	UAbilitySystemComponent* SourceAbilityComponent = ExecutionParams.GetSourceAbilitySystemComponent();
 	UAbilitySystemComponent* TargetAbilityComponent = ExecutionParams.GetTargetAbilitySystemComponent();
-	AActor* SourceActor = SourceAbilityComponent ? SourceAbilityComponent->GetAvatarActor_Direct() : nullptr;
-	AActor* TargetActor = TargetAbilityComponent ? TargetAbilityComponent->GetAvatarActor_Direct() : nullptr;
 	const FGameplayEffectSpec& Spec = ExecutionParams.GetOwningSpec();
 	
 	// Gather the tags from the source and target as that can affect which buffs should be used
@@ -90,9 +88,10 @@ void UGECalculationShoot::Execute_Implementation(const FGameplayEffectCustomExec
 
 /**********  TODO  **********/
 	//Notify GameState about damage
+	
 	auto OwnerActor = SourceAbilityComponent->GetOwnerActor();
 	auto DamagedActor = TargetAbilityComponent->GetOwnerActor();
-	AActor* DamageCauser = SourceAbilityComponent->GetAvatarActor();
+	AActor* DamageCauser = Spec.GetEffectContext().GetEffectCauser();
 	if (OwnerActor->GetWorld() && OwnerActor -> GetWorld() -> GetGameState<ANSGameState>())
 	{
 		OwnerActor->GetWorld() -> GetGameState<ANSGameState>() -> ApplyDamageInfoFromActors(OwnerActor->GetInstigatorController(), DamagedActor, DamageCauser, ResultDamage);

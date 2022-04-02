@@ -18,4 +18,7 @@ class NETWORKSHOTER_API UMyGameplayEffectSpec : public UBlueprintFunctionLibrary
 	/** Manually sets the period on a specific effect */
 	UFUNCTION(BlueprintCallable, Category = "Ability|GameplayEffect")
 	static FGameplayEffectSpecHandle SetPeriod(FGameplayEffectSpecHandle SpecHandle, float Period);
+
+	UFUNCTION(BlueprintCallable, Category = "Ability|GameplayEffect")
+	static FGameplayEffectSpecHandle SetEffectCauser(FGameplayEffectSpecHandle SpecHandle, AActor* Causer);
 };
