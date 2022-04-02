@@ -16,6 +16,42 @@ UNSEquipment::UNSEquipment()
 	Weapons.SetNum(MaxWeaponSlots);
 }
 
+void UNSEquipment::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	
+	DOREPLIFETIME_CONDITION(UNSEquipment, EquippedWeapon, COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UNSEquipment, EquippedWeaponSlot, COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UNSEquipment, Weapons, COND_OwnerOnly);
+}
+
+void UNSEquipment::BeginPlay()
+{
+	Super::BeginPlay();
+
+	//Create default weapon
+	if (GetOwner()->HasAuthority())
+	{
+		//Spawn weapon actor
+		FVector SpawnLocation(0,0,-500);
+		FRotator SpawnRotation(0,0,0);
+		FActorSpawnParameters SpawnParameters;
+		SpawnParameters.Owner = GetOwner();
+		SpawnParameters.Instigator = GetOwner()->GetInstigator();
+	
+		AWeapon* Weapon = GetWorld() -> SpawnActor<AWeapon>(SpawnLocation, SpawnRotation, SpawnParameters);
+		Weapon->SetupData(DefaultWeapon);
+
+		//Add and equip weapon
+		PickUpWeapon(Weapon);
+		EquipWeapon(0);
+	}
+}
+
+
+//~==============================================================================================
+// Pickup 
+
 bool UNSEquipment::PickUpWeapon(AWeapon* Weapon)
 {
 	const auto WeaponData = Weapon->WeaponData;
@@ -123,67 +159,30 @@ AWeapon* UNSEquipment::DropCurrentWeapon()
 	return Weapon;
 }
 
-bool UNSEquipment::EquipWeapon(int32 Slot)
+void UNSEquipment::EquipWeapon_Implementation(int32 Slot)
 {
-	if (Slot == EquippedWeaponSlot) { return false; }
-	if (!Weapons[Slot])	{ return false; };
-	
-	if (!GetOwner()->HasAuthority())
-	{
-		ServerEquipWeapon(Slot);
-		return false;
-	}
+	if (Slot == EquippedWeaponSlot) { return; }
+	if (!Weapons[Slot])	{ return; };
 	
 	auto WeaponToEquip = Weapons[Slot];
 	
-	//Remove weapon if has already equipped
+	//Remove previous weapon
 	UnequipWeapon(true);
 	
 	//attach weapon to owner
-		//get mesh to attach //TODO interface for get component for 1st 3rd person if need
-	USkeletalMeshComponent* MeshToAttach = GetOwner()->FindComponentByClass<USkeletalMeshComponent>();
-	
+	USkeletalMeshComponent* MeshToAttach = GetOwner()->FindComponentByClass<USkeletalMeshComponent>(); //todo FP/TP mesh
 	FName Socket = "Gun";
 	WeaponToEquip->AttachToComponent(MeshToAttach, FAttachmentTransformRules::SnapToTargetIncludingScale, Socket);
 	
-	//apply new weapon stats to player and register weapon ability
-	if (auto IAbilitySystem = Cast<IAbilitySystemInterface>(GetOwner()))
-	{
-		auto AbilitySystem = IAbilitySystem->GetAbilitySystemComponent();
-		
-		//depricated //AbilitySystem->InitStats(UWeaponAttributeSet::StaticClass(), WeaponToEquip->WeaponData->AttributeSet);
-
-		AbilitySystem->InitAbilityActorInfo(GetOwner(), WeaponToEquip);
-		
-		//get weapon attribute
-		TArray<UAttributeSet*> AllAttributes = AbilitySystem->GetSpawnedAttributes();
-		for (const auto& Attribute : AllAttributes)
-		{
-			if (Attribute && Attribute->IsA(UWeaponAttributeSet::StaticClass()))
-			{
-				auto WeaponAttributeSet = Cast<UWeaponAttributeSet>(Attribute);
-				//copy attributes from weapon
-				WeaponAttributeSet->CopyFrom(WeaponToEquip->WeaponAttributeSet);
-			}
-		} 
-
-		if (IsValid(WeaponToEquip->WeaponData->PrimaryAbility))
-			AbilitySystem->GiveAbility(FGameplayAbilitySpec(WeaponToEquip->WeaponData->PrimaryAbility));
-		if (IsValid(WeaponToEquip->WeaponData->SecondaryAbility))
-			AbilitySystem->GiveAbility(FGameplayAbilitySpec(WeaponToEquip->WeaponData->SecondaryAbility));
-		if (IsValid(WeaponToEquip->WeaponData->Throw))
-			AbilitySystem->GiveAbility(FGameplayAbilitySpec(WeaponToEquip->WeaponData->Throw));
-	};
+	RegisterWeaponAbilities(WeaponToEquip);
 
 	EquippedWeaponSlot = Slot;
 	EquippedWeapon = WeaponToEquip;
 
-	SlotSelected.Broadcast();
-
 	//Unhide weapon from storage
 	EquippedWeapon -> SetStatus(EWeaponStatus::Equipped);
-		
-	return true;
+
+	SlotSelected.Broadcast();
 }
 
 void UNSEquipment::EquipNextWeapon(bool Up)
@@ -212,16 +211,94 @@ void UNSEquipment::EquipNextWeapon(bool Up)
 	return;
 }
 
-
-int32 UNSEquipment::GetEquippedWeaponSlot()
+AWeapon* UNSEquipment::UnequipWeapon(bool bAddInStorage)
 {
-	return EquippedWeaponSlot;
+	
+	if (!EquippedWeapon) { return nullptr; };
+	
+	//detach
+	EquippedWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+		
+	if (bAddInStorage)
+	{
+		PickUpWeapon(EquippedWeapon);
+	}
+	else
+	{
+		//delete weapon info from storage
+		Weapons[EquippedWeaponSlot] -> SetStatus(EWeaponStatus::InWorld);
+		Weapons[EquippedWeaponSlot] = nullptr;
+	}
+
+	//remove weapon abilities
+	UnregisterWeaponAbilities(EquippedWeapon);
+
+	auto TempWeapon = EquippedWeapon;
+	EquippedWeapon = nullptr;
+	return TempWeapon;
 }
 
-TArray<AWeapon*> UNSEquipment::GetAllWeapons()
+void UNSEquipment::RegisterWeaponAbilities(const AWeapon* Weapon)
 {
-	return Weapons;
+	auto IAbilitySystem = Cast<IAbilitySystemInterface>(GetOwner());
+	if (!ensure(IAbilitySystem)) { return; }
+	auto AbilitySystem = IAbilitySystem->GetAbilitySystemComponent();
+
+	
+	//todo fix //AbilitySystem->InitAbilityActorInfo(GetOwner(), WeaponToEquip);
+
+	
+	//Copy weapon attribute
+	TArray<UAttributeSet*> AllAttributes = AbilitySystem->GetSpawnedAttributes();
+	for (const auto& Attribute : AllAttributes)
+	{
+		if (Attribute && Attribute->IsA(UWeaponAttributeSet::StaticClass()))
+		{
+			auto WeaponAttributeSet = Cast<UWeaponAttributeSet>(Attribute);
+			WeaponAttributeSet->CopyFrom(Weapon->WeaponAttributeSet);
+		}
+	} 
+
+	//GiveAbility
+	if (IsValid(Weapon->WeaponData->PrimaryAbility))
+		AbilitySystem->GiveAbility(FGameplayAbilitySpec(Weapon->WeaponData->PrimaryAbility));
+	if (IsValid(Weapon->WeaponData->SecondaryAbility))
+		AbilitySystem->GiveAbility(FGameplayAbilitySpec(Weapon->WeaponData->SecondaryAbility));
+	if (IsValid(Weapon->WeaponData->Throw))
+		AbilitySystem->GiveAbility(FGameplayAbilitySpec(Weapon->WeaponData->Throw));
 }
+
+void UNSEquipment::UnregisterWeaponAbilities(const AWeapon* Weapon)
+{
+	auto IAbilitySystem = Cast<IAbilitySystemInterface>(GetOwner());
+	if (!ensure(IAbilitySystem)) { return; }
+	auto AbilitySystem = IAbilitySystem->GetAbilitySystemComponent();
+
+
+	
+	
+	//Save weapon attributes
+	TArray<UAttributeSet*> AllAttributes = AbilitySystem->GetSpawnedAttributes();
+	for (const auto& Attribute : AllAttributes)
+	{
+		if (Attribute && Attribute->IsA(UWeaponAttributeSet::StaticClass()))
+		{
+			auto WeaponAttributeSet = Cast<UWeaponAttributeSet>(Attribute);
+			EquippedWeapon->WeaponAttributeSet->CopyFrom(WeaponAttributeSet);
+		}
+	} 	
+
+	//ClearAbility
+	if (IsValid(EquippedWeapon->WeaponData->PrimaryAbility))
+		AbilitySystem->ClearAbility(AbilitySystem->FindAbilitySpecFromClass(EquippedWeapon->WeaponData->PrimaryAbility)->Handle);
+	if (IsValid(EquippedWeapon->WeaponData->SecondaryAbility))
+		AbilitySystem->ClearAbility(AbilitySystem->FindAbilitySpecFromClass(EquippedWeapon->WeaponData->SecondaryAbility)->Handle);
+	if (IsValid(EquippedWeapon->WeaponData->Throw))
+		AbilitySystem->ClearAbility(AbilitySystem->FindAbilitySpecFromClass(EquippedWeapon->WeaponData->Throw)->Handle);
+}
+
+//~==============================================================================================
+// Getters
 
 AWeapon* UNSEquipment::GetGrenade(int32 Slot, bool bWithRemove)
 {
@@ -264,90 +341,6 @@ AWeapon* UNSEquipment::GetSelectedGrenade(bool bWithRemove)
 }
 
 
-void UNSEquipment::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	
-	DOREPLIFETIME_CONDITION(UNSEquipment, EquippedWeapon, COND_OwnerOnly);
-	DOREPLIFETIME_CONDITION(UNSEquipment, EquippedWeaponSlot, COND_OwnerOnly);
-	DOREPLIFETIME_CONDITION(UNSEquipment, Weapons, COND_OwnerOnly);
-}
-
-void UNSEquipment::BeginPlay()
-{
-	Super::BeginPlay();
-
-	//Create default weapon
-	if (GetOwner()->HasAuthority())
-	{
-		//Spawn weapon actor
-		FVector SpawnLocation(0,0,-500);
-		FRotator SpawnRotation(0,0,0);
-		FActorSpawnParameters SpawnParameters;
-		SpawnParameters.Owner = GetOwner();
-		SpawnParameters.Instigator = GetOwner()->GetInstigator();
-	
-		AWeapon* Weapon = GetWorld() -> SpawnActor<AWeapon>(SpawnLocation, SpawnRotation, SpawnParameters);
-		Weapon->SetupData(DefaultWeapon);
-
-		//Add and equip weapon
-		PickUpWeapon(Weapon);
-		EquipWeapon(0);
-	}
-}
-
-
-AWeapon* UNSEquipment::UnequipWeapon(bool bAddInStorage)
-{
-	if (EquippedWeapon)
-	{
-		//detach
-		EquippedWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-		
-		if (bAddInStorage)
-		{
-			PickUpWeapon(EquippedWeapon);
-		}
-		else
-		{
-			//delete weapon info from storage
-			Weapons[EquippedWeaponSlot] -> SetStatus(EWeaponStatus::InWorld);
-			Weapons[EquippedWeaponSlot] = nullptr;
-		}
-		
-		//remove weapon abilities
-		if (auto IAbilitySystem = Cast<IAbilitySystemInterface>(GetOwner()))
-		{
-			auto AbilitySystem = IAbilitySystem->GetAbilitySystemComponent();
-			
-			if (IsValid(EquippedWeapon->WeaponData->PrimaryAbility))
-				AbilitySystem->ClearAbility(AbilitySystem->FindAbilitySpecFromClass(EquippedWeapon->WeaponData->PrimaryAbility)->Handle);
-			if (IsValid(EquippedWeapon->WeaponData->SecondaryAbility))
-				AbilitySystem->ClearAbility(AbilitySystem->FindAbilitySpecFromClass(EquippedWeapon->WeaponData->SecondaryAbility)->Handle);
-			if (IsValid(EquippedWeapon->WeaponData->Throw))
-				AbilitySystem->ClearAbility(AbilitySystem->FindAbilitySpecFromClass(EquippedWeapon->WeaponData->Throw)->Handle);
-			
-			//copy attribute to weapon attribute (for save current ammo, etc)
-			//get weapon attribute (GetOrCreateAttributeSubobject(Attributes) is private)
-			TArray<UAttributeSet*> AllAttributes = AbilitySystem->GetSpawnedAttributes();
-			for (const auto& Attribute : AllAttributes)
-			{
-				if (Attribute && Attribute->IsA(UWeaponAttributeSet::StaticClass()))
-				{
-					auto WeaponAttributeSet = Cast<UWeaponAttributeSet>(Attribute);
-					//copy stats
-					EquippedWeapon->WeaponAttributeSet->CopyFrom(WeaponAttributeSet);
-				}
-			} 
-		}
-
-		auto TempWeapon = EquippedWeapon;
-		EquippedWeapon = nullptr;
-		return TempWeapon;
-	}
-	return nullptr;
-}
-
 void UNSEquipment::OnRep_SelectWeapon()
 {
 	SlotSelected.Broadcast();
@@ -357,11 +350,3 @@ void UNSEquipment::OnRep_Weapons()
 {
 	WeaponUpdated.Broadcast();
 }
-
-void UNSEquipment::ServerEquipWeapon_Implementation(int32 Slot)
-{
-	EquipWeapon(Slot);
-}
-
-
-

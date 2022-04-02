@@ -50,35 +50,56 @@ class NETWORKSHOTER_API UNSEquipment : public UActorComponent
 public:	
 	UNSEquipment();
 
-	/** [Server] Pick weapon from ground, podium etc.*/
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+protected:
+	/** [Server] spawn and equip default weapon */
+	virtual void BeginPlay() override;
+
+	
+	//~==============================================================================================
+	// Pickup 
+public:
+	/** [Server] Pick weapon from ground, add it in storage*/
 	UFUNCTION(BlueprintCallable)
 	bool PickUpWeapon(AWeapon* Weapon);
-
 	
 	/** [Server] Drop weapon to world
 	 *	@return Dropped weapon */
 	UFUNCTION(BlueprintCallable)
 	AWeapon* DropCurrentWeapon();
 	
-	/** [Client or Server] try Equip weapon */
-	UFUNCTION(BlueprintCallable)
-	bool EquipWeapon(int32 Slot);
+	/** [Server] try Equip weapon */
+	UFUNCTION(Server, Reliable, BlueprintCallable)
+	void EquipWeapon(int32 Slot);
 
 	/** [Client or Server] try equip weapon in next slot */
 	UFUNCTION(BlueprintCallable)
 	void EquipNextWeapon(bool Up=true);
 
+protected:
+	/** [Server] Unregister abilities and detach weapon from character */
+	AWeapon* UnequipWeapon(bool bAddInStorage = true);
+
+	/** apply new weapon stats and register weapon ability */
+	void RegisterWeaponAbilities(const AWeapon* Weapon);
+	void UnregisterWeaponAbilities(const AWeapon* Weapon);
+
+
+	//~==============================================================================================
+	// Getters
+public:	
 	/** Get Equipped weapon ref */
     UFUNCTION(BlueprintCallable, BlueprintPure)
     AWeapon* GetEquippedWeapon() {return EquippedWeapon; };
 	
 	/** Get Equipped weapon slot */
 	UFUNCTION(BlueprintCallable, BlueprintPure)
-	int32 GetEquippedWeaponSlot();
+	int32 GetEquippedWeaponSlot() { return EquippedWeaponSlot; };
 
 	/** Get all weapons ref */
 	UFUNCTION(BlueprintCallable, BlueprintPure)
-	TArray<AWeapon*> GetAllWeapons();
+	TArray<AWeapon*> GetAllWeapons() { return Weapons; };
 	
 	/** [Server] Return Grenade ptr in selected slot*/
 	UFUNCTION(BlueprintCallable, BlueprintPure)
@@ -89,17 +110,18 @@ public:
 	AWeapon* GetSelectedGrenade(bool bWithRemove=true);
 
 	
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+private:
+	UFUNCTION()
+	void OnRep_Weapons();
+	UPROPERTY(BlueprintAssignable)
+	FWeaponUpdated WeaponUpdated;
+
+	UFUNCTION()
+	void OnRep_SelectWeapon();
+	UPROPERTY(BlueprintAssignable)
+	FSlotSelected SlotSelected;
 	
 protected:
-	/**Called when the game starts,
-	 * [Server] spawn and equip default weapon */
-	virtual void BeginPlay() override;
-
-	/** [Server] Unregister abilities and detach weapon from character */
-	AWeapon* UnequipWeapon(bool bAddInStorage = true);
-
-	
 	/** Default weapon created when game start */
 	UPROPERTY(EditDefaultsOnly, Category="Setup")
 	UWeaponData* DefaultWeapon;
@@ -127,19 +149,4 @@ protected:
 	/** Slot where weapon current equip */
 	UPROPERTY(ReplicatedUsing=OnRep_SelectWeapon)
 	int32 EquippedWeaponSlot = -1;
-
-private:
-	/** Redirect EquipWeapon.Client to EquipWeapon.Server */
-	UFUNCTION(Reliable, Server)
-	void ServerEquipWeapon(int32 Slot);
-	
-	UFUNCTION()
-	void OnRep_Weapons();
-	UPROPERTY(BlueprintAssignable)
-	FWeaponUpdated WeaponUpdated;
-
-	UFUNCTION()
-	void OnRep_SelectWeapon();
-	UPROPERTY(BlueprintAssignable)
-	FSlotSelected SlotSelected;
 };
