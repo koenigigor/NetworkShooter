@@ -238,14 +238,14 @@ AWeapon* UNSEquipment::UnequipWeapon(bool bAddInStorage)
 	return TempWeapon;
 }
 
-void UNSEquipment::RegisterWeaponAbilities(const AWeapon* Weapon)
+void UNSEquipment::RegisterWeaponAbilities(AWeapon* Weapon)
 {
 	auto IAbilitySystem = Cast<IAbilitySystemInterface>(GetOwner());
 	if (!ensure(IAbilitySystem)) { return; }
 	auto AbilitySystem = IAbilitySystem->GetAbilitySystemComponent();
 
-	
-	//todo fix //AbilitySystem->InitAbilityActorInfo(GetOwner(), WeaponToEquip);
+	//bad way, or, maybe can change montage node to owner
+	//AbilitySystem->SetAvatarActor_Direct(Weapon);
 
 	
 	//Copy weapon attribute
@@ -268,13 +268,11 @@ void UNSEquipment::RegisterWeaponAbilities(const AWeapon* Weapon)
 		AbilitySystem->GiveAbility(FGameplayAbilitySpec(Weapon->WeaponData->Throw));
 }
 
-void UNSEquipment::UnregisterWeaponAbilities(const AWeapon* Weapon)
+void UNSEquipment::UnregisterWeaponAbilities(AWeapon* Weapon)
 {
 	auto IAbilitySystem = Cast<IAbilitySystemInterface>(GetOwner());
 	if (!ensure(IAbilitySystem)) { return; }
 	auto AbilitySystem = IAbilitySystem->GetAbilitySystemComponent();
-
-
 	
 	
 	//Save weapon attributes

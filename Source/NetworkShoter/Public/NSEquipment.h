@@ -82,8 +82,8 @@ protected:
 	AWeapon* UnequipWeapon(bool bAddInStorage = true);
 
 	/** apply new weapon stats and register weapon ability */
-	void RegisterWeaponAbilities(const AWeapon* Weapon);
-	void UnregisterWeaponAbilities(const AWeapon* Weapon);
+	void RegisterWeaponAbilities(AWeapon* Weapon);
+	void UnregisterWeaponAbilities(AWeapon* Weapon);
 
 
 	//~==============================================================================================
