@@ -27,7 +27,7 @@ static const FAttributeCapture& GetAttributeCapture()
 UGE_ExplodeCalculation::UGE_ExplodeCalculation()
 {
 	RelevantAttributesToCapture.Add(GetAttributeCapture().HealthDef);
-	ValidTransientAggregatorIdentifiers.AddTag(FGameplayTag::RequestGameplayTag("Magnitude.Damage"));
+	//ValidTransientAggregatorIdentifiers.AddTag(FGameplayTag::RequestGameplayTag("Magnitude.Damage"));
 }
 
 void UGE_ExplodeCalculation::Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams,
