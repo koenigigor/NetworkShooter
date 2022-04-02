@@ -5,8 +5,7 @@
 #include "GAS/AttributeSet/NetShooterAttributeSet.h"
 #include "GAS/AttributeSet/WeaponAttributeSet.h"
 #include "AbilitySystemComponent.h"
-#include "Game/NSPlayerState.h"
-#include "Game/NSGameState.h"
+#include "GAS/MyGameplayEffectSpec.h"
 
 struct FAttribCapture_CalculationShoot
 {
@@ -43,8 +42,6 @@ void UGECalculationShoot::Execute_Implementation(const FGameplayEffectCustomExec
 	Super::Execute_Implementation(ExecutionParams, OutExecutionOutput);
 
 	//Prep variables
-	UAbilitySystemComponent* SourceAbilityComponent = ExecutionParams.GetSourceAbilitySystemComponent();
-	UAbilitySystemComponent* TargetAbilityComponent = ExecutionParams.GetTargetAbilitySystemComponent();
 	const FGameplayEffectSpec& Spec = ExecutionParams.GetOwningSpec();
 	
 	// Gather the tags from the source and target as that can affect which buffs should be used
@@ -75,7 +72,7 @@ void UGECalculationShoot::Execute_Implementation(const FGameplayEffectCustomExec
 		float OutHealth = Health - fabs(OutArmor);
 		
 		//SetResults
-		if (Armor > 0) //not trigger replication if already has been 0
+		if (Armor > 0) 
 		{
 			OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(GetAttributeCapture_CalculationShoot().ArmorProperty, EGameplayModOp::Override, OutArmor));
 		}
@@ -85,14 +82,6 @@ void UGECalculationShoot::Execute_Implementation(const FGameplayEffectCustomExec
 	{
 		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(GetAttributeCapture_CalculationShoot().ArmorProperty, EGameplayModOp::Override, OutArmor));
 	}
-
-
-	//Notify GameState about damage
-	auto OwnerActor = SourceAbilityComponent->GetOwnerActor();
-	auto DamagedActor = TargetAbilityComponent->GetOwnerActor();
-	AActor* DamageCauser = Spec.GetEffectContext().GetEffectCauser();
-	if (OwnerActor->GetWorld() && OwnerActor -> GetWorld() -> GetGameState<ANSGameState>())
-	{
-		OwnerActor->GetWorld() -> GetGameState<ANSGameState>() -> ApplyDamageInfoFromActors(OwnerActor->GetInstigatorController(), DamagedActor, DamageCauser, ResultDamage);
-	}
+	
+	UMyGameplayEffectSpec::DamageNotify(ExecutionParams, ResultDamage);
 }

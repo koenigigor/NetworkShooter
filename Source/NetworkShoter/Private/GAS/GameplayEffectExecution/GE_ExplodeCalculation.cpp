@@ -5,7 +5,7 @@
 #include "GAS/AttributeSet/NetShooterAttributeSet.h"
 #include "AbilitySystemComponent.h"
 #include "GameplayTagContainer.h"
-#include "Game/NSGameState.h"
+#include "GAS/MyGameplayEffectSpec.h"
 
 
 struct FAttributeCapture
@@ -15,7 +15,6 @@ struct FAttributeCapture
 	FAttributeCapture()
 	{
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UNetShooterAttributeSet, Health, Target, false);
-		
 	}
 };
 
@@ -37,35 +36,15 @@ void UGE_ExplodeCalculation::Execute_Implementation(const FGameplayEffectCustomE
 	Super::Execute_Implementation(ExecutionParams, OutExecutionOutput);
 
 	const FGameplayEffectSpec& Spec = ExecutionParams.GetOwningSpec();
-
-	/*
-	//GetAttributes
-	float Health = 0.f;
-	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(GetAttributeCapture().HealthDef, FAggregatorEvaluateParameters(), Health);
-	*/
 	
 	float Damage = Spec.GetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(FName("Magnitude.Damage")), true, 0);
-	//float Damage = 0.f;
-
-	//FGameplayTag::RequestGameplayTag(FName("Magnitude.Damage"));
-
-	//Damage = Spec.GetSetByCallerMagnitude(FName("Magnitude.Damage")); // OK (ByName, may be deprecated) //
-	//ExecutionParams.AttemptCalculateTransientAggregatorMagnitude(FGameplayTag::RequestGameplayTag("Magnitude.Damage"), FAggregatorEvaluateParameters(), Damage);
 	
-	UE_LOG(LogTemp, Warning, TEXT("Damage captured : %f"), Damage)
 	Damage *= -1.f;
 
 	OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(GetAttributeCapture().HealthProperty, EGameplayModOp::Additive, Damage));
 
 	
-	//Notify GameState about damage
-	auto OwnerActor = ExecutionParams.GetSourceAbilitySystemComponent()->GetAvatarActor();
-	auto DamagedActor = ExecutionParams.GetTargetAbilitySystemComponent()->GetAvatarActor();
-	AActor* DamageCauser = Spec.GetEffectContext().GetEffectCauser();
-	if (OwnerActor->GetWorld() && OwnerActor -> GetWorld() -> GetGameState<ANSGameState>())
-	{
-		OwnerActor->GetWorld() -> GetGameState<ANSGameState>() -> ApplyDamageInfoFromActors(OwnerActor->GetInstigatorController(), DamagedActor, DamageCauser, Damage);
-	}
+	UMyGameplayEffectSpec::DamageNotify(ExecutionParams, Damage);
 }
 
 

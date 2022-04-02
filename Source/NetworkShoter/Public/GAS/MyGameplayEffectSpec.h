@@ -7,8 +7,9 @@
 #include "GameplayEffectTypes.h"
 #include "MyGameplayEffectSpec.generated.h"
 
+struct FGameplayEffectCustomExecutionParameters;
 /**
- * 
+ * todo rename MyGASSupportLib
  */
 UCLASS()
 class NETWORKSHOTER_API UMyGameplayEffectSpec : public UBlueprintFunctionLibrary
@@ -21,4 +22,6 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Ability|GameplayEffect")
 	static FGameplayEffectSpecHandle SetEffectCauser(const FGameplayEffectSpecHandle& SpecHandle, AActor* Causer);
+
+	static void DamageNotify(const FGameplayEffectCustomExecutionParameters& ExecutionParams, float Damage);
 };

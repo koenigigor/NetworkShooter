@@ -3,7 +3,11 @@
 
 #include "GAS/MyGameplayEffectSpec.h"
 
+#include "AbilitySystemComponent.h"
+#include "GameplayEffectExecutionCalculation.h"
+
 #include "GameplayEffect.h"
+#include "Game/NSGameState.h"
 
 FGameplayEffectSpecHandle UMyGameplayEffectSpec::SetPeriod(FGameplayEffectSpecHandle SpecHandle, float Period)
 {
@@ -37,4 +41,15 @@ FGameplayEffectSpecHandle UMyGameplayEffectSpec::SetEffectCauser(const FGameplay
 	}
 
 	return SpecHandle;
+}
+
+void UMyGameplayEffectSpec::DamageNotify(const FGameplayEffectCustomExecutionParameters& ExecutionParams, float Damage)
+{
+	auto OwnerActor = ExecutionParams.GetSourceAbilitySystemComponent()->GetAvatarActor();
+	auto DamagedActor = ExecutionParams.GetTargetAbilitySystemComponent()->GetAvatarActor();
+	AActor* DamageCauser = ExecutionParams.GetOwningSpec().GetEffectContext().GetEffectCauser();
+	if (OwnerActor->GetWorld() && OwnerActor -> GetWorld() -> GetGameState<ANSGameState>())
+	{
+		OwnerActor->GetWorld() -> GetGameState<ANSGameState>() -> ApplyDamageInfoFromActors(OwnerActor->GetInstigatorController(), DamagedActor, DamageCauser, Damage);
+	}
 }
