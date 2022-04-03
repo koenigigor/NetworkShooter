@@ -12,38 +12,16 @@ APlaceableWeapon::APlaceableWeapon()
 	//SetReplicatedMovement(FRepMovement);
 }
 
-bool APlaceableWeapon::CanPlace()
+void APlaceableWeapon::ToggleMaterial(bool bNormal)
 {
-	return true;
-	
-	//or maybe GetDefaultObject<APawn>() it this disable collision
-	bool bCanPlace = GetWorld()->EncroachingBlockingGeometry(this, GetActorLocation(), GetActorRotation());
-	return bCanPlace;
+	BP_ToggleMaterial(bNormal);
 }
 
-void APlaceableWeapon::StartPlacingWeapon()
-{
-}
-
-bool APlaceableWeapon::PlaceWeapon()
-{
-	if (CanPlace())
-	{
-		OnPlaced();
-		return true;
-	}
-	return false;
-}
-
-void APlaceableWeapon::CancelPlacing()
-{
-	
-}
-
-void APlaceableWeapon::OnPlaced()
+void APlaceableWeapon::FinishPlaceWeapon_Implementation()
 {
 	SetActorEnableCollision(true);
-	//set material
+
+	BP_FinishPlaceWeapon();
 }
 
 

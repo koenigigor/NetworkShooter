@@ -23,6 +23,8 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	virtual void BeginPlay() override;
+
+	bool IsInPlacingMode();
 	
 protected:
 	UFUNCTION(BlueprintCallable, Server, Reliable)
@@ -35,6 +37,13 @@ protected:
 	void CancelPlaceWeapon();
 	
 	void UpdatePlaceLocation();
+
+	/** if cant place here, change material */
+	void CheckCanBePlaced();
+
+	/** Can place weapon on this location or no,
+	 *  tick asking in place mode	*/
+	bool CanPlace();
 
 	UFUNCTION()
 	void OnRep_WeaponToPlace();
@@ -51,4 +60,6 @@ protected:
 
 	UPROPERTY()
 	APawn* OwningPawn;
+
+	bool bCanPlaceOnPreviousFrame = true;
 };

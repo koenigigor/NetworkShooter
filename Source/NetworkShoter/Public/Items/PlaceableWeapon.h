@@ -19,19 +19,17 @@ class NETWORKSHOTER_API APlaceableWeapon : public AActor
 	
 public:	
 	APlaceableWeapon();
-
-	/** Can place weapon on this location or no,
-	 *  tick asking in place mode	*/
-	bool CanPlace();
-
-	/** Called on start placing, change material, collision */
-	void StartPlacingWeapon();
 	
-	/** Try finally place weapon */
-	bool PlaceWeapon();
+	/** UPlaceableWeaponStorage call this when weapon finally placed in world */
+	UFUNCTION(NetMulticast, Reliable)
+	void FinishPlaceWeapon();
 
-	/** Hard end place weapon, if cant spawn escape from placing made */
-	void CancelPlacing();
-	
-	void OnPlaced();
+	UFUNCTION(BlueprintImplementableEvent)
+	void BP_FinishPlaceWeapon();
+
+	//toggle Material in placing mode
+	void ToggleMaterial(bool bNormal);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void BP_ToggleMaterial(bool bNormal);
 };

@@ -29,11 +29,16 @@ void UPlaceableWeaponStorage::BeginPlay()
 	OwningPawn = Cast<APawn>(GetOwner());
 }
 
+bool UPlaceableWeaponStorage::IsInPlacingMode()
+{
+	return WeaponToPlace ? true : false;
+}
+
 void UPlaceableWeaponStorage::StartPlaceWeapon_Implementation()
 {
 	//get stored weapon
 	if (!StoredWeaponClass) {return;}
-	if (WeaponToPlace) {return;}
+	if (IsInPlacingMode()) {return;} 
 
 	//spawn weapon
 	FActorSpawnParameters SpawnParameters;
@@ -46,9 +51,9 @@ void UPlaceableWeaponStorage::StartPlaceWeapon_Implementation()
 
 void UPlaceableWeaponStorage::FinishPlaceWeapon_Implementation()
 {
-	if (!WeaponToPlace->CanPlace()) return;
+	if (!CanPlace()) return;
 	
-	WeaponToPlace->PlaceWeapon();
+	WeaponToPlace->FinishPlaceWeapon();
 	StoredWeaponClass = nullptr;
 	WeaponToPlace = nullptr;
 }
@@ -64,10 +69,9 @@ void UPlaceableWeaponStorage::UpdatePlaceLocation()
 	if (WeaponToPlace)
 	{
 		FHitResult Hit;
-		//FVector Start = GetOwnerLook(400);
 		FVector Start = UNSFunctionLibrary::GetActorViewPoint_NS(OwningPawn, 400, ECC_Camera);
-		
 		FVector End = Start + FVector::DownVector * 500;
+		
 		auto bHit = GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Camera);
 
 		/*
@@ -84,6 +88,38 @@ void UPlaceableWeaponStorage::UpdatePlaceLocation()
 	}
 }
 
+void UPlaceableWeaponStorage::CheckCanBePlaced()
+{
+	bool bCanPlace = CanPlace();
+	if (bCanPlace == bCanPlaceOnPreviousFrame) return;
+
+	WeaponToPlace -> ToggleMaterial(bCanPlace);
+
+	bCanPlaceOnPreviousFrame = bCanPlace;
+}
+
+bool UPlaceableWeaponStorage::CanPlace()
+{
+	if (!WeaponToPlace) return false;
+	
+	FVector BoxHalfExtent;
+	FVector Origin;
+	WeaponToPlace->GetActorBounds(false, Origin, BoxHalfExtent);
+	
+	TArray<FOverlapResult> OutOverlaps;
+	FVector Position = Origin + FVector(0,0,25); //up
+	
+	bool bOverlap = GetWorld() -> OverlapBlockingTestByChannel(
+		Position,
+		WeaponToPlace->GetActorQuat(),
+		ECC_GameTraceChannel2, //WeaponChanel
+		FCollisionShape::MakeBox(BoxHalfExtent));
+
+	//DrawDebugBox(GetWorld(), Position, BoxHalfExtent, WeaponToPlace->GetActorQuat(), FColor::Blue);
+	
+	return !bOverlap;
+}
+
 void UPlaceableWeaponStorage::OnRep_WeaponToPlace()
 {
 	if (!WeaponToPlace) return;
@@ -94,7 +130,11 @@ void UPlaceableWeaponStorage::OnRep_WeaponToPlace()
 void UPlaceableWeaponStorage::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	
-	UpdatePlaceLocation();	
+
+	if (IsInPlacingMode())
+	{
+		UpdatePlaceLocation();
+		CheckCanBePlaced();
+	}
 }
 
