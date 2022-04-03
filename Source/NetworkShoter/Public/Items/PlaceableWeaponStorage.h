@@ -7,7 +7,6 @@
 #include "PlaceableWeaponStorage.generated.h"
 
 class APlaceableWeapon;
-class USpringArmComponent;
 
 /**
  * Actor component who store placeable weapons and spawn it in world
@@ -23,17 +22,22 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+	virtual void BeginPlay() override;
+	
 protected:
 	UFUNCTION(BlueprintCallable, Server, Reliable)
 	void StartPlaceWeapon();
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Server, Reliable)
 	void FinishPlaceWeapon();
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Server, Reliable)
 	void CancelPlaceWeapon();
 	
 	void UpdatePlaceLocation();
+
+	UFUNCTION()
+	void OnRep_WeaponToPlace();
 
 public:	
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
@@ -42,9 +46,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<APlaceableWeapon> StoredWeaponClass;
 
-	UPROPERTY(Replicated)
-	APlaceableWeapon* PlacedWeapon;
-	
-	UPROPERTY(Replicated)
-	USpringArmComponent* Arm;
+	UPROPERTY(ReplicatedUsing="OnRep_WeaponToPlace")
+	APlaceableWeapon* WeaponToPlace;
+
+	UPROPERTY()
+	APawn* OwningPawn;
 };

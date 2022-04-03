@@ -94,6 +94,40 @@ FVector AShooterPlayer::GetPawnViewLocation() const
 	return Super::GetPawnViewLocation();
 }
 
+FRotator AShooterPlayer::GetViewRotation() const
+{
+	//return Super::GetViewRotation();
+
+	if (Controller != nullptr)
+	{
+		return Controller->GetControlRotation();
+	}
+	else if (GetLocalRole() < ROLE_Authority)
+	{
+		// check if being spectated
+		for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
+		{
+			APlayerController* PlayerController = Iterator->Get();
+			if (PlayerController &&
+				PlayerController->PlayerCameraManager &&
+				PlayerController->PlayerCameraManager->GetViewTargetPawn() == this)
+			{
+				return PlayerController->BlendedTargetViewRotation;
+			}
+		}
+	}
+
+	
+	//if pawn not local client, and player controlled return camera rotation who bind with control rotation
+	if (auto Camera = FindComponentByClass<UCameraComponent>())
+	{
+		return Camera->GetComponentRotation();
+	}
+
+	
+	return GetActorRotation();
+}
+
 void AShooterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);

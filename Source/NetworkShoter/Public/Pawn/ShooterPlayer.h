@@ -55,6 +55,8 @@ public:
 
 	
 	virtual FVector GetPawnViewLocation() const override;
+
+	virtual FRotator GetViewRotation() const override;
 	
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 

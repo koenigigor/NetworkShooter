@@ -4,7 +4,7 @@
 #include "Items/PlaceableWeaponStorage.h"
 
 #include "DrawDebugHelpers.h"
-#include "GameFramework/SpringArmComponent.h"
+#include "NSFunctionLibrary.h"
 #include "Items/PlaceableWeapon.h"
 #include "Net/UnrealNetwork.h"
 
@@ -19,63 +19,53 @@ UPlaceableWeaponStorage::UPlaceableWeaponStorage()
 void UPlaceableWeaponStorage::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(UPlaceableWeaponStorage, PlacedWeapon);
-	DOREPLIFETIME(UPlaceableWeaponStorage, Arm);
+	DOREPLIFETIME(UPlaceableWeaponStorage, WeaponToPlace);
+}
+
+void UPlaceableWeaponStorage::BeginPlay()
+{
+	Super::BeginPlay();
+
+	OwningPawn = Cast<APawn>(GetOwner());
 }
 
 void UPlaceableWeaponStorage::StartPlaceWeapon_Implementation()
 {
 	//get stored weapon
 	if (!StoredWeaponClass) {return;}
-	if (PlacedWeapon) {return;}
+	if (WeaponToPlace) {return;}
 
 	//spawn weapon
 	FActorSpawnParameters SpawnParameters;
-	SpawnParameters.Instigator = Cast<APawn>(GetOwner());
+	SpawnParameters.Instigator = OwningPawn;
 	SpawnParameters.Owner = GetOwner();
 	SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	PlacedWeapon = GetWorld()->SpawnActor<APlaceableWeapon>(StoredWeaponClass, FVector(0), FRotator(0), SpawnParameters);
-    PlacedWeapon -> SetActorEnableCollision(false);
-
-
-	//instead line trace for get player view, use spring arm for get more flexibility in future
-	Arm = NewObject<USpringArmComponent>(GetOwner());
-	Arm->ProbeChannel = ECollisionChannel::ECC_Camera;
-	Arm->bDoCollisionTest = true;
-	Arm->TargetArmLength = -400;
-	Arm->AttachToComponent(GetOwner()->GetRootComponent(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
-	Arm->RegisterComponent();
-	Arm->bUsePawnControlRotation = true;
+	WeaponToPlace = GetWorld()->SpawnActor<APlaceableWeapon>(StoredWeaponClass, FVector(0), FRotator(0), SpawnParameters);
+	OnRep_WeaponToPlace();
 }
 
-void UPlaceableWeaponStorage::FinishPlaceWeapon()
+void UPlaceableWeaponStorage::FinishPlaceWeapon_Implementation()
 {
-	if (!PlacedWeapon->CanPlace()) return;
+	if (!WeaponToPlace->CanPlace()) return;
 	
-	Arm->DestroyComponent();
-	Arm=nullptr;
-	
-	PlacedWeapon->PlaceWeapon();
+	WeaponToPlace->PlaceWeapon();
 	StoredWeaponClass = nullptr;
-	PlacedWeapon = nullptr;
+	WeaponToPlace = nullptr;
 }
 
-void UPlaceableWeaponStorage::CancelPlaceWeapon()
+void UPlaceableWeaponStorage::CancelPlaceWeapon_Implementation()
 {
-	Arm->DestroyComponent();
-	Arm=nullptr;
-	
-	PlacedWeapon->Destroy();
-	PlacedWeapon=nullptr;
+	WeaponToPlace->Destroy();
+	WeaponToPlace=nullptr;
 }
-
 
 void UPlaceableWeaponStorage::UpdatePlaceLocation()
 {
-	if (Arm && PlacedWeapon)
+	if (WeaponToPlace)
 	{
 		FHitResult Hit;
-		FVector Start = Arm->GetSocketLocation(Arm->SocketName);
+		//FVector Start = GetOwnerLook(400);
+		FVector Start = UNSFunctionLibrary::GetActorViewPoint_NS(OwningPawn, 400, ECC_Camera);
 		
 		FVector End = Start + FVector::DownVector * 500;
 		auto bHit = GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Camera);
@@ -88,11 +78,17 @@ void UPlaceableWeaponStorage::UpdatePlaceLocation()
 		
 		FVector Ground = bHit ? Hit.ImpactPoint : Hit.TraceEnd;
 
-		PlacedWeapon->SetActorLocation(Ground);
+		WeaponToPlace->SetActorLocation(Ground);
 		
-		//inherit spring arm rotation
-		PlacedWeapon->SetActorRotation(FRotator(0, Arm->GetDesiredRotation().Yaw, 0));
+		WeaponToPlace->SetActorRotation(FRotator(0, OwningPawn->GetViewRotation().Yaw, 0));
 	}
+}
+
+void UPlaceableWeaponStorage::OnRep_WeaponToPlace()
+{
+	if (!WeaponToPlace) return;
+
+	WeaponToPlace->SetActorEnableCollision(false);
 }
 
 void UPlaceableWeaponStorage::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
