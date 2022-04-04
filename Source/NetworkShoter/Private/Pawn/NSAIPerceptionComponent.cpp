@@ -10,12 +10,14 @@ void UNSAIPerceptionComponent::BeginPlay()
 	Super::BeginPlay();
 
 	OnTargetPerceptionUpdated.AddDynamic(this, &UNSAIPerceptionComponent::TargetPerceptionUpdated);
+
+	//FIXME
+	FTimerHandle Handle;
+	GetWorld()->GetTimerManager().SetTimer(Handle, this, &UNSAIPerceptionComponent::DetectLoseTarget, 1.f, true, 1.f);
 }
 
 void UNSAIPerceptionComponent::TargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
-	//todo if lose actor
-	
 	if (!PriorityEnemy)
 	{
 		SetAsPriority(Actor);
@@ -43,6 +45,8 @@ void UNSAIPerceptionComponent::SetAsPriority(AActor* Actor)
 
 void UNSAIPerceptionComponent::ClearPriority()
 {
+	if (!PriorityEnemy) return;
+	
 	//unbind live
 	PriorityEnemy->OnDestroyed.RemoveDynamic(this, &UNSAIPerceptionComponent::OnTargetDestroy);
 	if (auto PriorityEnemyPawn = Cast<APawn>(PriorityEnemy))
@@ -88,4 +92,21 @@ void UNSAIPerceptionComponent::OnTargetDestroy(AActor* DestroyedActor)
 void UNSAIPerceptionComponent::OnTargetDeath(APawn* WhoDeath)
 {
 	OnLosePriorityEnemy();
+}
+
+void UNSAIPerceptionComponent::DetectLoseTarget()
+{
+	const FActorPerceptionInfo* Info = GetActorInfo(*PriorityEnemy);
+    				
+	if (Info && Info->LastSensedStimuli.Num() > 0)
+	{
+		const FAIStimulus Stimulus = Info->LastSensedStimuli[0];
+    
+		if (Stimulus.WasSuccessfullySensed()) {
+			//Player in sight
+			return;
+		}
+	}
+	
+	OnLosePriorityEnemy();		
 }

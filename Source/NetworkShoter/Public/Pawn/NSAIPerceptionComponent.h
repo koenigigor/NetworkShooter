@@ -39,4 +39,8 @@ class NETWORKSHOTER_API UNSAIPerceptionComponent : public UAIPerceptionComponent
 	void OnTargetDestroy(AActor* DestroyedActor);
 	UFUNCTION()
 	void OnTargetDeath(APawn* WhoDeath);
+
+	/** FIXME temporary function until find good solution for detect when Actor has get of sence */
+	UFUNCTION()
+	void DetectLoseTarget();
 };
