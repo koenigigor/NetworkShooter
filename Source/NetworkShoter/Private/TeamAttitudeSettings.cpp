@@ -29,6 +29,13 @@ const UTeamAttitudeSettings* UTeamAttitudeSettings::Get()
 ETeamAttitude::Type UTeamAttitudeSettings::GetAttitude(FGenericTeamId Of, FGenericTeamId Towards)
 {
 	auto& teamAttitudes = Get()->TeamAttitudes;
+	auto& teamAttitudes_TestV2 = Get()->TeamAttitudesV2; //todo for test 2
+	
+	auto AttitudesNum_TestV2 = (uint8)EGameTeam::Num;
+	
+	bool ofValid_Test2 = Of.GetId() < AttitudesNum_TestV2;
+	bool towardsValid_Test2 = Towards.GetId() < AttitudesNum_TestV2;
+	
 	bool ofValid = teamAttitudes.IsValidIndex(Of.GetId());
 	bool towardsValid = teamAttitudes.IsValidIndex(Towards.GetId());
 
@@ -38,6 +45,15 @@ ETeamAttitude::Type UTeamAttitudeSettings::GetAttitude(FGenericTeamId Of, FGener
 		if (attitudes.IsValidIndex(Towards.GetId()))
 		{
 			return attitudes[Towards.GetId()];
+		}
+	}
+
+	if (ofValid_Test2 && towardsValid_Test2)
+	{
+		auto& attitudes = teamAttitudes_TestV2[Of.GetId()].Attitude_TestV2;
+		if (Towards.GetId() < AttitudesNum_TestV2)
+		{
+			//return attitudes[Towards.GetId()];
 		}
 	}
 	

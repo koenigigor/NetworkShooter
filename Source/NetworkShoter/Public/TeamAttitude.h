@@ -14,9 +14,10 @@
 UENUM()
 enum class EGameTeam : uint8
 {
-	Neutral,
-	Team1,
-	Team2
+	Neutral UMETA(DisplayName = "Neutral"),
+	Team1 UMETA(DisplayName = "Team1"),
+	Team2 UMETA(DisplayName = "Team2"),
+	Num UMETA(Hidden) //must be last item //TODO for test2
 };
 
 USTRUCT(BlueprintType)
@@ -24,11 +25,17 @@ struct FTeamAttitude
 {
 	GENERATED_BODY()
 	
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(ArraySizeEnum="EGameTeam"))
 	TArray<TEnumAsByte<ETeamAttitude::Type>> Attitude;
+
+	UPROPERTY(EditAnywhere, meta=(ArraySizeEnum="EGameTeam"))
+	TEnumAsByte<ETeamAttitude::Type> Attitude_TestV2[EGameTeam::Num];	
 
 	FTeamAttitude() {};
 
 	FTeamAttitude(std::initializer_list<TEnumAsByte<ETeamAttitude::Type>> attitudes)
 		:Attitude(std::move(attitudes)){};
 };
+
+
+//v2 писал ночью, боюсь утром не вспомню что тут происходит
