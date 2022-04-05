@@ -28,6 +28,8 @@ class NETWORKSHOTER_API ANSGameMode : public AGameModeBase
 	GENERATED_BODY()
 public:
 	ANSGameMode();
+
+	virtual void StartPlay() override;
 	
 	virtual void InitGameState() override;
 

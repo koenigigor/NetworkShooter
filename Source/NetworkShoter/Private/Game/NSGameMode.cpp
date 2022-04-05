@@ -4,7 +4,9 @@
 #include "Game/NSGameMode.h"
 
 #include "EngineUtils.h"
+#include "GenericTeamAgentInterface.h"
 #include "NSPlayerStart.h"
+#include "TeamAttitudeSettings.h"
 #include "Game/NSPlayerState.h"
 #include "Game/PCNetShooter.h"
 #include "Game/NSGameState.h"
@@ -15,6 +17,14 @@
 ANSGameMode::ANSGameMode()
 {
 	bStartPlayersAsSpectators = true;
+}
+
+void ANSGameMode::StartPlay()
+{
+	Super::StartPlay();
+
+	//Setup our teams detection
+	FGenericTeamId::SetAttitudeSolver(&UTeamAttitudeSettings::GetAttitude);
 }
 
 void ANSGameMode::InitGameState()
