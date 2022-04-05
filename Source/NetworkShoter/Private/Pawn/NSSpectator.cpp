@@ -28,7 +28,7 @@ void ANSSpectator::GetNextPlayerToAttach(bool bNext)
 	
 	if (!(NSGameState && NSPlayerState)){ return; }
 	
-	int32 TeamIndex = NSPlayerState->TeamIndex;
+	auto TeamIndex = NSPlayerState->GetGenericTeamId().GetId();
 	NSGameState -> GetNextPlayerInTeam(TeamIndex, CurrentAttachedPlayer);
 }
 

@@ -133,6 +133,12 @@ void ANSGameState::ApplyDamageInfo(FDamageInfo DamageInfo)
 
 bool ANSGameState::CanDamage(AActor* DamagedActor, AActor* DamageCauser)
 {
+	//TODO SetFriendlyFire function
+	//for set attitude
+	//	
+	
+
+	
 	if (bFriendlyFire)
 	{
 		//todo get team id interface
@@ -140,8 +146,8 @@ bool ANSGameState::CanDamage(AActor* DamagedActor, AActor* DamageCauser)
 		{
 			if (DamageCauser->GetInstigator()->GetPlayerState<ANSPlayerState>())
 			{
-				auto TeamDamagedActor = DamagedActor->GetInstigator()->GetPlayerState<ANSPlayerState>()->TeamIndex;
-				auto TeamDamageCauser = DamageCauser->GetInstigator()->GetPlayerState<ANSPlayerState>()->TeamIndex;
+				auto TeamDamagedActor = DamagedActor->GetInstigator()->GetPlayerState<ANSPlayerState>()->GetTeamID();
+				auto TeamDamageCauser = DamageCauser->GetInstigator()->GetPlayerState<ANSPlayerState>()->GetTeamID();
 				if (TeamDamagedActor == TeamDamageCauser && TeamDamagedActor!=-1)
 				{
 					UE_LOG(LogTemp, Warning, TEXT("CanDamage: Cant damage your timmates"))
@@ -263,15 +269,15 @@ void ANSGameState::AddStatisticWhenPawnKilled(APawn* WhoKilled)
 	//get last damage info for this pawn
 	FDamageInfo DamageInfo = GetKillInfo(WhoKilled);
 
-	int32 DeathActorTeam = WhoKilled->GetPlayerState<ANSPlayerState>()->TeamIndex;
+	auto DeathActorTeam = WhoKilled->GetPlayerState<ANSPlayerState>()->GetTeamID().GetId();
 	
 	//add kill count
     if (DamageInfo.Instigator)
     {
-		int32 InstigatorTeam = DamageInfo.Instigator -> GetPlayerState<ANSPlayerState>() ->TeamIndex;
+		auto InstigatorTeam = DamageInfo.Instigator -> GetPlayerState<ANSPlayerState>() -> GetTeamID().GetId();
 
     	//if same team, decrease
-    	if (DeathActorTeam == -1 || DeathActorTeam != InstigatorTeam)
+    	if (DeathActorTeam == 0 || DeathActorTeam != InstigatorTeam)
     	{
     		DamageInfo.Instigator -> GetPlayerState<ANSPlayerState>() -> AddKill();
     	}
@@ -293,9 +299,9 @@ void ANSGameState::AddStatisticWhenPawnKilled(APawn* WhoKilled)
 	{
 		if (Assistant != DamageInfo.Instigator)
 		{
-			int32 AssistantTeam = Assistant -> GetPlayerState<ANSPlayerState>() ->TeamIndex;
+			auto AssistantTeam = Assistant -> GetPlayerState<ANSPlayerState>() -> GetTeamID().GetId();
 
-			if (DeathActorTeam == -1 || DeathActorTeam != AssistantTeam)
+			if (DeathActorTeam == 0 || DeathActorTeam != AssistantTeam)
 			{
 				Assistant->GetPlayerState<ANSPlayerState>() -> AddAssist();
 			}
@@ -307,14 +313,14 @@ void ANSGameState::AddStatisticWhenPawnKilled(APawn* WhoKilled)
 //~==============================================================================================
 // Team List
 
-TArray<ANSPlayerState*> ANSGameState::GetTeam(int32 TeamIndex)
+TArray<ANSPlayerState*> ANSGameState::GetTeam(uint8 TeamIndex)
 {
 	TArray<ANSPlayerState*> Output;
 	
 	for (auto Player : PlayerArray)
 	{
 		auto NSPlayer = StaticCast<ANSPlayerState*>(Player);
-		if (NSPlayer->TeamIndex == TeamIndex)
+		if (NSPlayer->GetGenericTeamId().GetId() == TeamIndex)
 			Output.Add(NSPlayer);
 	}
 
@@ -326,7 +332,7 @@ int32 ANSGameState::GetTeamKills(int32 TeamId)
 	return GetTeamStatistic(TeamId).KillCount;
 }
 
-FPlayerStatistic ANSGameState::GetTeamStatistic(int32 TeamId)
+FPlayerStatistic ANSGameState::GetTeamStatistic(uint8 TeamId)
 {
 	FPlayerStatistic Statistic;
 
@@ -339,7 +345,7 @@ FPlayerStatistic ANSGameState::GetTeamStatistic(int32 TeamId)
 	return Statistic;
 }
 
-void ANSGameState::GetNextPlayerInTeam(int32 TeamIndex, ANSPlayerState*& NextPlayerInTeam, bool bNext, bool bLifePlayer)
+void ANSGameState::GetNextPlayerInTeam(uint8 TeamIndex, ANSPlayerState*& NextPlayerInTeam, bool bNext, bool bLifePlayer)
 {
 	auto Team = GetTeam(TeamIndex);
 

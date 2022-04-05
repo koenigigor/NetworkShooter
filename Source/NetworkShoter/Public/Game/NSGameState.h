@@ -138,7 +138,7 @@ public:
 	//~==============================================================================================
 	// Team List
 	
-	TArray<ANSPlayerState*> GetTeam(int32 TeamIndex);
+	TArray<ANSPlayerState*> GetTeam(uint8 TeamIndex);
 
 	/** Get count kills by team id */
 	UFUNCTION(BlueprintPure)
@@ -146,14 +146,14 @@ public:
 
 	/** Get team statistic by team id */
 	UFUNCTION(BlueprintPure)
-	FPlayerStatistic GetTeamStatistic(int32 TeamId);
+	FPlayerStatistic GetTeamStatistic(uint8 TeamId);
 
 	/** Return next player in team
 	 *	@NextPlayerInTeam - if set nullptr return first player
 	 *	@bNext - return next or previous actor
 	 *	@bLifePlayer - player must be live
 	 */
-	void GetNextPlayerInTeam(int32 TeamIndex, ANSPlayerState*& NextPlayerInTeam, bool bNext = true, bool bLifePlayer = true);
+	void GetNextPlayerInTeam(uint8 TeamIndex, ANSPlayerState*& NextPlayerInTeam, bool bNext = true, bool bLifePlayer = true);
 
 
 	//~==============================================================================================
