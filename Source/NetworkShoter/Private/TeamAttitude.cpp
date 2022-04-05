@@ -3,3 +3,12 @@
 
 #include "TeamAttitude.h"
 
+FTeamAttitude::FTeamAttitude(std::initializer_list<TEnumAsByte<ETeamAttitude::Type>> attitudes) : FTeamAttitude()
+{
+	int32 Count = 0;
+	for (auto &Element : attitudes)
+	{
+		Attitude[Count] = Element;
+		Count++;
+	}
+}

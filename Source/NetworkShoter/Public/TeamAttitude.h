@@ -9,6 +9,8 @@
 /**
  * find there
  * https://forums.unrealengine.com/t/how-do-i-use-the-ai-perception-teams/120837/2
+ * change for get verbose representation
+ * meta=(ShowOnlyInnerProperties), not fount how add it
  */
 
 UENUM()
@@ -17,25 +19,19 @@ enum class EGameTeam : uint8
 	Neutral UMETA(DisplayName = "Neutral"),
 	Team1 UMETA(DisplayName = "Team1"),
 	Team2 UMETA(DisplayName = "Team2"),
-	Num UMETA(Hidden) //must be last item //TODO for test2
+	Num UMETA(Hidden) //must be last item
 };
 
 USTRUCT(BlueprintType)
 struct FTeamAttitude
 {
 	GENERATED_BODY()
-	
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(ArraySizeEnum="EGameTeam"))
-	TArray<TEnumAsByte<ETeamAttitude::Type>> Attitude;
 
 	UPROPERTY(EditAnywhere, meta=(ArraySizeEnum="EGameTeam"))
-	TEnumAsByte<ETeamAttitude::Type> Attitude_TestV2[EGameTeam::Num];	
+	TEnumAsByte<ETeamAttitude::Type> Attitude[EGameTeam::Num];	
 
 	FTeamAttitude() {};
 
-	FTeamAttitude(std::initializer_list<TEnumAsByte<ETeamAttitude::Type>> attitudes)
-		:Attitude(std::move(attitudes)){};
+	FTeamAttitude(std::initializer_list<TEnumAsByte<ETeamAttitude::Type>> attitudes);
+	//	:Attitude(std::move(attitudes)){};
 };
-
-
-//v2 писал ночью, боюсь утром не вспомню что тут происходит

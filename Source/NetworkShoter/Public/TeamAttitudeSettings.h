@@ -18,11 +18,8 @@ class NETWORKSHOTER_API UTeamAttitudeSettings : public UDeveloperSettings
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(Category = "Artificial Intelligence", EditAnywhere, BlueprintReadOnly, Config, meta=(ArraySizeEnum="EGameTeam"))
-	TArray<FTeamAttitude> TeamAttitudes;
-
 	UPROPERTY(Category = "Artificial Intelligence", EditAnywhere, Config, meta=(ArraySizeEnum="EGameTeam"))
-	FTeamAttitude TeamAttitudesV2[EGameTeam::Num];  //test 2
+	FTeamAttitude TeamAttitudes[EGameTeam::Num];
 	
 
 	UTeamAttitudeSettings(const FObjectInitializer& ObjectInitializer);
