@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Game/NSGameMode.h"
+#include "TeamAttitude.h"
 #include "GMTeamMatch.generated.h"
 
 /**
@@ -17,4 +18,7 @@ class NETWORKSHOTER_API AGMTeamMatch : public ANSGameMode
 	/** Shuffle all players in "Team A" and "Team B" */
 	UFUNCTION(BlueprintCallable)
 	void ShuffleTeam();
+
+	UPROPERTY(EditDefaultsOnly, Category="Setup")
+	TArray<EGameTeam> Teams;
 };

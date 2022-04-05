@@ -11,7 +11,12 @@ void ANSPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(ANSPlayerState, PlayerStatistic);
-	DOREPLIFETIME(ANSPlayerState, TeamIndex);
+	DOREPLIFETIME(ANSPlayerState, TeamID);
+}
+
+ANSPlayerState::ANSPlayerState()
+{
+	SetGenericTeamId(FGenericTeamId(0));
 }
 
 void ANSPlayerState::BeginPlay()
@@ -37,6 +42,29 @@ void ANSPlayerState::OnCharacterDeath()
 bool ANSPlayerState::IsLife()
 {
 	return !bDeath;
+}
+
+void ANSPlayerState::SetGenericTeamId(const FGenericTeamId& NewTeamID)
+{
+	IGenericTeamAgentInterface::SetGenericTeamId(NewTeamID);
+
+	TeamID = NewTeamID;
+}
+
+FGenericTeamId ANSPlayerState::GetGenericTeamId() const
+{
+	return TeamID;
+}
+
+FGenericTeamId ANSPlayerState::GetTeamID()
+{
+	return GetGenericTeamId();
+}
+
+EGameTeam ANSPlayerState::GetTeamID_Verbose()
+{
+	auto L_TeamID = GetGenericTeamId().GetId();
+	return EGameTeam(L_TeamID);
 }
 
 void ANSPlayerState::RespawnHandle_Implementation()

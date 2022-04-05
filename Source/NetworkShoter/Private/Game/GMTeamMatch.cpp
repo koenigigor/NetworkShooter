@@ -8,7 +8,13 @@
 
 void AGMTeamMatch::ShuffleTeam()
 {
-	int32 CountOfTeams = 2; //if we want 3 or 4 teams
+	auto CountOfTeams = Teams.Num();
+
+	if (CountOfTeams == 0)
+	{
+		UE_LOG(LogTemp, Error, TEXT("AGMTeamMatch::ShuffleTeam Teams not setup"))
+		return;
+	}
 
 	auto PlayerArray = GameState -> PlayerArray;
 	auto PlayersCount = PlayerArray.Num();
@@ -16,10 +22,10 @@ void AGMTeamMatch::ShuffleTeam()
 
 	//if Players count not even, add 1 player slot
 	if (PlayersCount % CountOfTeams != 0)
-		PlayersPerTeam++;	
-
+		PlayersPerTeam++;
+	
 	//team overflow protection
-	TMap<int32, int32> TeamProtection;
+	TMap<int32, int32> TeamProtection;  //<Team index in Teams setup araay, CountInTeam>
 	for (int32 i = 0; i<CountOfTeams; i++)
 	{
 		TeamProtection.Add(i, 0);
@@ -33,17 +39,14 @@ void AGMTeamMatch::ShuffleTeam()
 		//Get index team to add
 		int32 TeamIndex;
 		do {
-			TeamIndex = FMath::RandRange(int32(0), CountOfTeams-1);
-			UE_LOG(LogTemp, Error, TEXT("Test team number : %d, Team count : %d, Players per team : %d"), TeamIndex, TeamProtection[TeamIndex], PlayersPerTeam)
+			TeamIndex = FMath::RandRange(0, CountOfTeams-1);
 		} while (TeamProtection[TeamIndex] >= PlayersPerTeam);
 
 		//add player in team
 		TeamProtection[TeamIndex]++;
 
-		NSPlayer->TeamIndex = TeamIndex;
-
-		//AddPlayerInTeamList(Cast<AController>(NSPlayer->GetOwner()));
+		uint8 TeamId = uint8(Teams[TeamIndex]);
+		NSPlayer->SetGenericTeamId(FGenericTeamId(TeamId));
 	}
 
-	//get game state, refresh team lists
 }

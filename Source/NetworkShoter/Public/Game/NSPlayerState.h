@@ -3,8 +3,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GenericTeamAgentInterface.h"
 #include "GameFramework/PlayerState.h"
 #include "NSStructures.h"
+#include "TeamAttitude.h"
 #include "NSPlayerState.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FPlayerStatisticUpdateDelegate);
@@ -16,12 +18,14 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCharacterRespawnDelegate);
  * 
  */
 UCLASS()
-class NETWORKSHOTER_API ANSPlayerState : public APlayerState
+class NETWORKSHOTER_API ANSPlayerState : public APlayerState, public IGenericTeamAgentInterface 
 {
 	GENERATED_BODY()
 public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+	ANSPlayerState();
+	
 	virtual void BeginPlay() override;
 
 	//~==============================================================================================
@@ -52,9 +56,21 @@ public:
 	//~==============================================================================================
 	// Team
 
-	/** Team index, setup on login */
-	UPROPERTY(BlueprintReadOnly, Replicated)
-	int32 TeamIndex = -1;
+	//IGenericTeamAgentInterface
+	virtual void SetGenericTeamId(const FGenericTeamId& NewTeamID) override;  //change TeamID to NewTeamID and no errors )
+	virtual FGenericTeamId GetGenericTeamId() const override;
+	//~IGenericTeamAgentInterface
+	
+private:
+	UPROPERTY(Replicated)
+	FGenericTeamId TeamID = 0;
+	
+public:
+	UFUNCTION(BlueprintPure)
+	FGenericTeamId GetTeamID();
+
+	UFUNCTION(BlueprintPure)
+	EGameTeam GetTeamID_Verbose();
 	
 	//~==============================================================================================
 	// PlayerStatistic
