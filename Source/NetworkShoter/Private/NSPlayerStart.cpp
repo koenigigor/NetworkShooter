@@ -4,18 +4,35 @@
 #include "NSPlayerStart.h"
 
 #include "Game/NSPlayerState.h"
+/*
+ANSPlayerStart::ANSPlayerStart()
+{
+	AllowedTeams[0] = (EGameTeam::Neutral);
+}*/
 
 bool ANSPlayerStart::CanSpawn(AController* Controller)
 {
-	//Get team name from controller
-	int32 PlayerTeamIndex = -1;
-	if (auto NSPlayerState = Controller->GetPlayerState<ANSPlayerState>())
-		PlayerTeamIndex = NSPlayerState->TeamIndex;
-	
-	if (PlayerTeamIndex == -1 || TeamIndexes.Contains(PlayerTeamIndex))
-		return true;
+	auto TeamInterface = Cast<IGenericTeamAgentInterface>(Controller);
+	if (!TeamInterface)
+	 TeamInterface = Cast<IGenericTeamAgentInterface>(Controller -> PlayerState);
 
-	return false;
+	if (!TeamInterface)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("SpawnedTarget %s has no team interface, spawn allowed"), *Controller->GetName())
+		return true;
+	}
+
+	uint8 WantSpawnTeam = TeamInterface->GetGenericTeamId().GetId();
+
+	auto bSpawnAllowed = false; //AllowedTeams.Contains(WantSpawnTeam);
+	for (const auto& Team : AllowedTeams)
+	{
+		if (uint8(Team) == WantSpawnTeam)
+		{
+			bSpawnAllowed = true;
+			break;
+		}
+	} 
 	
-	/** overlap tested in GameMode::ChoosePlayerStart */
+	return bSpawnAllowed;
 }

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "TeamAttitude.h"
 #include "GameFramework/PlayerStart.h"
 #include "NSPlayerStart.generated.h"
 
@@ -13,12 +14,14 @@ UCLASS()
 class NETWORKSHOTER_API ANSPlayerStart : public APlayerStart
 {
 	GENERATED_BODY()
-public:	
+public:
+	//ANSPlayerStart();
+	
 	/** Return true if pawn can be spawned in this point
 	 */
 	bool CanSpawn(AController* Controller);
 protected:
-	/** indexes of teams who can be spawned here */
-	UPROPERTY(EditAnywhere)
-	TArray<int32> TeamIndexes;
+	/** Teams who can be spawned in this point */
+	UPROPERTY(EditAnywhere)  //todo , meta=(NoElementDuplicate))
+	TArray<EGameTeam> AllowedTeams {EGameTeam::Neutral};
 };
