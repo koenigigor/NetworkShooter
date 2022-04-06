@@ -10,7 +10,7 @@
 #include "GenericTeamAgentInterface.h"
 #include "ShooterPlayer.generated.h"
 
-class UAbilitySystemComponent;
+class UNSAbilitySystemComponent;
 class UNetShooterAttributeSet;
 class UWeaponAttributeSet;
 
@@ -68,7 +68,7 @@ public:
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	UAbilitySystemComponent* AbilitySystem;
+	UNSAbilitySystemComponent* AbilitySystem;
 	
 	UPROPERTY(BlueprintReadOnly)
 	UNetShooterAttributeSet* CharacterAttributeSet;
