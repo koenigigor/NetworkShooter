@@ -5,6 +5,7 @@
 
 #include "AbilitySystemInterface.h"
 #include "Net/UnrealNetwork.h"
+#include "Items/PlaceableWeapon.h"
 #include "Items/Weapon.h"
 
 
@@ -294,6 +295,53 @@ void UNSEquipment::UnregisterWeaponAbilities(AWeapon* Weapon)
 	if (IsValid(EquippedWeapon->WeaponData->Throw))
 		AbilitySystem->ClearAbility(AbilitySystem->FindAbilitySpecFromClass(EquippedWeapon->WeaponData->Throw)->Handle);
 }
+
+
+//~==============================================================================================
+// Special (spawnable) items
+
+void UNSEquipment::StartUseSpecial_Implementation()
+{
+	//get stored weapon class reference
+	if (!StoredSpecialClass) {return;}
+	TSubclassOf<APlaceableWeapon> SpecialToSpawn = StoredSpecialClass;
+	
+	if (SpecialItemRef) {return;} 
+
+	//spawn weapon
+	FActorSpawnParameters SpawnParameters;
+	SpawnParameters.Instigator = Cast<APawn>(GetOwner());
+	SpawnParameters.Owner = GetOwner();
+	SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	SpecialItemRef = GetWorld()->SpawnActor<APlaceableWeapon>(SpecialToSpawn, FVector(0), FRotator(0), SpawnParameters);
+}
+
+void UNSEquipment::FinishUseSpecial_Implementation()
+{
+	if (!SpecialItemRef || !SpecialItemRef->CanPlace()) return;
+
+	//actual remove special item from storage
+	StoredSpecialClass = nullptr;
+	bool bRemoved = true; //= RemoveSpecial(SpecialItemRef->GetClass());
+	if (!bRemoved)
+	{
+		CancelUseSpecial();
+		return;
+	}
+	
+	//weapon spawned
+	SpecialItemRef->FinishPlaceWeapon();
+	SpecialItemRef = nullptr;
+}
+
+void UNSEquipment::CancelUseSpecial_Implementation()
+{
+	if (!SpecialItemRef) return;
+	SpecialItemRef->Destroy();
+	SpecialItemRef=nullptr;
+}
+
+
 
 //~==============================================================================================
 // Getters

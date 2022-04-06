@@ -19,6 +19,8 @@ class NETWORKSHOTER_API APlaceableWeapon : public AActor
 	
 public:	
 	APlaceableWeapon();
+
+	virtual void Tick(float DeltaSeconds) override;
 	
 	/** UPlaceableWeaponStorage call this when weapon finally placed in world */
 	UFUNCTION(NetMulticast, Reliable)
@@ -27,9 +29,24 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void BP_FinishPlaceWeapon();
 
+	UPROPERTY(EditDefaultsOnly, Category="Setup")
+	TSubclassOf<AActor> SpawnedActor = nullptr;
+
+	/** Can place weapon on this location or no	*/
+	bool CanPlace();
+	
+protected:	
 	//toggle Material in placing mode
 	void ToggleMaterial(bool bNormal);
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void BP_ToggleMaterial(bool bNormal);
+	
+	/** if cant place here, change material */
+	void CheckCanBePlaced();
+
+	void UpdatePlaceLocation();
+
+protected:
+	bool bCanPlaceOnPreviousFrame = true;
 };
