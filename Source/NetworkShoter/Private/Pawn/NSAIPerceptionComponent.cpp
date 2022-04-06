@@ -96,6 +96,8 @@ void UNSAIPerceptionComponent::OnTargetDeath(APawn* WhoDeath)
 
 void UNSAIPerceptionComponent::DetectLoseTarget()
 {
+	if (!PriorityEnemy) return;
+	
 	const FActorPerceptionInfo* Info = GetActorInfo(*PriorityEnemy);
     				
 	if (Info && Info->LastSensedStimuli.Num() > 0)

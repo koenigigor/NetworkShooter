@@ -7,6 +7,7 @@
 #include "GameplayEffectTypes.h"
 #include "GameFramework/Character.h"
 #include "AbilitySystemInterface.h"
+#include "GenericTeamAgentInterface.h"
 #include "ShooterPlayer.generated.h"
 
 class UAbilitySystemComponent;
@@ -14,7 +15,7 @@ class UNetShooterAttributeSet;
 class UWeaponAttributeSet;
 
 UCLASS()
-class NETWORKSHOTER_API AShooterPlayer : public ACharacter, public IAbilitySystemInterface
+class NETWORKSHOTER_API AShooterPlayer : public ACharacter, public IAbilitySystemInterface, public IGenericTeamAgentInterface
 {
 	GENERATED_BODY()
 
@@ -53,6 +54,11 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void BP_CharacterDead();
 
+
+	UFUNCTION(BlueprintPure)
+	ETeamAttitude::Type Test_GetTeamAttitudeTowards(const AActor* Other);
+
+	virtual FGenericTeamId GetGenericTeamId() const override;
 	
 	virtual FVector GetPawnViewLocation() const override;
 

@@ -46,8 +46,6 @@ bool ANSPlayerState::IsLife()
 
 void ANSPlayerState::SetGenericTeamId(const FGenericTeamId& NewTeamID)
 {
-	IGenericTeamAgentInterface::SetGenericTeamId(NewTeamID);
-
 	TeamID = NewTeamID;
 }
 

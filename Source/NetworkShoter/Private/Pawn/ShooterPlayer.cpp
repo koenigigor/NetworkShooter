@@ -83,6 +83,21 @@ void AShooterPlayer::Death_Implementation()
 	BP_CharacterDead();
 }
 
+ETeamAttitude::Type AShooterPlayer::Test_GetTeamAttitudeTowards(const AActor* Other)
+{
+	return GetTeamAttitudeTowards(*Other);
+}
+
+FGenericTeamId AShooterPlayer::GetGenericTeamId() const
+{
+	if ( auto TeamPlayerState = Cast<IGenericTeamAgentInterface>(GetPlayerState()))
+	{
+		return TeamPlayerState->GetGenericTeamId();
+	}
+	
+	return IGenericTeamAgentInterface::GetGenericTeamId();
+}
+
 FVector AShooterPlayer::GetPawnViewLocation() const
 {
 	auto Camera = FindComponentByClass<UCameraComponent>();
