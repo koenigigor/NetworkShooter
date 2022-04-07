@@ -7,3 +7,10 @@ void UNSAbilitySystemComponent::SendInputReleaseToAbility_Implementation(const F
 {
 	InputRelease.Broadcast(GameplayTagContainer);
 }
+
+void UNSAbilitySystemComponent::SendInputPressToAbility_Implementation(const FGameplayTagContainer& GameplayTagContainer)
+{
+	InputPress.Broadcast(GameplayTagContainer);
+	
+	TryActivateAbilitiesByTag(GameplayTagContainer);
+}

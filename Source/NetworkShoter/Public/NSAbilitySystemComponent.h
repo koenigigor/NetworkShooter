@@ -7,6 +7,7 @@
 #include "NSAbilitySystemComponent.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInputRelease, const FGameplayTagContainer&, TagContainer);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInputPress, const FGameplayTagContainer&, TagContainer);
 
 /**
  * 
@@ -20,5 +21,9 @@ public:
 	UFUNCTION(BlueprintCallable, Server, Unreliable)
 	void SendInputReleaseToAbility(const FGameplayTagContainer& GameplayTagContainer);
 
+	UFUNCTION(BlueprintCallable, Server, Unreliable)
+	void SendInputPressToAbility(const FGameplayTagContainer& GameplayTagContainer);	
+
 	FInputRelease InputRelease;
+	FInputPress InputPress;
 };
