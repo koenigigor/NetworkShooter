@@ -11,7 +11,13 @@ UNetShooterAttributeSet::UNetShooterAttributeSet()
 	MinHealth(0.f),
 	Armor(100.f),
 	MaxArmor(100.f),
-	MinArmor(0.f)
+	MinArmor(0.f),
+	WalkSpeed(500.f),
+	MaxWalkSpeed(1000.f),
+	MinWalkSpeed(0.f),
+	Stamina(1000.f),
+	MaxStamina(1000.f),
+	MinStamina(0.f)
 {
 }
 
@@ -33,6 +39,16 @@ void UNetShooterAttributeSet::OnRep_Armor(const FGameplayAttributeData& OldValue
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UNetShooterAttributeSet, Armor, OldValue);
 }
 
+void UNetShooterAttributeSet::OnRep_WalkSpeed(const FGameplayAttributeData& OldValue)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UNetShooterAttributeSet, WalkSpeed, OldValue);
+}
+
+void UNetShooterAttributeSet::OnRep_Stamina(const FGameplayAttributeData& OldValue)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UNetShooterAttributeSet, Stamina, OldValue);
+}
+
 
 
 //for safe attribute from change, in clamp NevValue sets to 0
@@ -48,6 +64,16 @@ void UNetShooterAttributeSet::PreAttributeChange(const FGameplayAttribute& Attri
 	{
 		ClampAttribute(GetArmorAttribute(), NewValue, MinArmor, MaxArmor);
 	}
+
+	if (Attribute == GetWalkSpeedAttribute())
+	{
+		ClampAttribute(GetWalkSpeedAttribute(), NewValue, MinWalkSpeed, MaxWalkSpeed);
+	}
+
+	if (Attribute == GetStaminaAttribute())
+	{
+		ClampAttribute(GetStaminaAttribute(), NewValue, MinStamina, MaxStamina);
+	}	
 
 	Super::PreAttributeChange(Attribute, NewValue);
 }

@@ -51,6 +51,32 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	FGameplayAttributeData MinArmor;
 	ATTRIBUTE_ACCESSORS(UNetShooterAttributeSet, MinArmor)
+
+	/** Speed */
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing=OnRep_WalkSpeed)
+	FGameplayAttributeData WalkSpeed;
+	ATTRIBUTE_ACCESSORS(UNetShooterAttributeSet, WalkSpeed)
+
+	UPROPERTY(BlueprintReadOnly)
+	FGameplayAttributeData MaxWalkSpeed;
+	ATTRIBUTE_ACCESSORS(UNetShooterAttributeSet, MaxWalkSpeed)
+
+	UPROPERTY(BlueprintReadOnly)
+	FGameplayAttributeData MinWalkSpeed;
+	ATTRIBUTE_ACCESSORS(UNetShooterAttributeSet, MinWalkSpeed)
+
+	/** Stamina */
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing=OnRep_Stamina)
+	FGameplayAttributeData Stamina;
+	ATTRIBUTE_ACCESSORS(UNetShooterAttributeSet, Stamina)
+
+	UPROPERTY(BlueprintReadOnly)
+	FGameplayAttributeData MaxStamina;
+	ATTRIBUTE_ACCESSORS(UNetShooterAttributeSet, MaxStamina)
+
+	UPROPERTY(BlueprintReadOnly)
+	FGameplayAttributeData MinStamina;
+	ATTRIBUTE_ACCESSORS(UNetShooterAttributeSet, MinStamina)
 	
 protected:
 
@@ -60,6 +86,12 @@ protected:
 
 	UFUNCTION()
 	virtual void OnRep_Armor(const FGameplayAttributeData& OldValue);
+
+	UFUNCTION()
+	virtual void OnRep_WalkSpeed(const FGameplayAttributeData& OldValue);
+	
+	UFUNCTION()
+	virtual void OnRep_Stamina(const FGameplayAttributeData& OldValue);
 
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 

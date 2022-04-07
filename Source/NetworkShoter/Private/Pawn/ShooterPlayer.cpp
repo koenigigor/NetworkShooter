@@ -59,6 +59,7 @@ void AShooterPlayer::BindAttributeDelegates()
 {
 	GetAbilitySystemComponent()->GetGameplayAttributeValueChangeDelegate(CharacterAttributeSet->GetHealthAttribute()).AddUObject(this, &AShooterPlayer::OnHealthChange);
 	GetAbilitySystemComponent()->GetGameplayAttributeValueChangeDelegate(CharacterAttributeSet->GetArmorAttribute()).AddUObject(this, &AShooterPlayer::OnHealthChange);
+	GetAbilitySystemComponent()->GetGameplayAttributeValueChangeDelegate(CharacterAttributeSet->GetWalkSpeedAttribute()).AddUObject(this, &AShooterPlayer::OnWalkSpeedChange);
 }
 
 void AShooterPlayer::OnHealthChange(const FOnAttributeChangeData& Data)
@@ -69,6 +70,11 @@ void AShooterPlayer::OnHealthChange(const FOnAttributeChangeData& Data)
 void AShooterPlayer::OnArmorChange(const FOnAttributeChangeData& Data)
 {
 	
+}
+
+void AShooterPlayer::OnWalkSpeedChange(const FOnAttributeChangeData& Data)
+{
+	WalkSpeedChanged(Data.OldValue);
 }
 
 

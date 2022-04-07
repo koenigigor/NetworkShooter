@@ -45,6 +45,11 @@ protected:
 	
 	void OnArmorChange(const FOnAttributeChangeData& Data);
 
+	void OnWalkSpeedChange(const FOnAttributeChangeData& Data);
+	
+	UFUNCTION(BlueprintImplementableEvent)
+	void WalkSpeedChanged(float OldValue);
+
 	
 public:
 	/** [Multicast] Called from death gameplay ability, when player Die */
