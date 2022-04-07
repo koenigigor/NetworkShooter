@@ -30,7 +30,7 @@ void UAbilityTask_WaitInputPress_NS::Activate()
 
 void UAbilityTask_WaitInputPress_NS::OnInputPress(const FGameplayTagContainer& TagContainer)
 {
-	if (TagContainer.HasAll(Ability->AbilityTags))
+	if (TagContainer.HasAll(Tags))
 	{
 		InputPress.Broadcast();
 		if (bTriggerOnce)

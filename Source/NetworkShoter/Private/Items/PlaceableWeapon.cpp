@@ -29,9 +29,10 @@ void APlaceableWeapon::ToggleMaterial(bool bNormal)
 	BP_ToggleMaterial(bNormal);
 }
 
-void APlaceableWeapon::FinishPlaceWeapon_Implementation()
+bool APlaceableWeapon::FinishPlaceWeapon()
 {
-	SetActorEnableCollision(true);
+	if (!CanPlace())
+		return false;
 
 	//spawn actor
 	if (SpawnedActor)
@@ -43,10 +44,17 @@ void APlaceableWeapon::FinishPlaceWeapon_Implementation()
 		GetWorld()->SpawnActor<AActor>(SpawnedActor, GetTransform(), SpawnParameters);
 	}
 
-	BP_FinishPlaceWeapon();
+	FinishPlaceNotify();
 
 	//destroy self
 	Destroy();
+
+	return true;
+}
+
+void APlaceableWeapon::FinishPlaceNotify_Implementation()
+{
+	BP_FinishPlaceWeapon();
 }
 
 bool APlaceableWeapon::CanPlace()

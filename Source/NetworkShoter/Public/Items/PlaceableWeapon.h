@@ -23,9 +23,12 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 	
 	/** UPlaceableWeaponStorage call this when weapon finally placed in world */
-	UFUNCTION(NetMulticast, Reliable)
-	void FinishPlaceWeapon();
+	UFUNCTION(BlueprintCallable)
+	bool FinishPlaceWeapon();
 
+	UFUNCTION(NetMulticast, Unreliable)
+	void FinishPlaceNotify();
+	
 	UFUNCTION(BlueprintImplementableEvent)
 	void BP_FinishPlaceWeapon();
 

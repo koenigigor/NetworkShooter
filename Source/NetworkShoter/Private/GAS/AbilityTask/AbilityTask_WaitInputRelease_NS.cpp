@@ -31,7 +31,7 @@ void UAbilityTask_WaitInputRelease_NS::Activate()
 
 void UAbilityTask_WaitInputRelease_NS::OnInputRelease(const FGameplayTagContainer& TagContainer)
 {
-	if (TagContainer.HasAll(Ability->AbilityTags))
+	if (TagContainer.HasAll(Tags))
 	{
 		InputRelease.Broadcast();
 		if (bTriggerOnce)
