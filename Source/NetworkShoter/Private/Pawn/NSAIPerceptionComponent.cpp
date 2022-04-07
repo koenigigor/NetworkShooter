@@ -18,6 +18,8 @@ void UNSAIPerceptionComponent::BeginPlay()
 
 void UNSAIPerceptionComponent::TargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
+	if (!Stimulus.WasSuccessfullySensed()) { return; }
+	
 	if (!PriorityEnemy)
 	{
 		SetAsPriority(Actor);
@@ -26,11 +28,18 @@ void UNSAIPerceptionComponent::TargetPerceptionUpdated(AActor* Actor, FAIStimulu
 
 void UNSAIPerceptionComponent::SetAsPriority(AActor* Actor)
 {
-	if (!Actor) {return;}
+	if (Actor == PriorityEnemy) {return;}
 	
 	PriorityEnemy = Actor;
-	PriorityEnemyUpdated.Broadcast(PriorityEnemy);
+	
+	if (!PriorityEnemy)
+	{
+		PriorityEnemyClear.Broadcast();
+		return;
+	}
 
+	PriorityEnemyUpdated.Broadcast(PriorityEnemy);
+	
 	//bind to target live
 	PriorityEnemy->OnDestroyed.AddDynamic(this, &UNSAIPerceptionComponent::OnTargetDestroy);
 	if (auto PriorityEnemyPawn = Cast<APawn>(PriorityEnemy))
@@ -43,7 +52,7 @@ void UNSAIPerceptionComponent::SetAsPriority(AActor* Actor)
 }
 
 
-void UNSAIPerceptionComponent::ClearPriority()
+void UNSAIPerceptionComponent::ClearPriorityEnemyBindings()
 {
 	if (!PriorityEnemy) return;
 	
@@ -56,18 +65,14 @@ void UNSAIPerceptionComponent::ClearPriority()
 			NSPlayerState->CharacterDeadDelegate.RemoveDynamic(this, &UNSAIPerceptionComponent::OnTargetDeath);
 		}
 	}
-	
-	PriorityEnemy = nullptr;
 }
 
 void UNSAIPerceptionComponent::OnLosePriorityEnemy()
 {
-	ClearPriority();
+	ClearPriorityEnemyBindings();
 	
 	//find new priority
 	SetAsPriority(GetNewPriorityEnemy());
-	
-	PriorityEnemyUpdated.Broadcast(PriorityEnemy);
 }
 
 AActor* UNSAIPerceptionComponent::GetNewPriorityEnemy()
@@ -79,7 +84,27 @@ AActor* UNSAIPerceptionComponent::GetNewPriorityEnemy()
 	
 	if (OutActors.Num() == 0) return nullptr;
 
-	return  OutActors[FMath::RandRange(0, OutActors.Num()-1)];
+	//filter only SuccessfullySensed
+	TArray<AActor*> SensedActors;
+	for (const auto& CheckSensedActor : OutActors)
+	{
+		if (CheckSensedActor != PriorityEnemy)
+		{
+			const FActorPerceptionInfo* Info = GetActorInfo(*CheckSensedActor);
+		
+			if (Info && Info->LastSensedStimuli.Num() > 0)
+			{
+				const FAIStimulus Stimulus = Info->LastSensedStimuli[0];
+    
+				if (Stimulus.WasSuccessfullySensed()) {
+					SensedActors.Add(CheckSensedActor);
+				}
+			}
+		}
+	} 
+	if (SensedActors.Num() == 0) return nullptr;
+	
+	return  SensedActors[FMath::RandRange(0, SensedActors.Num()-1)];
 }
 
 

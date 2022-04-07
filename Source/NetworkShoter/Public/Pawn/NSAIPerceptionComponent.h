@@ -7,6 +7,8 @@
 #include "NSAIPerceptionComponent.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPriorityEnemyUpdated, AActor*, NewEnemy);
+/** Can*t send nullptr from EnemyUpdate */
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FPriorityEnemyClear); 
 
 /**
  * Subclass of AIPerception component for network shooter
@@ -23,7 +25,7 @@ class NETWORKSHOTER_API UNSAIPerceptionComponent : public UAIPerceptionComponent
 	UFUNCTION()
 	void TargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
 	
-	void ClearPriority();
+	void ClearPriorityEnemyBindings();
 
 	/** called when priority enemy Forget, or death, or etc. */
 	void OnLosePriorityEnemy();
@@ -34,6 +36,9 @@ class NETWORKSHOTER_API UNSAIPerceptionComponent : public UAIPerceptionComponent
 	
 	UPROPERTY(BlueprintAssignable)
 	FPriorityEnemyUpdated PriorityEnemyUpdated;
+
+	UPROPERTY(BlueprintAssignable)
+	FPriorityEnemyClear PriorityEnemyClear;
 
 	UFUNCTION()
 	void OnTargetDestroy(AActor* DestroyedActor);

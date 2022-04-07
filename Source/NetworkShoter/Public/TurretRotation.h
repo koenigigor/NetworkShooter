@@ -14,7 +14,7 @@ class NETWORKSHOTER_API UTurretRotation : public UActorComponent
 
 public:	
 	UTurretRotation();
-	virtual void PostInitProperties() override;
+	virtual void BeginPlay() override;
 
 	UFUNCTION(BlueprintCallable)
 	void Init(USceneComponent* Turret, USceneComponent* Barrel);

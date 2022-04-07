@@ -12,11 +12,11 @@ UTurretRotation::UTurretRotation()
 	PrimaryComponentTick.bCanEverTick = true;
 }
 
-void UTurretRotation::PostInitProperties()
+void UTurretRotation::BeginPlay()
 {
-	Super::PostInitProperties();
+	Super::BeginPlay();
 
-	SetComponentTickEnabled(false);
+	SetComponentTickEnabled(false);	
 }
 
 void UTurretRotation::Init(USceneComponent* Turret, USceneComponent* Barrel)
