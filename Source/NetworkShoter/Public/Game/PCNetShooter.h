@@ -35,9 +35,16 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void BP_ClientOnPossess(APawn* InPawn);
 
+	//~==============================================================================================
+	// Proxy functions
+	
 	/** Proxy function for send chat message from chat widget to server */
 	UFUNCTION(Server, Unreliable, BlueprintCallable)
 	void SendChatMessage(const FString& Message);
+
+	/** Proxy function for vote for next map (From vote next map widget) */
+	UFUNCTION(Server, Unreliable, BlueprintCallable)
+	void VoteForMap(FName MapRow, bool Up = true);
 	
 protected:
 	//TODO check Spectator be garbage collected on Possess to character

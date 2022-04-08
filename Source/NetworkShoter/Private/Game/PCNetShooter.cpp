@@ -4,6 +4,7 @@
 #include "Game/PCNetShooter.h"
 
 #include "ChatController.h"
+#include "Game/MapVoteController.h"
 #include "Game/NSPlayerState.h"
 #include "GameFramework/GameStateBase.h"
 #include "GameFramework/SpectatorPawn.h"
@@ -125,10 +126,19 @@ void APCNetShooter::OnRep_Pawn()
 	GetNSHUD()->OnPossess(GetPawn());
 }
 
+
 void APCNetShooter::SendChatMessage_Implementation(const FString& Message)
 {
 	if (auto ChatController = GetWorld()->GetGameState()->FindComponentByClass<UChatController>())
 	{
 		ChatController->SendMessage_Player(Message, GetPlayerState<ANSPlayerState>());
+	}
+}
+
+void APCNetShooter::VoteForMap_Implementation(FName MapRow, bool Up)
+{
+	if (auto MapVoteController = GetWorld()->GetGameState()->FindComponentByClass<UMapVoteController>())
+	{
+		MapVoteController->VoteForMap(this, MapRow, Up);
 	}
 }
