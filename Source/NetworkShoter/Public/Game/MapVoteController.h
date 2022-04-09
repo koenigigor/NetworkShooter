@@ -9,6 +9,7 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FStartVoteForMap);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FVotedForMap);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FVoteFinish, FName, Winer);
 
 
 /** Struct for keep info about Map, in Datatable */
@@ -22,7 +23,7 @@ struct FMapInfo : public FTableRowBase
 
 	/** Full asset name for ServerTravel on map */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="General")
-	FName MapAssetName = "";	
+	FString MapAssetName = "";	
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="General")
 	UTexture2D* Image = nullptr;
@@ -41,15 +42,24 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	/** Called from game mode for start vote*/
+	/** [Server] Called from game state for start vote*/
 	UFUNCTION(BlueprintCallable)
-	void StartVoteForNextMap();
+	void StartVote(float TimeToVote);
 
+	/** Called when VoteTime finish, or all players voted */
+	UFUNCTION(BlueprintCallable)
+	void FinishVote();
+
+	//client broadcast called from Maps or bStart rep notify? if it all replicated
 	UPROPERTY(BlueprintAssignable)
 	FStartVoteForMap StartVoteForMap;
 	
 	UPROPERTY(BlueprintAssignable)
 	FVotedForMap VotedForMap;
+
+	/** Called when vote finish by time, or all player voted */
+	UPROPERTY(BlueprintAssignable)
+	FVoteFinish VoteFinish;
 	
     /** Generate TMap<RowNames, Votes> for start vote */
 	void GenerateMapsToVote();
@@ -64,24 +74,33 @@ public:
 	UFUNCTION(BlueprintPure)
 	int32 GetVotesForMap(FName MapAssetName);
 
+	/** Vote already started or no */
 	UFUNCTION(BlueprintPure)
-	bool VoteInProgress();
+	bool HasVoteStarted();
+
+	UFUNCTION(BlueprintPure)
+	float GetVoteRemainingTime();
+
 	
-
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-
 	UFUNCTION()
 	void OnRep_Voting_Maps();
 
 	UFUNCTION()
 	void OnRep_Voting_Votes();
+
+	UFUNCTION()
+	void OnRep_bVoteStarted();
+
+	UFUNCTION()
+	void OnRep_VoteTime();
 	
 protected:
 	/** Count map who using in vote, 0 = all */
+	UPROPERTY(EditDefaultsOnly, Category="Setup")
 	uint8 MapCount = 0;
 
 	/** Table who keep maps info  */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="General")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Setup")
 	UDataTable* MapsTable;
 	
 	/** Maps who using in this vote */
@@ -92,4 +111,12 @@ protected:
 	
 	/** Players who already voted */
 	TArray<APlayerController*> VotedPlayers;
+
+	UPROPERTY(ReplicatedUsing="OnRep_bVoteStarted")
+	bool bVoteStarted = false;
+
+	UPROPERTY(ReplicatedUsing="OnRep_VoteTime")
+	float VoteTime;
+
+	FTimerHandle VoteTimerHandle;
 };

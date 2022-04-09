@@ -3,6 +3,7 @@
 
 #include "Game/MapVoteController.h"
 #include "Engine/DataTable.h"
+#include "GameFramework/GameStateBase.h"
 #include "Net/UnrealNetwork.h"
 
 UMapVoteController::UMapVoteController()
@@ -17,12 +18,23 @@ void UMapVoteController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(UMapVoteController, Voting_Maps);
-	DOREPLIFETIME(UMapVoteController, Voting_Votes);
+	DOREPLIFETIME_CONDITION_NOTIFY(UMapVoteController, Voting_Votes, COND_None, REPNOTIFY_Always); // arrays not rep notify if change inner property
 }
 
-void UMapVoteController::StartVoteForNextMap()
+void UMapVoteController::StartVote(float TimeToVote)
 {
 	GenerateMapsToVote();
+	
+	VoteTime=TimeToVote;	
+	bVoteStarted = true;
+
+	GetWorld()->GetTimerManager().SetTimer(VoteTimerHandle, this, &UMapVoteController::FinishVote, VoteTime);
+}
+
+void UMapVoteController::FinishVote()
+{
+	bVoteStarted=false;
+	VoteFinish.Broadcast(GetLeader());
 }
 
 void UMapVoteController::GenerateMapsToVote()
@@ -34,6 +46,7 @@ void UMapVoteController::GenerateMapsToVote()
 	}
 	Voting_Maps.Empty();
 	VotedPlayers.Empty();
+	Voting_Votes.Empty();
 
 	auto Rows = MapsTable->GetRowNames();
 	if (Rows.Num() == 0)
@@ -41,10 +54,12 @@ void UMapVoteController::GenerateMapsToVote()
 		UE_LOG(LogTemp, Error, TEXT("UMapVoteController says MapsTable is empty UMapVoteController"))
 		return;
 	}
-	
+
+	// Get all maps, or random number
 	if (MapCount == 0)
 	{
 		Voting_Maps = Rows;
+		Voting_Votes.SetNum(Rows.Num());
 	}
 	else
 	{
@@ -53,25 +68,30 @@ void UMapVoteController::GenerateMapsToVote()
 		{
 			auto RandomIndex = FMath::RandRange(0, Rows.Num()-1);
 			Voting_Maps.Add(Rows[RandomIndex]);
+			Voting_Votes.Add(0);
 			Rows.RemoveAt(RandomIndex);
 		}
 	}
-
-	Voting_Votes.Reset(Voting_Maps.Num());
-
+	
 	UE_LOG(LogTemp, Warning, TEXT("Vote maps generated, array has %d num"), Voting_Maps.Num())
 }
 
 void UMapVoteController::VoteForMap(APlayerController* Player, FName MapRow, bool Up)
 {
+	//if this player already voted, return
 	if (VotedPlayers.Contains(Player)) return;
 
+	UE_LOG(LogTemp, Warning, TEXT("Receive vote"))
+	
 	if (Voting_Maps.Contains(MapRow))
 	{
 		VotedPlayers.Add(Player);
 		Voting_Votes[Voting_Maps.Find(MapRow)]++;
 
-		UE_LOG(LogTemp, Warning, TEXT("Map %s has %d votes"), *MapRow.ToString(), Voting_Votes[Voting_Maps.Find(MapRow)])
+		if (VotedPlayers.Num() >= GetWorld()->GetGameState()->PlayerArray.Num())
+		{
+			FinishVote();
+		}
 	}
 
 	UE_LOG(LogTemp, Warning, TEXT("Player %s, Vote for map %s"), *Player->GetName(), *MapRow.ToString())
@@ -79,6 +99,8 @@ void UMapVoteController::VoteForMap(APlayerController* Player, FName MapRow, boo
 
 FName UMapVoteController::GetLeader()
 {
+	UE_LOG(LogTemp, Warning, TEXT("Get Leader called"))
+	
     /** Array if we has multiple maps with same Vote count */
     TArray<TPair<FName, int32>> Leaders;
 
@@ -103,10 +125,13 @@ FName UMapVoteController::GetLeader()
 	if (Leaders.Num() == 0)
 	{
 		UE_LOG(LogTemp, Error, TEXT("UMapVoteController::GetLeader array is empty"))
+		return "None";
 	}
 	
 	//return random leader map
-	FName Leader = Leaders[FMath::RandRange(0, Leaders.Num())].Key;
+	FName Leader = Leaders[FMath::RandRange(0, Leaders.Num()-1)].Key;
+
+	UE_LOG(LogTemp, Warning, TEXT("Get Leader return"))
 	return Leader;
 }
 
@@ -121,24 +146,49 @@ int32 UMapVoteController::GetVotesForMap(FName MapAssetName)
 	return 0;
 }
 
-bool UMapVoteController::VoteInProgress()
+bool UMapVoteController::HasVoteStarted()
 {
-	return Voting_Maps.Num() > 0;
-} 
+	return bVoteStarted;
+}
 
-
-void UMapVoteController::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+float UMapVoteController::GetVoteRemainingTime()
 {
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
+	return GetWorld()->GetTimerManager().GetTimerRemaining(VoteTimerHandle);
 }
 
 void UMapVoteController::OnRep_Voting_Maps()
 {
-	StartVoteForMap.Broadcast();
+	if (bVoteStarted)
+	{
+		if (Voting_Maps.Num()!=0)
+		{
+			StartVoteForMap.Broadcast();
+		}
+	}
 }
 
 void UMapVoteController::OnRep_Voting_Votes()
 {
 	VotedForMap.Broadcast();
+	UE_LOG(LogTemp, Warning, TEXT("OnRep_Voting_Votes"))
+}
+
+void UMapVoteController::OnRep_bVoteStarted()
+{
+	if (bVoteStarted)
+	{
+		if (Voting_Maps.Num()!=0)
+		{
+			StartVoteForMap.Broadcast();
+		}
+	}
+	else
+	{
+		VoteFinish.Broadcast(GetLeader());
+	}
+}
+
+void UMapVoteController::OnRep_VoteTime()
+{
+	GetWorld()->GetTimerManager().SetTimer(VoteTimerHandle, VoteTime, false);
 }
