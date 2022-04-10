@@ -17,7 +17,7 @@
 ANSGameMode::ANSGameMode()
 {
 	bStartPlayersAsSpectators = true;
-	bUseSeamlessTravel = true;
+	bUseSeamlessTravel = false;  //reset all progress
 }
 
 void ANSGameMode::StartPlay()

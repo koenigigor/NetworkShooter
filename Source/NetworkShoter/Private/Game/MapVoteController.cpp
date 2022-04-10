@@ -34,6 +34,8 @@ void UMapVoteController::StartVote(float TimeToVote)
 void UMapVoteController::FinishVote()
 {
 	bVoteStarted=false;
+	VoteTimerHandle.Invalidate();
+	
 	VoteFinish.Broadcast(GetLeader());
 }
 
@@ -72,16 +74,12 @@ void UMapVoteController::GenerateMapsToVote()
 			Rows.RemoveAt(RandomIndex);
 		}
 	}
-	
-	UE_LOG(LogTemp, Warning, TEXT("Vote maps generated, array has %d num"), Voting_Maps.Num())
 }
 
 void UMapVoteController::VoteForMap(APlayerController* Player, FName MapRow, bool Up)
 {
 	//if this player already voted, return
 	if (VotedPlayers.Contains(Player)) return;
-
-	UE_LOG(LogTemp, Warning, TEXT("Receive vote"))
 	
 	if (Voting_Maps.Contains(MapRow))
 	{
@@ -94,13 +92,11 @@ void UMapVoteController::VoteForMap(APlayerController* Player, FName MapRow, boo
 		}
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("Player %s, Vote for map %s"), *Player->GetName(), *MapRow.ToString())
+	UE_LOG(LogTemp, Display, TEXT("Player %s, Vote for map %s"), *Player->GetName(), *MapRow.ToString())
 }
 
 FName UMapVoteController::GetLeader()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Get Leader called"))
-	
     /** Array if we has multiple maps with same Vote count */
     TArray<TPair<FName, int32>> Leaders;
 
@@ -109,7 +105,6 @@ FName UMapVoteController::GetLeader()
 		if (!Leaders.IsValidIndex(0))
 		{
 			Leaders.Add(TPair<FName, int32>(Voting_Maps[i], Voting_Votes[i]));
-			break;
 		} else
 		if (Voting_Votes[i] > Leaders[0].Value)
 		{
@@ -130,8 +125,6 @@ FName UMapVoteController::GetLeader()
 	
 	//return random leader map
 	FName Leader = Leaders[FMath::RandRange(0, Leaders.Num()-1)].Key;
-
-	UE_LOG(LogTemp, Warning, TEXT("Get Leader return"))
 	return Leader;
 }
 
@@ -170,7 +163,6 @@ void UMapVoteController::OnRep_Voting_Maps()
 void UMapVoteController::OnRep_Voting_Votes()
 {
 	VotedForMap.Broadcast();
-	UE_LOG(LogTemp, Warning, TEXT("OnRep_Voting_Votes"))
 }
 
 void UMapVoteController::OnRep_bVoteStarted()

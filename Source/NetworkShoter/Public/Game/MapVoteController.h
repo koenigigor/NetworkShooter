@@ -47,7 +47,6 @@ public:
 	void StartVote(float TimeToVote);
 
 	/** Called when VoteTime finish, or all players voted */
-	UFUNCTION(BlueprintCallable)
 	void FinishVote();
 
 	//client broadcast called from Maps or bStart rep notify? if it all replicated
