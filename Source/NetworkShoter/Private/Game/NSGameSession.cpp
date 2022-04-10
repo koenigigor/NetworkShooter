@@ -27,6 +27,16 @@ void ANSGameSession::RegisterServer()
 	Settings.bAllowJoinInProgress = true;
 	Settings.bShouldAdvertise=true;
 	Settings.bIsLANMatch = true;
+
+	Settings.bUsesPresence = true;
+	Settings.bAllowInvites = true;
+	Settings.bAllowJoinViaPresence = true;
+	Settings.bAllowJoinViaPresenceFriendsOnly = false;
+
+	Settings.BuildUniqueId = GetBuildUniqueId();
+	Settings.bUseLobbiesIfAvailable = true;
+	Settings.NumPublicConnections = 16;
+	Settings.bUsesPresence = true;
 	
 	Session->CreateSession(0, GameSessionName, Settings);
 
