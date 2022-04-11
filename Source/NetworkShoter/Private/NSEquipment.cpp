@@ -61,77 +61,102 @@ bool UNSEquipment::PickUpWeapon(AWeapon* Weapon)
 	Weapon -> SetInstigator(GetOwner()->GetInstigator());
 
 	//Switch by weapon type
+	bool bSuccess = false;
 	switch (WeaponData->Type)
 	{
 	case EWeaponType::Grenade:
+		bSuccess = AddGrenade(Weapon->GetClass());
+		if (bSuccess)
 		{
-			bool bGrenadeFound = false;
-			//found grenades in array
-			for (auto& Grenade : Grenades)
-			{
-				if (Grenade.GrenadeData == WeaponData)
-				{
-					bGrenadeFound = true;
-					Grenade.Count++;
-				}
-			}
-			//if not found add new
-			if (!bGrenadeFound)
-			{
-				Grenades.Add(FGrenadeCount(WeaponData, 1));
-			}
-
 			Weapon->Destroy();
-
-			return true;
 		}
 		break;
 
 	case EWeaponType::MeleeWeapon:
 	case EWeaponType::RangeWeapon:
-		{
-			//add weapon in array
-			//first loop if weapon already in storage
-			//second for find free spot
-			bool bFreeSlot = false;
-			for (auto& WeaponSlot : Weapons)
-			{
-				if (WeaponSlot == Weapon)
-				{
-					bFreeSlot=true;
-					WeaponSlot = Weapon;
-					break;
-				}
-			}
-			
-			if (!bFreeSlot)
-			{
-				for (auto& WeaponSlot : Weapons)
-				{
-					if (WeaponSlot == nullptr)
-					{
-						bFreeSlot=true;
-						WeaponSlot = Weapon;
-						break;
-					}
-				}
-			}
-			
-			//if success freeze weapon
-			if (bFreeSlot)
-			{
-				Weapon -> SetStatus(EWeaponStatus::InStorage);
-			}
-
-			return true;
-		}
+		bSuccess = AddWeapon(Weapon);
+		UE_LOG(LogTemp, Warning, TEXT("Weapon added: %d"), bSuccess)
 		break;
 
 	default:
 		UE_LOG(LogTemp, Warning, TEXT("Cant recognise WeaponType, in weapon %s"), *(Weapon->GetName()))
-		return false;
 	}
+	
+	return bSuccess;
 }
+
+bool UNSEquipment::AddWeapon(AWeapon* Weapon)
+{
+	//if already in storage
+	bool bInStorage = false;
+	for (auto& WeaponSlot : Weapons)
+	{
+		if (WeaponSlot == Weapon)
+		{
+			bInStorage=true;
+			WeaponSlot = Weapon;
+			break;
+		}
+	}
+
+	//search free slot
+	if (!bInStorage)
+	{
+		for (auto& WeaponSlot : Weapons)
+		{
+			if (WeaponSlot == nullptr)
+			{
+				bInStorage=true;
+				WeaponSlot = Weapon;
+				break;
+			}
+		}
+	}
+			
+	//if success freeze weapon
+	if (bInStorage)
+	{
+		Weapon -> SetOwner(GetOwner());
+		Weapon -> SetInstigator(GetOwner()->GetInstigator());
+		Weapon -> SetStatus(EWeaponStatus::InStorage);
+	}
+
+	return bInStorage;
+}
+
+bool UNSEquipment::AddGrenade(TSubclassOf<AWeapon> PickedGrenade, int32 Count)
+{
+	if (!PickedGrenade) return false;
+	
+	bool bGrenadeFound = false;
+	
+	//found grenades in array
+	for (auto& Grenade : Grenades)
+	{
+		if (Grenade.Grenade == PickedGrenade)
+		{
+			bGrenadeFound = true;
+			Grenade.Count += Count;
+		}
+	}
+	
+	//if not found add new
+	if (!bGrenadeFound)
+	{
+		Grenades.Add(FGrenadeCount(PickedGrenade, Count));
+	}
+	
+	return true;
+}
+
+void UNSEquipment::AddSpecial(TSubclassOf<APlaceableWeapon> PickedSpecial)
+{
+	StoredSpecialClass = PickedSpecial;
+}
+
+
+//~==============================================================================================
+// MainWeapon 
 
 AWeapon* UNSEquipment::DropCurrentWeapon()
 {
@@ -300,11 +325,15 @@ void UNSEquipment::UnregisterWeaponAbilities(AWeapon* Weapon)
 //~==============================================================================================
 // Special (spawnable) items
 
+TSubclassOf<APlaceableWeapon> UNSEquipment::GetStoredSpecial()
+{
+	return StoredSpecialClass;
+}
 
 
 
 //~==============================================================================================
-// Getters
+// Grenade
 
 AWeapon* UNSEquipment::GetGrenade(int32 Slot, bool bWithRemove)
 {
@@ -314,7 +343,7 @@ AWeapon* UNSEquipment::GetGrenade(int32 Slot, bool bWithRemove)
 		return nullptr;
 	}
 	
-	auto GrenadeData = Grenades[Slot].GrenadeData;
+	auto GrenadeClass = Grenades[Slot].Grenade;
 		
 	if (bWithRemove)
 	{
@@ -335,8 +364,7 @@ AWeapon* UNSEquipment::GetGrenade(int32 Slot, bool bWithRemove)
 	SpawnParameters.Owner = GetOwner();
 	SpawnParameters.Instigator = Cast<APawn>(GetOwner());
 	
-	AWeapon* SpawnedWeapon =GetOwner() -> GetWorld() -> SpawnActor<AWeapon>(SpawnLocation, SpawnRotation, SpawnParameters);
-	SpawnedWeapon->SetupData(GrenadeData);
+	AWeapon* SpawnedWeapon =GetOwner() -> GetWorld() -> SpawnActor<AWeapon>(GrenadeClass, SpawnLocation, SpawnRotation, SpawnParameters);
 	
 	return SpawnedWeapon;
 }
@@ -345,6 +373,7 @@ AWeapon* UNSEquipment::GetSelectedGrenade(bool bWithRemove)
 {
 	return GetGrenade(SelectedGrenadeSlot, bWithRemove);
 }
+
 
 
 void UNSEquipment::OnRep_SelectWeapon()

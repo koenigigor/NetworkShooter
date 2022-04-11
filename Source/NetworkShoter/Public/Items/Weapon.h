@@ -54,7 +54,7 @@ public:
 	UWeaponAttributeSet* WeaponAttributeSet = nullptr;	
 	
 protected:
-	UPROPERTY() //Replicated)
+	UPROPERTY(VisibleAnywhere) //Replicated)
 	UStaticMeshComponent* WeaponMesh = nullptr;
 
 	UPROPERTY(ReplicatedUsing=OnRep_Status)

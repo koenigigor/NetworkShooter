@@ -23,17 +23,17 @@ struct FGrenadeCount
 	GENERATED_BODY()
 	FGrenadeCount(){};
 	
-	FGrenadeCount(UWeaponData* Data, int32 ItemCount)
+	FGrenadeCount(TSubclassOf<AWeapon> GrenadeClass, int32 ItemCount)
 	{
-		GrenadeData = Data;
+		Grenade = GrenadeClass;
 		Count = ItemCount;
 	};
 
 	//store weapon data for construct grenades when it need
 	UPROPERTY()
-	UWeaponData* GrenadeData = nullptr;
+	TSubclassOf<AWeapon> Grenade = nullptr;
 	
-	int32 Count = 1;
+	int32 Count = -1;
 };
 
 /** Network Shooter base equipment component
@@ -65,6 +65,22 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool PickUpWeapon(AWeapon* Weapon);
 	
+	/** Add weapon in weapons storage array */
+	bool AddWeapon(AWeapon* Weapon);
+
+	bool AddGrenade(TSubclassOf<AWeapon> PickedGrenade, int32 Count = 1);
+	
+	void AddSpecial(TSubclassOf<APlaceableWeapon> PickedSpecial);
+
+
+
+
+
+	
+
+	//~==============================================================================================
+	// MainWeapon 
+	
 	/** [Server] Drop weapon to world
 	 *	@return Dropped weapon */
 	UFUNCTION(BlueprintCallable)
@@ -90,7 +106,8 @@ protected:
 	//~==============================================================================================
 	// Special (spawnable) items
 public:	
-
+	UFUNCTION(BlueprintPure)
+	TSubclassOf<APlaceableWeapon> GetStoredSpecial();
 	
 protected:
     UPROPERTY(EditDefaultsOnly)
