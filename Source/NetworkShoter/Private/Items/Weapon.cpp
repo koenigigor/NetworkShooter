@@ -18,6 +18,16 @@ AWeapon::AWeapon()
 	ProjectileMovement->SetAutoActivate(false);
 }
 
+void AWeapon::PostInitProperties()
+{
+	Super::PostInitProperties();
+
+	if (WeaponData)
+	{
+		SetupData(WeaponData);
+	}
+}
+
 void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);

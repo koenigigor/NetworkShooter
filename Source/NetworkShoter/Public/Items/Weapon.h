@@ -25,6 +25,8 @@ class NETWORKSHOTER_API AWeapon : public AActor
 public:	
 	AWeapon();
 
+	virtual void PostInitProperties() override;
+
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	/** Setup weapon data from datatable,
@@ -45,7 +47,7 @@ protected:
 	
 
 public:
-	UPROPERTY(BlueprintReadOnly, Replicated)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Replicated)
     UWeaponData* WeaponData;
     
 	UPROPERTY()

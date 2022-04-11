@@ -90,22 +90,11 @@ protected:
 	//~==============================================================================================
 	// Special (spawnable) items
 public:	
-	UFUNCTION(BlueprintCallable, Server, Reliable)
-	void StartUseSpecial();
 
-	UFUNCTION(BlueprintCallable, Server, Reliable)
-	void FinishUseSpecial();
-
-	UFUNCTION(BlueprintCallable, Server, Reliable)
-	void CancelUseSpecial();
 	
 protected:
     UPROPERTY(EditDefaultsOnly)
     TSubclassOf<APlaceableWeapon> StoredSpecialClass;
-
-	//contain special item ref if we in "Place mode" todo
-	UPROPERTY() 
-	APlaceableWeapon* SpecialItemRef = nullptr;
 
 	//~==============================================================================================
 	// Getters

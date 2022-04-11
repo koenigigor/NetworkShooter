@@ -300,46 +300,6 @@ void UNSEquipment::UnregisterWeaponAbilities(AWeapon* Weapon)
 //~==============================================================================================
 // Special (spawnable) items
 
-void UNSEquipment::StartUseSpecial_Implementation()
-{
-	//get stored weapon class reference
-	if (!StoredSpecialClass) {return;}
-	TSubclassOf<APlaceableWeapon> SpecialToSpawn = StoredSpecialClass;
-	
-	if (SpecialItemRef) {return;} 
-
-	//spawn weapon
-	FActorSpawnParameters SpawnParameters;
-	SpawnParameters.Instigator = Cast<APawn>(GetOwner());
-	SpawnParameters.Owner = GetOwner();
-	SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	SpecialItemRef = GetWorld()->SpawnActor<APlaceableWeapon>(SpecialToSpawn, FVector(0), FRotator(0), SpawnParameters);
-}
-
-void UNSEquipment::FinishUseSpecial_Implementation()
-{
-	if (!SpecialItemRef || !SpecialItemRef->CanPlace()) return;
-
-	//actual remove special item from storage
-	StoredSpecialClass = nullptr;
-	bool bRemoved = true; //= RemoveSpecial(SpecialItemRef->GetClass());
-	if (!bRemoved)
-	{
-		CancelUseSpecial();
-		return;
-	}
-	
-	//weapon spawned
-	SpecialItemRef->FinishPlaceWeapon();
-	SpecialItemRef = nullptr;
-}
-
-void UNSEquipment::CancelUseSpecial_Implementation()
-{
-	if (!SpecialItemRef) return;
-	SpecialItemRef->Destroy();
-	SpecialItemRef=nullptr;
-}
 
 
 
@@ -350,7 +310,7 @@ AWeapon* UNSEquipment::GetGrenade(int32 Slot, bool bWithRemove)
 {
 	if (!Grenades.IsValidIndex(Slot))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("No Grenade in slot %f"), Slot)
+		UE_LOG(LogTemp, Warning, TEXT("No Grenade in slot %d"), Slot)
 		return nullptr;
 	}
 	
