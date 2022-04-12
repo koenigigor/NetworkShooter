@@ -330,6 +330,15 @@ TSubclassOf<APlaceableWeapon> UNSEquipment::GetStoredSpecial()
 	return StoredSpecialClass;
 }
 
+bool UNSEquipment::RemoveStoredSpecial(TSubclassOf<APlaceableWeapon> SpecialToRemove)
+{
+	if (StoredSpecialClass && StoredSpecialClass == SpecialToRemove)
+	{
+		StoredSpecialClass = nullptr;
+		return true;
+	}
+	return false;
+}
 
 
 //~==============================================================================================

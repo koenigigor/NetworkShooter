@@ -64,23 +64,21 @@ public:
 	/** [Server] Pick weapon from ground, add it in storage*/
 	UFUNCTION(BlueprintCallable)
 	bool PickUpWeapon(AWeapon* Weapon);
-	
+
+	/** add special in storage */
+	UFUNCTION(BlueprintCallable)
+	void AddSpecial(TSubclassOf<APlaceableWeapon> PickedSpecial);
+
+protected:
 	/** Add weapon in weapons storage array */
 	bool AddWeapon(AWeapon* Weapon);
 
 	bool AddGrenade(TSubclassOf<AWeapon> PickedGrenade, int32 Count = 1);
 	
-	void AddSpecial(TSubclassOf<APlaceableWeapon> PickedSpecial);
-
-
-
-
-
-	
 
 	//~==============================================================================================
 	// MainWeapon 
-	
+public:	
 	/** [Server] Drop weapon to world
 	 *	@return Dropped weapon */
 	UFUNCTION(BlueprintCallable)
@@ -108,6 +106,9 @@ protected:
 public:	
 	UFUNCTION(BlueprintPure)
 	TSubclassOf<APlaceableWeapon> GetStoredSpecial();
+
+	UFUNCTION(BlueprintCallable)
+	bool RemoveStoredSpecial(TSubclassOf<APlaceableWeapon> SpecialToRemove);
 	
 protected:
     UPROPERTY(EditDefaultsOnly)
