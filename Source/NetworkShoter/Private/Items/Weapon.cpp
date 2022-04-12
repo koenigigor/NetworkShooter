@@ -1,6 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Items/Weapon.h"
+
+#include "NSEquipment.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Net/UnrealNetwork.h"
 
@@ -26,6 +28,14 @@ void AWeapon::PostInitProperties()
 	{
 		SetupData(WeaponData);
 	}
+}
+
+void AWeapon::OnConstruction(const FTransform& Transform)
+{
+	Super::OnConstruction(Transform);
+
+	if (WeaponData)
+		SetupData(WeaponData);
 }
 
 void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -93,4 +103,16 @@ void AWeapon::OnRep_Status()
 		SetActorHiddenInGame(false);
 		break;
 	}
+}
+
+bool AWeapon::InteractWithPawn_Implementation(APawn* InteractWith)
+{
+	if (HasAuthority())
+		if (!GetOwner())
+	if ( auto Equipment = InteractWith->FindComponentByClass<UNSEquipment>())
+	{
+		bool Success = Equipment->PickUpWeapon(this);
+		return Success;
+	}
+	return false;
 }

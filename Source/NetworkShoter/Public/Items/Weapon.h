@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "WeaponData.h"
 #include "GameFramework/Actor.h"
+#include "Interface/InteractInterface.h"
 #include "Weapon.generated.h"
 
 class UProjectileMovementComponent;
@@ -18,7 +19,7 @@ enum class EWeaponStatus : uint8
 };
 
 UCLASS()
-class NETWORKSHOTER_API AWeapon : public AActor
+class NETWORKSHOTER_API AWeapon : public AActor, public IInteractInterface
 {
 	GENERATED_BODY()
 	
@@ -26,6 +27,8 @@ public:
 	AWeapon();
 
 	virtual void PostInitProperties() override;
+
+	virtual void OnConstruction(const FTransform& Transform) override;
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
@@ -44,6 +47,9 @@ public:
 protected:
 	UFUNCTION()
 	void OnRep_Status();
+
+	/* Interact interface */
+	virtual bool InteractWithPawn_Implementation(APawn* InteractWith) override;
 	
 
 public:
