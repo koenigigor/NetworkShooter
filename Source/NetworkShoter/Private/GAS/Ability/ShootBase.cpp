@@ -1,0 +1,27 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+
+#include "GAS/Ability/ShootBase.h"
+
+#include "DrawDebugHelpers.h"
+#include "NSEquipment.h"
+#include "NSFunctionLibrary.h"
+#include "Items/Weapon.h"
+
+void UShootBase::GetShootStartAndDirection(FVector& Start, FVector& Direction, float Length)
+{
+	UNSEquipment* Equipment = GetOwningActorFromActorInfo()->FindComponentByClass<UNSEquipment>();
+	ensure(Equipment && Equipment->GetEquippedWeapon());
+	Start = Equipment->GetEquippedWeapon()->GetRootComponent()->GetSocketLocation("Muzzle");
+	
+	FVector ViewEnd = UNSFunctionLibrary::GetActorViewPoint_NS(GetAvatarActorFromActorInfo(), Length, ECC_GameTraceChannel2);
+
+	
+	DrawDebugLine(GetWorld(), Start, ViewEnd, FColor::Red, false, 20.f, 0, 2);
+	DrawDebugPoint(GetWorld(), Start, 3.f, FColor::Red, false, 20.f);
+	DrawDebugPoint(GetWorld(), ViewEnd, 3.f, FColor::Yellow, false, 20.f);
+	
+	Direction = (ViewEnd - Start).GetSafeNormal();
+
+	DrawDebugDirectionalArrow(GetWorld(), Start, Start + Direction * 100.f,3.f, FColor::Green, false, 20.f);
+}
