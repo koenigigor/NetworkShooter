@@ -16,6 +16,7 @@ AShooterPlayer::AShooterPlayer()
 	PrimaryActorTick.bCanEverTick = true;
 
 	AbilitySystem = CreateDefaultSubobject<UNSAbilitySystemComponent>(TEXT("AbilitySystem"));
+	AbilitySystem->SetIsReplicated(true);
 	CharacterAttributeSet = CreateDefaultSubobject<UNetShooterAttributeSet>(TEXT("CharacterAttributeSet"));
 	WeaponAttributeSet = CreateDefaultSubobject<UWeaponAttributeSet>(TEXT("WeaponAttributeSet"));
 }
@@ -35,6 +36,19 @@ void AShooterPlayer::BeginPlay()
 			GetAbilitySystemComponent()->GiveAbility(FGameplayAbilitySpec(Ability));
 		}
 	}
+}
+
+void AShooterPlayer::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+	
+	if (GetAbilitySystemComponent())
+	{
+		GetAbilitySystemComponent()->InitAbilityActorInfo(this, this);
+	}
+
+	// ASC MixedMode replication requires that the ASC Owner's Owner be the Controller.
+	SetOwner(NewController);
 }
 
 //~==============================================================================================

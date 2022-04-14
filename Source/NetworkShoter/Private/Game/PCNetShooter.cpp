@@ -3,12 +3,14 @@
 
 #include "Game/PCNetShooter.h"
 
+#include "AbilitySystemComponent.h"
 #include "ChatController.h"
 #include "Game/MapVoteController.h"
 #include "Game/NSPlayerState.h"
 #include "GameFramework/GameStateBase.h"
 #include "GameFramework/SpectatorPawn.h"
 #include "HUD/NSHUD.h"
+#include "Pawn/ShooterPlayer.h"
 
 //#include "WeaponAttributeSet.h"
 
@@ -124,6 +126,23 @@ void APCNetShooter::OnRep_Pawn()
 	BP_ClientOnPossess(GetPawn());
     
 	GetNSHUD()->OnPossess(GetPawn());
+
+	
+}
+
+void APCNetShooter::AcknowledgePossession(APawn* P)
+{
+	Super::AcknowledgePossession(P);
+
+	//is like on rep pawn?
+	
+
+	//init ASC on client for use local predicted abilities	
+	AShooterPlayer* ShooterPlayer = Cast<AShooterPlayer>(P);
+	if (ShooterPlayer)
+	{
+		ShooterPlayer->GetAbilitySystemComponent()->InitAbilityActorInfo(ShooterPlayer, ShooterPlayer);
+	}
 }
 
 

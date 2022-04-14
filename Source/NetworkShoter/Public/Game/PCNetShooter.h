@@ -35,6 +35,8 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void BP_ClientOnPossess(APawn* InPawn);
 
+	virtual void AcknowledgePossession(APawn* P) override;
+
 	//~==============================================================================================
 	// Proxy functions
 	
