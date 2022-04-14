@@ -4,6 +4,42 @@
 #include "Items/PlaceableWeapon.h"
 
 #include "NSFunctionLibrary.h"
+#include "Abilities/GameplayAbility.h"
+
+void APlaceableWeapon::StartTargeting(UGameplayAbility* Ability)
+{
+	Super::StartTargeting(Ability);
+
+	SetOwner(Ability->GetAvatarActorFromActorInfo());
+	SetInstigator(Cast<APawn>(Ability->GetAvatarActorFromActorInfo()));
+}
+
+bool APlaceableWeapon::IsConfirmTargetingAllowed()
+{
+	UE_LOG(LogTemp, Warning, TEXT("QWERTY IsConfirmTargetingAllowed ReportForDuty"))
+	return CanPlace();
+}
+
+void APlaceableWeapon::ConfirmTargetingAndContinue()
+{
+	UE_LOG(LogTemp, Warning, TEXT("QWERTY APlaceableWeapon ReportForDuty"))
+	if (IsConfirmTargetingAllowed())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("QWERTY APlaceableWeapon Finish place"))
+		
+		FinishPlaceWeapon();
+		
+		TargetDataReadyDelegate.Broadcast(FGameplayAbilityTargetDataHandle());
+	}
+}
+
+void APlaceableWeapon::ConfirmTargeting()
+{
+	UE_LOG(LogTemp, Warning, TEXT("QWERTY ConfirmTargeting ReportForDuty"))
+	
+	Super::ConfirmTargeting();
+}
+
 
 // Sets default values
 APlaceableWeapon::APlaceableWeapon()
@@ -87,6 +123,8 @@ void APlaceableWeapon::CheckCanBePlaced()
 
 void APlaceableWeapon::UpdatePlaceLocation()
 {
+	if (!GetOwner()) return;
+	
 	FHitResult Hit;
 	FVector Start = UNSFunctionLibrary::GetActorViewPoint_NS(GetOwner(), 400, ECC_Camera);
 	FVector End = Start + FVector::DownVector * 500;
@@ -102,7 +140,9 @@ void APlaceableWeapon::UpdatePlaceLocation()
 	FVector Ground = bHit ? Hit.ImpactPoint : Hit.TraceEnd;
 
 	SetActorLocation(Ground);
-		
+
+	if (!GetInstigator()) return;;
+	
 	SetActorRotation(FRotator(0, GetInstigator()->GetViewRotation().Yaw, 0));
 }
 

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Abilities/GameplayAbilityTargetActor.h"
 #include "PlaceableWeapon.generated.h"
 
 
@@ -13,9 +14,22 @@
  */
 
 UCLASS()
-class NETWORKSHOTER_API APlaceableWeapon : public AActor
+class NETWORKSHOTER_API APlaceableWeapon : public AGameplayAbilityTargetActor
 {
 	GENERATED_BODY()
+/** TargetActor overrides start */
+
+	virtual void StartTargeting(UGameplayAbility* Ability) override;
+	
+	virtual bool IsConfirmTargetingAllowed() override;
+
+	virtual void ConfirmTargetingAndContinue() override;
+	
+	virtual void ConfirmTargeting() override;
+	
+/**  TargetActor overrides end  */
+
+
 	
 public:	
 	APlaceableWeapon();
