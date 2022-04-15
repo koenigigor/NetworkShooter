@@ -87,23 +87,17 @@ void UAsyncTaskCooldownChanged::OnActiveGameplayEffectAddedCallback(UAbilitySyst
 			{
 				// Client using predicted cooldown
 				OnCooldownBegin.Broadcast(CooldownTag, TimeRemaining, Duration);
-
-				UE_LOG(LogTemp, Warning, TEXT("COOLDOWN TimeRemaining = %f, Duration = %f, Client using predicted cooldown"), TimeRemaining, Duration)
 			}
 			else if (bUseServerCooldown && SpecApplied.GetContext().GetAbilityInstance_NotReplicated() == nullptr)
 			{
 				// Client using Server's cooldown. This is Server's corrective cooldown GE.
 				OnCooldownBegin.Broadcast(CooldownTag, TimeRemaining, Duration);
-				
-				UE_LOG(LogTemp, Warning, TEXT("COOLDOWN TimeRemaining = %f, Duration = %f, Client using Server"), TimeRemaining, Duration)
 			}
 			else if (bUseServerCooldown && SpecApplied.GetContext().GetAbilityInstance_NotReplicated())
 			{
 				// Client using Server's cooldown but this is predicted cooldown GE.
 				// This can be useful to gray out abilities until Server's cooldown comes in.
 				OnCooldownBegin.Broadcast(CooldownTag, -1.0f, -1.0f);
-
-				UE_LOG(LogTemp, Warning, TEXT("COOLDOWN TimeRemaining = %f, Duration = %f, Client using Server but this is predicted cooldown GE"), TimeRemaining, Duration)
 			}
 		}
 	}
@@ -120,7 +114,7 @@ void UAsyncTaskCooldownChanged::CooldownTagChanged(const FGameplayTag CooldownTa
 bool UAsyncTaskCooldownChanged::GetCooldownRemainingForTag(FGameplayTagContainer CooldownTag, float& TimeRemaining,
 	float& CooldownDuration)
 {
-	if (IsValid(AbilitySystem) && CooldownTag.Num() > 0) { return false; }
+	if (!IsValid(AbilitySystem) || CooldownTag.Num() == 0){	return false; }
 	
 	TimeRemaining = 0.f;
 	CooldownDuration = 0.f;
@@ -129,8 +123,6 @@ bool UAsyncTaskCooldownChanged::GetCooldownRemainingForTag(FGameplayTagContainer
 	FGameplayEffectQuery const Query = FGameplayEffectQuery::MakeQuery_MatchAnyOwningTags(CooldownTag);
 	auto DurationAndTimeRemaining = AbilitySystem->GetActiveEffectsTimeRemainingAndDuration(Query);
 
-	UE_LOG(LogTemp, Warning, TEXT("COOLDOWN Get cooldown for tag %s, found %d effects with this tag"), *CooldownTags.ToString(), DurationAndTimeRemaining.Num())
-	
 	if (DurationAndTimeRemaining.Num() == 0) {return false; }
 
 	//if we has multiple cooldowns with same tag, get longest
@@ -148,8 +140,6 @@ bool UAsyncTaskCooldownChanged::GetCooldownRemainingForTag(FGameplayTagContainer
 	TimeRemaining = DurationAndTimeRemaining[LongestTimeIndex].Key;
 	CooldownDuration = DurationAndTimeRemaining[LongestTimeIndex].Value;
 
-	UE_LOG(LogTemp, Warning, TEXT("COOLDOWN Get cooldown LongestTime = %f, LongestDuration = %f"), TimeRemaining, CooldownDuration)
-	
 	return true;
 }
 
