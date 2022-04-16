@@ -108,8 +108,8 @@ protected:
 	UPROPERTY(ReplicatedUsing="OnRep_Voting_Votes")
 	TArray<int32> Voting_Votes;
 	
-	/** Players who already voted */
-	TArray<APlayerController*> VotedPlayers;
+	/** Players who already voted, TPair<MapName, bUpVote> */
+	TMap<APlayerController*, TPair<FName, bool>> VotedPlayers;
 
 	UPROPERTY(ReplicatedUsing="OnRep_bVoteStarted")
 	bool bVoteStarted = false;

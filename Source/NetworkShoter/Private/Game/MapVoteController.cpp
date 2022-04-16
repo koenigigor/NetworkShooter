@@ -78,13 +78,19 @@ void UMapVoteController::GenerateMapsToVote()
 
 void UMapVoteController::VoteForMap(APlayerController* Player, FName MapRow, bool Up)
 {
-	//if this player already voted, return
-	if (VotedPlayers.Contains(Player)) return;
+	//if this player already voted, remove his previous vote
+	if (VotedPlayers.Contains(Player))
+	{
+		TPair<FName, bool> PreviousVote = VotedPlayers.FindAndRemoveChecked(Player);
+
+		Voting_Votes[Voting_Maps.Find(PreviousVote.Key)] += PreviousVote.Value ? -1 : 1;
+	}
 	
 	if (Voting_Maps.Contains(MapRow))
 	{
-		VotedPlayers.Add(Player);
-		Voting_Votes[Voting_Maps.Find(MapRow)]++;
+		VotedPlayers.Add(Player, TPair<FName, bool>(MapRow, Up));
+		
+		Voting_Votes[Voting_Maps.Find(MapRow)] += Up ? 1 : -1;
 
 		if (VotedPlayers.Num() >= GetWorld()->GetGameState()->PlayerArray.Num())
 		{
