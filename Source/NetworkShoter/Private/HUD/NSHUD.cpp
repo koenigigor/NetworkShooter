@@ -30,6 +30,12 @@ void ANSHUD::BeginPlay()
 	if (IsValid(PostMatchWidgetClass))
 		PostMatchWidget = CreateWidget<UUserWidget>(GetOwningPlayerController(), PostMatchWidgetClass);
 
+	if (IsValid(SharedHUDClass))
+	{
+		SharedHUD = CreateWidget<UUserWidget>(GetOwningPlayerController(), SharedHUDClass);
+		SharedHUD->AddToViewport();
+	}
+	
 	
 	//bind to match start/end events
 	if (auto NSGameState = GetWorld()->GetGameState<ANSGameState>())

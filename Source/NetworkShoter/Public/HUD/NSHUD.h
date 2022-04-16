@@ -17,6 +17,10 @@ UCLASS()
 class NETWORKSHOTER_API ANSHUD : public AHUD
 {
 	GENERATED_BODY()
+
+	/** Hud widget who shows always */
+	UPROPERTY(EditDefaultsOnly, Category="Settings")
+	TSubclassOf<UUserWidget> SharedHUDClass;
 	
 	UPROPERTY(EditDefaultsOnly, Category="Settings")
 	TSubclassOf<UUserWidget> PreMatchWidgetClass;
@@ -52,7 +56,11 @@ public:
 
 	
 private:
+	UPROPERTY()
 	UUserWidget* CurrentActiveHUD = nullptr;
+
+	UPROPERTY()
+	UUserWidget* SharedHUD = nullptr;
 	
 	UPROPERTY()
 	UUserWidget* PreMatchWidget = nullptr;
