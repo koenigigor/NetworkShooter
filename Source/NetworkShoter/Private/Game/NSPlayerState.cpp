@@ -3,6 +3,7 @@
 
 #include "Game/NSPlayerState.h"
 
+#include "NSAbilitySystemComponent.h"
 #include "Game/NSGameMode.h"
 #include "Net/UnrealNetwork.h"
 
@@ -16,14 +17,20 @@ void ANSPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 
 ANSPlayerState::ANSPlayerState()
 {
-	SetGenericTeamId(FGenericTeamId(0));
+	AbilitySystemComponent = CreateDefaultSubobject<UNSAbilitySystemComponent>("AbilitySystemComponent");
 }
 
 void ANSPlayerState::BeginPlay()
 {
 	Super::BeginPlay();
 
-
+	if (HasAuthority())
+	{
+		for (const auto& Ability : StartupAbility)
+		{
+			AbilitySystemComponent->GiveAbility(Ability);
+		}
+	}
 }
 
 void ANSPlayerState::OnCharacterDeath()
@@ -42,6 +49,11 @@ void ANSPlayerState::OnCharacterDeath()
 bool ANSPlayerState::IsLife()
 {
 	return !bDeath;
+}
+
+UAbilitySystemComponent* ANSPlayerState::GetAbilitySystemComponent() const
+{
+	return AbilitySystemComponent;
 }
 
 void ANSPlayerState::SetGenericTeamId(const FGenericTeamId& NewTeamID)

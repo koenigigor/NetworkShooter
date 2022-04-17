@@ -3,11 +3,15 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AbilitySystemInterface.h"
 #include "GenericTeamAgentInterface.h"
 #include "GameFramework/PlayerState.h"
 #include "NSStructures.h"
 #include "TeamAttitude.h"
 #include "NSPlayerState.generated.h"
+
+class UGameplayAbility;
+class UNSAbilitySystemComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FPlayerStatisticUpdateDelegate);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCharacterDeadDelegate, APawn*, DeadPawn);
@@ -18,7 +22,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCharacterRespawnDelegate);
  * 
  */
 UCLASS()
-class NETWORKSHOTER_API ANSPlayerState : public APlayerState, public IGenericTeamAgentInterface 
+class NETWORKSHOTER_API ANSPlayerState : public APlayerState, public IGenericTeamAgentInterface, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 public:
@@ -54,8 +58,20 @@ public:
 	bool bDeath = true;
 
 	//~==============================================================================================
-	// Team
+	// ASC
+public:	
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+protected:
+	UPROPERTY()
+	UNSAbilitySystemComponent* AbilitySystemComponent;
 
+	UPROPERTY(EditDefaultsOnly, Category="Setup")
+	TArray<TSubclassOf<UGameplayAbility>> StartupAbility;
+
+	
+	//~==============================================================================================
+	// Team
+public:
 	//IGenericTeamAgentInterface
 	virtual void SetGenericTeamId(const FGenericTeamId& NewTeamID) override;  //change TeamID to NewTeamID and no errors )
 	virtual FGenericTeamId GetGenericTeamId() const override;
