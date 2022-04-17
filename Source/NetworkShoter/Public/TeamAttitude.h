@@ -13,7 +13,7 @@
  * meta=(ShowOnlyInnerProperties), not fount how add it
  */
 
-UENUM()
+UENUM(BlueprintType)
 enum class EGameTeam : uint8
 {
 	Neutral UMETA(DisplayName = "Neutral"),

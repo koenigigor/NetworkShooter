@@ -46,12 +46,29 @@ void UTeamSetupManager::ShuffleTeam(bool AddAlreadyInTeam)
 	//shuffle teams
 	for (auto Player : PlayersToShuffle) 
 	{
-		//GetRandom team id, try until get team without overflow
-		uint8 TeamToAdd;
-		do
+		//GetRandom team id, if no search again
+		uint8 TeamToAdd = uint8(Teams[FMath::RandRange(0, Teams.Num()-1)]);
+		if (TeamCountMap[TeamToAdd] >= PlayersPerTeam)
 		{
-			TeamToAdd = uint8(Teams[FMath::RandRange(0, Teams.Num()-1)]);
-		} while (TeamCountMap[TeamToAdd] >= PlayersPerTeam);
+			//get team with free slots
+			TArray<uint8> FreeTeams;
+			for (const auto& Team : Teams)
+			{
+				if (TeamCountMap[uint8(Team)] < PlayersPerTeam)
+				{
+					FreeTeams.Add(uint8(Team));
+				}
+			}
+
+			if (FreeTeams.Num()==0)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("UTeamSetupManager::AddPlayerInTeam Free Team Not Found"))
+				return;
+			}
+
+			//get random of them
+			TeamToAdd = FreeTeams[FMath::RandRange(0, FreeTeams.Num()-1)];
+		}
 		
 		TeamCountMap[TeamToAdd]++;
 		
@@ -82,9 +99,27 @@ void UTeamSetupManager::AddPlayerInTeam_Implementation(ANSPlayerState* Player, E
 	GetTeamAndCount(TeamCountMap, true);
 	
 	uint8 TeamToAdd = uint8(PreferTeam);
-	while (TeamCountMap[TeamToAdd] >= PlayersPerTeam) //try until get team without overflow
+
+	if (TeamCountMap[TeamToAdd] >= PlayersPerTeam)
 	{
-		TeamToAdd = uint8(Teams[FMath::RandRange(0, Teams.Num()-1)]);
+		//get team with free slots
+		TArray<uint8> FreeTeams;
+		for (const auto& Team : Teams)
+		{
+			if (TeamCountMap[uint8(Team)] < PlayersPerTeam)
+			{
+				FreeTeams.Add(uint8(Team));
+			}
+		}
+
+		if (FreeTeams.Num()==0)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("UTeamSetupManager::AddPlayerInTeam Free Team Not Found"))
+			return;
+		}
+
+		//get random of them
+		TeamToAdd = FreeTeams[FMath::RandRange(0, FreeTeams.Num()-1)];
 	}
 	
 	Player->SetGenericTeamId(FGenericTeamId(TeamToAdd));
@@ -112,16 +147,22 @@ void UTeamSetupManager::WaitUntilPlayerChooseTeam(APlayerController* Player)
 
 void UTeamSetupManager::OnChooseTimeEnd()
 {
+	TArray<ANSPlayerState*> EndWaiting;
 	//get player who ends time
 	for (const auto& Waiting : WaitChooseTeamTimers)
 	{
 		float RemainingTime = GetWorld()->GetTimerManager().GetTimerRemaining(Waiting.Value);
 		if (RemainingTime <= 0)
 		{
-			//add player in random team
-			AddPlayerInTeam(Waiting.Key, Teams[FMath::RandRange(0, Teams.Num()-1)]);
+			EndWaiting.Add(Waiting.Key);
 		}
 	}
+	
+	//add players in random team
+	for (const auto& Player : EndWaiting)
+	{
+		AddPlayerInTeam(Player, Teams[FMath::RandRange(0, Teams.Num()-1)]);
+	} 
 }
 
 void UTeamSetupManager::ClearIfWaitingChoose(ANSPlayerState* Player)
