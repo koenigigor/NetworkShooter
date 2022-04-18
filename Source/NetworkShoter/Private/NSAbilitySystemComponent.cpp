@@ -3,12 +3,12 @@
 
 #include "NSAbilitySystemComponent.h"
 
-void UNSAbilitySystemComponent::SendInputReleaseToAbility_Implementation(const FGameplayTagContainer& GameplayTagContainer)
+void UNSAbilitySystemComponent::SendInputReleaseToAbility(const FGameplayTagContainer& GameplayTagContainer)
 {
 	InputRelease.Broadcast(GameplayTagContainer);
 }
 
-void UNSAbilitySystemComponent::SendInputPressToAbility_Implementation(const FGameplayTagContainer& GameplayTagContainer)
+void UNSAbilitySystemComponent::SendInputPressToAbility(const FGameplayTagContainer& GameplayTagContainer)
 {
 	InputPress.Broadcast(GameplayTagContainer);
 	
