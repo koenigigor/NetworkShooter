@@ -63,6 +63,13 @@ public:
 	UDataTable* AttributeSet;
 
 ///Range settings
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Range")
+	float SpreadHalfAngle = 0.f;
+
+	/** larger exponent will cluster points more tightly around the center */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Range")
+	float SpreadExponent = 50.f; 
+	
 	/** Shoot by projectile ability get projectile info here */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Range")
 	bool bShootByProjectile = false;
