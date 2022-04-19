@@ -175,7 +175,7 @@ public:
 	float GetMatchTimerRemaining();
 	
 public:
-	UPROPERTY(Transient, BlueprintReadOnly, Category="Limits", Replicated)
+	UPROPERTY(Transient, BlueprintReadOnly, Category="Limits", Replicated, meta=(ScriptName="EnableMatchTimeLimit"))
 	bool bMatchTimeLimit = false;
 	
 	UPROPERTY(Transient, BlueprintReadOnly, Category="Limits", Replicated)

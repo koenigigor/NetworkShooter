@@ -22,7 +22,7 @@ enum class EGameTeam : uint8
 	Num UMETA(Hidden) //must be last item
 };
 
-USTRUCT(BlueprintType)
+USTRUCT(BlueprintType, meta=(ScriptName="FTeamAttitude"))
 struct FTeamAttitude
 {
 	GENERATED_BODY()

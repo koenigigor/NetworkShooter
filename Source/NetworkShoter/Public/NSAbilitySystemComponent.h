@@ -17,11 +17,12 @@ class NETWORKSHOTER_API UNSAbilitySystemComponent : public UAbilitySystemCompone
 {
 	GENERATED_BODY()
 public:
-	/** Send input release signal to ability (AbilityTask_WaitInputRelease_NS) */
-	UFUNCTION(BlueprintCallable, Server, Unreliable)
+	/** Send input release event to ability (AbilityTask_WaitInputRelease_NS) */
+	UFUNCTION(BlueprintCallable)
 	void SendInputReleaseToAbility(const FGameplayTagContainer& GameplayTagContainer);
 
-	UFUNCTION(BlueprintCallable, Server, Unreliable)
+	/** Send input press event to ability (AbilityTask_WaitInputPress_NS) */
+	UFUNCTION(BlueprintCallable)
 	void SendInputPressToAbility(const FGameplayTagContainer& GameplayTagContainer);	
 
 	FInputRelease InputRelease;

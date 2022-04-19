@@ -16,12 +16,36 @@ void UShootBase::GetShootStartAndDirection(FVector& Start, FVector& Direction, f
 	
 	FVector ViewEnd = UNSFunctionLibrary::GetActorViewPoint_NS(GetAvatarActorFromActorInfo(), Length, ECC_GameTraceChannel2);
 
-	
+	/*
 	DrawDebugLine(GetWorld(), Start, ViewEnd, FColor::Red, false, 20.f, 0, 2);
 	DrawDebugPoint(GetWorld(), Start, 3.f, FColor::Red, false, 20.f);
 	DrawDebugPoint(GetWorld(), ViewEnd, 3.f, FColor::Yellow, false, 20.f);
+	*/
 	
 	Direction = (ViewEnd - Start).GetSafeNormal();
 
 	DrawDebugDirectionalArrow(GetWorld(), Start, Start + Direction * 100.f,3.f, FColor::Green, false, 20.f);
+}
+
+void UShootBase::GetShootStartAndDirectionWithSpread(FVector& Start, FVector& Direction, float Length)
+{
+	GetShootStartAndDirection(Start, Direction, Length);
+
+	auto Weapon = GetAssociatedWeapon();
+	check(Weapon);
+
+	auto WeaponData = Weapon->WeaponData;
+	check(WeaponData)
+
+	Direction = UNSFunctionLibrary::GetRandConeNormalDistribution(Direction, WeaponData->SpreadHalfAngle, WeaponData->SpreadExponent);
+}
+
+AWeapon* UShootBase::GetAssociatedWeapon()
+{
+	if (auto Spec = GetCurrentAbilitySpec())
+	{
+		return Cast<AWeapon>(Spec->SourceObject);
+	}
+	
+	return nullptr;
 }

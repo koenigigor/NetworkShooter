@@ -23,7 +23,7 @@ void UNSEquipment::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	
 	DOREPLIFETIME_CONDITION(UNSEquipment, EquippedWeapon, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(UNSEquipment, EquippedWeaponSlot, COND_OwnerOnly);
-	DOREPLIFETIME_CONDITION(UNSEquipment, Weapons, COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION_NOTIFY(UNSEquipment, Weapons, COND_None, REPNOTIFY_Always);
 }
 
 void UNSEquipment::BeginPlay()
@@ -287,15 +287,29 @@ void UNSEquipment::RegisterWeaponAbilities(AWeapon* Weapon)
 
 	//GiveAbility
 	if (IsValid(Weapon->WeaponData->PrimaryAbility))
-		AbilitySystem->GiveAbility(FGameplayAbilitySpec(Weapon->WeaponData->PrimaryAbility));
+	{
+		auto AbilitySpec = FGameplayAbilitySpec(Weapon->WeaponData->PrimaryAbility);
+		AbilitySpec.SourceObject = Weapon;
+		AbilitySystem->GiveAbility(AbilitySpec);
+	}
 	if (IsValid(Weapon->WeaponData->SecondaryAbility))
-		AbilitySystem->GiveAbility(FGameplayAbilitySpec(Weapon->WeaponData->SecondaryAbility));
+	{
+		auto AbilitySpec = FGameplayAbilitySpec(Weapon->WeaponData->SecondaryAbility);
+		AbilitySpec.SourceObject = Weapon;
+		AbilitySystem->GiveAbility(AbilitySpec);
+	}
 	if (IsValid(Weapon->WeaponData->Throw))
-		AbilitySystem->GiveAbility(FGameplayAbilitySpec(Weapon->WeaponData->Throw));
+	{
+		auto AbilitySpec = FGameplayAbilitySpec(Weapon->WeaponData->Throw);
+		AbilitySpec.SourceObject = Weapon;
+		AbilitySystem->GiveAbility(AbilitySpec);
+	}
 }
 
 void UNSEquipment::UnregisterWeaponAbilities(AWeapon* Weapon)
 {
+	if (!GetOwner()->HasAuthority()) return;
+
 	auto IAbilitySystem = Cast<IAbilitySystemInterface>(GetOwner());
 	if (!ensure(IAbilitySystem)) { return; }
 	auto AbilitySystem = IAbilitySystem->GetAbilitySystemComponent();

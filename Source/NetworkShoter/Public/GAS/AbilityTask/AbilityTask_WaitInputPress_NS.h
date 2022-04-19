@@ -6,7 +6,7 @@
 #include "Abilities/Tasks/AbilityTask.h"
 #include "AbilityTask_WaitInputPress_NS.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FAbilityTask_WaitInputPress);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWaitInputPressDelegateSignature);
 
 /**
  * 
@@ -24,7 +24,7 @@ class NETWORKSHOTER_API UAbilityTask_WaitInputPress_NS : public UAbilityTask
 	virtual void Activate() override;
 
 	UPROPERTY(BlueprintAssignable)
-	FAbilityTask_WaitInputPress InputPress;
+	FWaitInputPressDelegateSignature InputPress;
 
 	UFUNCTION()
 	void OnInputPress(const FGameplayTagContainer& TagContainer);
