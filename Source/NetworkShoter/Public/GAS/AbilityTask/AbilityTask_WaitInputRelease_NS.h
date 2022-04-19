@@ -6,7 +6,7 @@
 #include "Abilities/Tasks/AbilityTask.h"
 #include "AbilityTask_WaitInputRelease_NS.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FAbilityTask_WaitInputRelease);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWaitInputReleaseDelegateSignature);
 
 /**
  * 
@@ -24,7 +24,7 @@ public:
 	virtual void Activate() override;
 
 	UPROPERTY(BlueprintAssignable)
-	FAbilityTask_WaitInputRelease InputRelease;
+	FWaitInputReleaseDelegateSignature InputRelease;
 
 	UFUNCTION()
 	void OnInputRelease(const FGameplayTagContainer& TagContainer);
