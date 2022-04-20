@@ -14,7 +14,7 @@ void UShootBase::GetShootStartAndDirection(FVector& Start, FVector& Direction, f
 	ensure(Equipment && Equipment->GetEquippedWeapon());
 	Start = Equipment->GetEquippedWeapon()->GetRootComponent()->GetSocketLocation("Muzzle");
 	
-	FVector ViewEnd = UNSFunctionLibrary::GetActorViewPoint_NS(GetAvatarActorFromActorInfo(), Length, ECC_GameTraceChannel2);
+	FVector ViewEnd = UNSFunctionLibrary::GetActorViewPoint_NS(GetAvatarActorFromActorInfo(), Length, GetTraceChannel());
 
 	/*
 	DrawDebugLine(GetWorld(), Start, ViewEnd, FColor::Red, false, 20.f, 0, 2);
@@ -40,6 +40,19 @@ void UShootBase::GetShootStartAndDirectionWithSpread(FVector& Start, FVector& Di
 	Direction = UNSFunctionLibrary::GetRandConeNormalDistribution(Direction, WeaponData->SpreadHalfAngle, WeaponData->SpreadExponent);
 }
 
+void UShootBase::MakeHit(FHitResult& OutHit)
+{
+	const float ShootDistance = 1000.f; //todo weapon attribute
+
+	FVector Start;
+	FVector Direction;
+	GetShootStartAndDirectionWithSpread(Start, Direction, ShootDistance);
+
+	FVector End = Start + (Direction * ShootDistance);
+	
+	GetWorld()->LineTraceSingleByChannel(OutHit, Start, End, GetTraceChannel());
+}
+
 AWeapon* UShootBase::GetAssociatedWeapon()
 {
 	if (auto Spec = GetCurrentAbilitySpec())
@@ -48,4 +61,26 @@ AWeapon* UShootBase::GetAssociatedWeapon()
 	}
 	
 	return nullptr;
+}
+
+ECollisionChannel UShootBase::GetTraceChannel()
+{
+	return ECollisionChannel::ECC_GameTraceChannel2;
+}
+
+FGameplayEffectSpecHandle UShootBase::MakeDamageEffectSpec()
+{
+	const auto Instigator = GetAvatarActorFromActorInfo();
+	const auto Causer = GetAssociatedWeapon();
+
+	if (!IsValid(DamageEffectClass))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Invalid damage effect in shoot ability"))
+		return FGameplayEffectSpecHandle();
+	}
+	
+	const auto EffectSpec = MakeOutgoingGameplayEffectSpec(DamageEffectClass);
+	EffectSpec.Data.Get()->GetContext().AddInstigator(Instigator, Causer);
+
+	return EffectSpec;
 }

@@ -7,6 +7,8 @@
 #include "Engine/DataAsset.h"
 #include "WeaponData.generated.h"
 
+class ANSProjectile;
+
 UENUM()
 enum class EWeaponType : uint8
 {
@@ -78,7 +80,7 @@ public:
 	float ProjectileSpeed = 1300;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Range", meta=(EditCondition="bShootByProjectile"))
-	TSubclassOf<AActor> ProjectileClass = nullptr;
+	TSubclassOf<ANSProjectile> ProjectileClass = nullptr;
 
 ///Throw settings (grenades like)
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Throw");
