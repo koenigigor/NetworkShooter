@@ -25,8 +25,20 @@ void UAbilityTask_WaitInputRelease_NS::Activate()
 	auto NSAbilitySystem = Cast<UNSAbilitySystemComponent>(AbilitySystemComponent);
 	if (NSAbilitySystem)
 	{
-		NSAbilitySystem->InputRelease.AddDynamic(this, &UAbilityTask_WaitInputRelease_NS::OnInputRelease);
+		InputReleaseDelegateHandle = NSAbilitySystem->InputRelease.AddUObject(this, &UAbilityTask_WaitInputRelease_NS::OnInputRelease);
 	}
+}
+
+void UAbilityTask_WaitInputRelease_NS::OnDestroy(bool bInOwnerFinished)
+{
+	auto NSAbilitySystem = Cast<UNSAbilitySystemComponent>(AbilitySystemComponent);
+	if (NSAbilitySystem)
+	{
+		NSAbilitySystem->InputRelease.Remove(InputReleaseDelegateHandle);
+	}
+	
+	
+	Super::OnDestroy(bInOwnerFinished);
 }
 
 void UAbilityTask_WaitInputRelease_NS::OnInputRelease(const FGameplayTagContainer& TagContainer)

@@ -24,8 +24,19 @@ void UAbilityTask_WaitInputPress_NS::Activate()
 	auto NSAbilitySystem = Cast<UNSAbilitySystemComponent>(AbilitySystemComponent);
 	if (NSAbilitySystem)
 	{
-		NSAbilitySystem->InputPress.AddDynamic(this, &UAbilityTask_WaitInputPress_NS::OnInputPress);
+		NSAbilitySystem->InputPress.AddUObject(this, &UAbilityTask_WaitInputPress_NS::OnInputPress);
 	}
+}
+
+void UAbilityTask_WaitInputPress_NS::OnDestroy(bool bInOwnerFinished)
+{
+	auto NSAbilitySystem = Cast<UNSAbilitySystemComponent>(AbilitySystemComponent);
+	if (NSAbilitySystem)
+	{
+		NSAbilitySystem->InputPress.Remove(InputPressDelegateHandle);
+	}
+	
+	Super::OnDestroy(bInOwnerFinished);
 }
 
 void UAbilityTask_WaitInputPress_NS::OnInputPress(const FGameplayTagContainer& TagContainer)

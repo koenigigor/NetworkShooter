@@ -31,7 +31,8 @@ class NETWORKSHOTER_API UNSAIPerceptionComponent : public UAIPerceptionComponent
 	void OnLosePriorityEnemy();
 
 	AActor* GetNewPriorityEnemy();
-	
+
+	UPROPERTY()
 	AActor* PriorityEnemy = nullptr;
 	
 	UPROPERTY(BlueprintAssignable)

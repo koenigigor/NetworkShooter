@@ -22,6 +22,7 @@ public:
 	static UAbilityTask_WaitInputRelease_NS* AbilityTask_WaitInputRelease_NS(UGameplayAbility* OwningAbility, const FGameplayTagContainer& AbilityTags, bool TriggerOnce);
 	
 	virtual void Activate() override;
+	virtual void OnDestroy(bool bInOwnerFinished) override;
 
 	UPROPERTY(BlueprintAssignable)
 	FWaitInputReleaseDelegateSignature InputRelease;
@@ -32,4 +33,6 @@ public:
 	bool bTriggerOnce;
 
 	FGameplayTagContainer Tags;
+
+	FDelegateHandle InputReleaseDelegateHandle;
 };

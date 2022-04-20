@@ -22,6 +22,7 @@ class NETWORKSHOTER_API UAbilityTask_WaitInputPress_NS : public UAbilityTask
 	static UAbilityTask_WaitInputPress_NS* AbilityTask_WaitInputPress_NS(UGameplayAbility* OwningAbility, const FGameplayTagContainer& AbilityTags, bool TriggerOnce);
 	
 	virtual void Activate() override;
+	virtual void OnDestroy(bool bInOwnerFinished) override;
 
 	UPROPERTY(BlueprintAssignable)
 	FWaitInputPressDelegateSignature InputPress;
@@ -32,5 +33,7 @@ class NETWORKSHOTER_API UAbilityTask_WaitInputPress_NS : public UAbilityTask
 	bool bTriggerOnce;
 
 	FGameplayTagContainer Tags;
+	
+	FDelegateHandle InputPressDelegateHandle;
 };
 
