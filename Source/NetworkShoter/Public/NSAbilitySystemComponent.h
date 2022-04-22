@@ -18,12 +18,18 @@ class NETWORKSHOTER_API UNSAbilitySystemComponent : public UAbilitySystemCompone
 public:
 	/** Send input release event to ability (AbilityTask_WaitInputRelease_NS) */
 	UFUNCTION(BlueprintCallable)
-	void SendInputReleaseToAbility(const FGameplayTagContainer& GameplayTagContainer);
+	void SendInputReleaseToAbility(const FGameplayTagContainer& GameplayTagContainer, bool bReplicateOnServer = false);
 
 	/** Send input press event to ability (AbilityTask_WaitInputPress_NS) */
 	UFUNCTION(BlueprintCallable)
-	void SendInputPressToAbility(const FGameplayTagContainer& GameplayTagContainer);	
+	void SendInputPressToAbility(const FGameplayTagContainer& GameplayTagContainer, bool bReplicateOnServer = false);	
 
 	FAbilityInputDelegate InputRelease;
 	FAbilityInputDelegate InputPress;
+
+	UFUNCTION(Server, Reliable)
+	void Server_SendInputReleaseToAbility(const FGameplayTagContainer& GameplayTagContainer);
+
+	UFUNCTION(Server, Reliable)
+	void Server_SendInputPressToAbility(const FGameplayTagContainer& GameplayTagContainer);
 };
