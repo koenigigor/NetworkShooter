@@ -49,8 +49,12 @@ void UShootBase::MakeHit(FHitResult& OutHit)
 	GetShootStartAndDirectionWithSpread(Start, Direction, ShootDistance);
 
 	FVector End = Start + (Direction * ShootDistance);
+
+	FCollisionQueryParams CollisionParams;
+	CollisionParams.AddIgnoredActor(GetAvatarActorFromActorInfo());
+	CollisionParams.AddIgnoredActor(GetAssociatedWeapon());
 	
-	GetWorld()->LineTraceSingleByChannel(OutHit, Start, End, GetTraceChannel());
+	GetWorld()->LineTraceSingleByChannel(OutHit, Start, End, GetTraceChannel(), CollisionParams);
 }
 
 AWeapon* UShootBase::GetAssociatedWeapon()

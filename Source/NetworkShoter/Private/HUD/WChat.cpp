@@ -3,7 +3,7 @@
 
 #include "HUD/WChat.h"
 
-#include "ChatController.h"
+#include "Game/Components/ChatController.h"
 #include "Game/NSPlayerState.h"
 #include "Game/PCNetShooter.h"
 #include "GameFramework/GameStateBase.h"

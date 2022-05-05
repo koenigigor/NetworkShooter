@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "ChatController.h"
+#include "Game/Components/ChatController.h"
 
 #include "Game/NSPlayerState.h"
 

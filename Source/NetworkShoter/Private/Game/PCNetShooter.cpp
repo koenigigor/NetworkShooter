@@ -4,8 +4,8 @@
 #include "Game/PCNetShooter.h"
 
 #include "AbilitySystemComponent.h"
-#include "ChatController.h"
-#include "Game/MapVoteController.h"
+#include "Game/Components/ChatController.h"
+#include "Game/Components/MapVoteController.h"
 #include "Game/NSPlayerState.h"
 #include "GameFramework/GameStateBase.h"
 #include "GameFramework/SpectatorPawn.h"

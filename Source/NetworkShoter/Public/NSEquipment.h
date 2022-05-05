@@ -111,7 +111,7 @@ public:
 	bool RemoveStoredSpecial(TSubclassOf<APlaceableWeapon> SpecialToRemove);
 	
 protected:
-    UPROPERTY(EditDefaultsOnly)
+    UPROPERTY(EditDefaultsOnly, Replicated)
     TSubclassOf<APlaceableWeapon> StoredSpecialClass;
 
 	//~==============================================================================================

@@ -22,10 +22,10 @@ bool APlaceableWeapon::IsConfirmTargetingAllowed()
 
 void APlaceableWeapon::ConfirmTargetingAndContinue()
 {
-	UE_LOG(LogTemp, Warning, TEXT("QWERTY APlaceableWeapon ReportForDuty"))
+	UE_LOG(LogTemp, Warning, TEXT("QWERTY APlaceableWeapon ReportForDuty, Server %d"), HasAuthority())
 	if (IsConfirmTargetingAllowed())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("QWERTY APlaceableWeapon Finish place"))
+		UE_LOG(LogTemp, Warning, TEXT("QWERTY APlaceableWeapon Finish place, Server %d"), HasAuthority())
 		
 		FinishPlaceWeapon();
 		
@@ -35,7 +35,7 @@ void APlaceableWeapon::ConfirmTargetingAndContinue()
 
 void APlaceableWeapon::ConfirmTargeting()
 {
-	UE_LOG(LogTemp, Warning, TEXT("QWERTY ConfirmTargeting ReportForDuty"))
+	UE_LOG(LogTemp, Warning, TEXT("QWERTY ConfirmTargeting , Server %d"), HasAuthority())
 	
 	Super::ConfirmTargeting();
 }

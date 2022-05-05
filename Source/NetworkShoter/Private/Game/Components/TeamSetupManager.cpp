@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Game/TeamSetupManager.h"
+#include "Game/Components/TeamSetupManager.h"
 
 #include "Game/NSGameState.h"
 #include "Game/NSPlayerState.h"

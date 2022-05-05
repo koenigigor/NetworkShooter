@@ -23,6 +23,7 @@ void UNSEquipment::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	
 	DOREPLIFETIME_CONDITION(UNSEquipment, EquippedWeapon, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(UNSEquipment, EquippedWeaponSlot, COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UNSEquipment, StoredSpecialClass, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION_NOTIFY(UNSEquipment, Weapons, COND_None, REPNOTIFY_Always);
 }
 
