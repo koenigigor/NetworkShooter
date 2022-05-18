@@ -112,7 +112,7 @@ void APCNetShooter::OnPossess(APawn* InPawn)
 	Super::OnPossess(InPawn);
 
 	//if it local client possess (spectator)
-	if (!GetWorld()->IsServer())
+	if (GetNetMode() != ENetMode::NM_DedicatedServer)
 	{
 		OnRep_Pawn();
 	}

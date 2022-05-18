@@ -51,7 +51,7 @@ UAbilityTask_WaitProjectileHit* UAbilityTask_WaitProjectileHit::AbilityTask_Wait
 void UAbilityTask_WaitProjectileHit::ReceiveHit(AActor* SelfActor, AActor* OtherActor, FVector NormalImpulse,
 	const FHitResult& Hit)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Projectile hit : %s"), *Hit.Actor->GetName())
+	UE_LOG(LogTemp, Warning, TEXT("Projectile hit : %s"), *Hit.GetActor()->GetName())
 	
 	// Construct TargetData
 	FGameplayAbilityTargetData_SingleTargetHit* TargetData = new FGameplayAbilityTargetData_SingleTargetHit(Hit);

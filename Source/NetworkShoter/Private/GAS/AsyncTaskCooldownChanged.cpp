@@ -49,7 +49,7 @@ void UAsyncTaskCooldownChanged::EndTask()
 
 	//destruct object
 	SetReadyToDestroy();
-	MarkPendingKill();
+	MarkAsGarbage();
 }
 
 void UAsyncTaskCooldownChanged::OnActiveGameplayEffectAddedCallback(UAbilitySystemComponent* Target,

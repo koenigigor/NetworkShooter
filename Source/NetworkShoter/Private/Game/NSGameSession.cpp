@@ -38,7 +38,7 @@ void ANSGameSession::RegisterServer()
 	Settings.NumPublicConnections = 16;
 	Settings.bUsesPresence = true;
 	
-	Session->CreateSession(0, GameSessionName, Settings);
+	Session->CreateSession(0, NAME_GameSession, Settings);
 
 	UE_LOG(LogTemp, Log, TEXT("-=- Session create -=-"))
 }

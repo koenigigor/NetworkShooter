@@ -47,7 +47,7 @@ void ANSGameState::Tick(float DeltaSeconds)
 	{
 		MatchTime--;
 		
-		if (MatchTime<=0 && GetWorld()->IsServer())
+		if (MatchTime<=0 && HasAuthority())
 		{
 			Cast<ANSGameMode>(GetWorld()->GetAuthGameMode())->StartMatch();
 		}
@@ -56,7 +56,7 @@ void ANSGameState::Tick(float DeltaSeconds)
 	{
 		MatchTime++;
 		
-		if (bMatchTimeLimit && GetWorld()->IsServer() && MatchTime >= MatchTimeLimit.GetTotalSeconds())
+		if (bMatchTimeLimit && HasAuthority() && MatchTime >= MatchTimeLimit.GetTotalSeconds())
 		{
 			Cast<ANSGameMode>(GetWorld()->GetAuthGameMode())->EndMatch();
 		}
