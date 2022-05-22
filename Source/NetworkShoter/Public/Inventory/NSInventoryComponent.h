@@ -1,0 +1,127 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Components/ActorComponent.h"
+#include "NSInventoryComponent.generated.h"
+
+class UNSItemInstance;
+class UNSItemDefinition;
+class UNSInventoryComponent;
+
+USTRUCT(BlueprintType)
+struct FInventoryEntry : public FFastArraySerializerItem
+{
+	GENERATED_BODY()
+
+	FInventoryEntry(){};
+	FInventoryEntry(UNSItemInstance* InItem, int32 InStackCount):Item(InItem), StackCount(InStackCount){};
+	
+	UPROPERTY(BlueprintReadOnly)
+	UNSItemInstance* Item = nullptr;
+
+	UPROPERTY(BlueprintReadOnly)
+	int32 StackCount = 0;
+
+	/** keep last count of item for calculate PostReplicatedChange() */
+	UPROPERTY(NotReplicated)
+	int32 LastObservedCount = 0;
+
+	bool IsValid() const { return Item ? true : false; };
+};
+
+
+USTRUCT()
+struct FInventoryList : public FFastArraySerializer
+{
+	GENERATED_BODY()
+	FInventoryList(){};
+	FInventoryList(UNSInventoryComponent* InOwningComponent):InventoryComponent(InOwningComponent){};
+
+	void PreReplicatedRemove(const TArrayView<int32> RemovedIndices, int32 FinalSize);
+	void PostReplicatedAdd(const TArrayView<int32> AddedIndices, int32 FinalSize);
+	void PostReplicatedChange(const TArrayView<int32> ChangedIndices, int32 FinalSize);
+
+	bool NetDeltaSerialize(FNetDeltaSerializeInfo& DeltaParams)
+	{
+		return FastArrayDeltaSerialize<FInventoryEntry, FInventoryList>(Entries, DeltaParams, *this);
+	}
+
+	void AddEntry(TSubclassOf<UNSItemDefinition> Definition, int32 Count = 1);
+	void AddEntry(UNSItemInstance* Item, int32 Count = 1);
+
+	/** remove entry, array if item stack broken */
+	TArray<FInventoryEntry> RemoveEntry(TSubclassOf<UNSItemDefinition> Definition, int32 Count = 1, bool bExactCount = true);
+	/** remove entry first starts from selected item */
+	TArray<FInventoryEntry> RemoveEntry(UNSItemInstance* Item, int32 Count = 1, bool bExactCount = true);
+	
+	/** return first item with definition */
+	FInventoryEntry FindItem(TSubclassOf<UNSItemDefinition> Definition);
+
+	bool IsStackable(TSubclassOf<UNSItemDefinition> Definition) const;
+
+	
+	UNSItemInstance* CreateInstance(TSubclassOf<UNSItemDefinition> Definition);
+	
+	void AccelerationMapRemoveValue(TSubclassOf<UNSItemDefinition> Definition, int32 Value);
+	
+private:
+	FInventoryEntry& FindItem_Mutable(TSubclassOf<UNSItemDefinition> Definition);
+	
+	friend UNSInventoryComponent;
+	
+	UPROPERTY()
+	TArray<FInventoryEntry> Entries;
+
+	//acceleration map for collect summary count of items by definition
+	TMap<TSubclassOf<UNSItemDefinition>, int32> DefCountMap;
+
+	UPROPERTY(NotReplicated)
+	UNSInventoryComponent* InventoryComponent = nullptr;
+};
+
+template<>
+struct TStructOpsTypeTraits<FInventoryList> : public TStructOpsTypeTraitsBase2<FInventoryList>
+{
+	enum { WithNetDeltaSerializer = true };
+};
+
+
+
+UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+class NETWORKSHOTER_API UNSInventoryComponent : public UActorComponent
+{
+	GENERATED_BODY()
+
+public:	
+	UNSInventoryComponent();
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual bool ReplicateSubobjects(class UActorChannel* Channel, class FOutBunch* Bunch, FReplicationFlags* RepFlags) override;
+
+	/** Create item from definition and add it in storage */
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory")
+	void AddItem_Definition(TSubclassOf<UNSItemDefinition> Definition, int32 Count = 1);
+	
+	/** Add existing item in storage */
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory")
+	void AddItem_Instance(UNSItemInstance* Item, int32 Count = 1);
+
+	/** remove items from storage
+	 * @bDestroy = Destroy removed items
+	 * @bExactCount = if not have exact count of items, steel remove
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory")
+	TArray<FInventoryEntry> RemoveItem(TSubclassOf<UNSItemDefinition> Definition, int32 Count = 1, bool bDestroy = false, bool bExactCount = true);
+	
+	/** return first item with definition */
+	UFUNCTION(BlueprintPure, Category="Inventory")
+	FInventoryEntry FindItem(TSubclassOf<UNSItemDefinition> Definition);
+
+	UFUNCTION(BlueprintCallable, Category="Inventory")
+	TArray<FInventoryEntry> GetInventory();
+
+private:
+	UPROPERTY(Replicated)
+	FInventoryList InventoryList;
+};

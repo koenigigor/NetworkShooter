@@ -8,9 +8,23 @@ public class NetworkShoter : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "GameplayTags", "GameplayTasks", "DeveloperSettings", "AIModule", "OnlineSubsystem", "OnlineSubsystemUtils"});
+		PublicDependencyModuleNames.AddRange(new string[] { 
+			"Core", 
+			"CoreUObject", 
+			"Engine", 
+			"InputCore", 
+			"GameplayTags", 
+			"GameplayTasks", 
+			"DeveloperSettings", 
+			"AIModule",
+			"OnlineSubsystem", 
+			"OnlineSubsystemUtils"
+		});
 
-		PrivateDependencyModuleNames.AddRange(new string[] {  });
+		PrivateDependencyModuleNames.AddRange(new string[]
+		{
+			"NetCore"
+		});
 
 		DynamicallyLoadedModuleNames.Add("OnlineSubsystemNull");
 		
