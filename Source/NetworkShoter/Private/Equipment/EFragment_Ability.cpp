@@ -12,7 +12,7 @@ void UEFragment_Ability::OnEquip(UNSEquipmentInstance* Instance)
 {
 	Super::OnEquip(Instance);
 
-	auto Owner = Instance->GetInstigator();
+	const auto Owner = Instance->GetInstigator();
 	ensure(Owner);
 
 	UAbilitySystemComponent* ASC = GetOwnerASC(Owner);
@@ -32,7 +32,7 @@ void UEFragment_Ability::OnUnequip(UNSEquipmentInstance* Instance)
 	Super::OnUnequip(Instance);
 }
 
-UAbilitySystemComponent* UEFragment_Ability::GetOwnerASC(AActor* Owner)
+UAbilitySystemComponent* UEFragment_Ability::GetOwnerASC(AActor* Owner) const
 {
 	UAbilitySystemComponent* ASC = nullptr;
 	if (const auto AbilityInterface = Cast<IAbilitySystemInterface>(Owner))

@@ -10,7 +10,7 @@ class UNSGameplayAbility_FromEquipment;
 class UAbilitySystemComponent;
 
 /**
- * 
+ * Fragment responses for give ability to owner
  */
 UCLASS()
 class NETWORKSHOTER_API UEFragment_Ability : public UNSEquipmentFragment
@@ -25,5 +25,5 @@ public:
 	virtual void OnUnequip(UNSEquipmentInstance* Instance) override;
 
 private:
-	UAbilitySystemComponent* GetOwnerASC(AActor* Owner);
+	UAbilitySystemComponent* GetOwnerASC(AActor* Owner) const;
 };

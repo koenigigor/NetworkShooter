@@ -9,13 +9,11 @@
 void UEFragment_SpawnActors::OnEquip(UNSEquipmentInstance* Instance)
 {
 	Super::OnEquip(Instance);
-
-	UE_LOG(LogTemp, Warning, TEXT("Fragment spawn actors called"))
 	
 	check(Instance && Instance->GetInstigator());
 	
 	USceneComponent* AttachTarget = Instance->GetInstigator()->GetRootComponent();
-	if (auto Character = Cast<ACharacter>(Instance->GetInstigator()))
+	if (const auto Character = Cast<ACharacter>(Instance->GetInstigator()))
 	{
 		AttachTarget = Character->GetMesh(); //todo interface for fp/tp
 	}
@@ -38,8 +36,6 @@ void UEFragment_SpawnActors::OnEquip(UNSEquipmentInstance* Instance)
 			ActorToSpawn.Socket);
 
 		Instance->SpawnedActors.Add(Spawned);
-
-		UE_LOG(LogTemp, Warning, TEXT("Actor spawn and attach %d"), IsValid(Spawned))
 	} 
 }
 

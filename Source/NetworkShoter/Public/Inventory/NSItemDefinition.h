@@ -14,7 +14,7 @@ class UNSInventoryItemFragment : public UObject
 {
 	GENERATED_BODY()
 public:
-	virtual void OnInstanceCreated(UNSItemInstance* Instance);
+	virtual void OnInstanceCreated(UNSItemInstance* Instance) {};
 };
 
 
@@ -36,12 +36,12 @@ public:
 public:
 	UNSInventoryItemFragment* FindFragmentByClass(TSubclassOf<UNSInventoryItemFragment> FragmentClass) const;
 	
-	template <class T>		//linker error if body in cpp file
+	template <class T>
 	T* FindFragmentByClass() const
 	{
 		return (T*)FindFragmentByClass(T::StaticClass());
 	}
 
-	UFUNCTION(BlueprintCallable, meta=(DeterminesOutputType=FragmentClass))
-	static const UNSInventoryItemFragment* FindItemDefinitionFragment(const TSubclassOf<UNSItemDefinition> ItemDef, const TSubclassOf<UNSInventoryItemFragment> FragmentClass);
+	UFUNCTION(BlueprintCallable, DisplayName="FindFragmentByClass", Category="Inventory", meta=(DeterminesOutputType=FragmentClass))
+	static const UNSInventoryItemFragment* FindFragmentByClass(const TSubclassOf<UNSItemDefinition> ItemDef, const TSubclassOf<UNSInventoryItemFragment> FragmentClass);
 };

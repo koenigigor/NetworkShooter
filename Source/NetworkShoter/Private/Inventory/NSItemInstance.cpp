@@ -44,16 +44,12 @@ UNSInventoryItemFragment* UNSItemInstance::FindFragmentByClass(
 	return GetDefault<UNSItemDefinition>(GetItemDefinition())->FindFragmentByClass(FragmentClass);
 }
 
-void UNSItemInstance::DestroyObject()
-{
-	MarkAsGarbage();
-}
 
-void UNSItemInstance::SetItemDef(TSubclassOf<UNSItemDefinition> Definition)
+void UNSItemInstance::InitDefinition(TSubclassOf<UNSItemDefinition> Definition)
 {
 	if (ItemDefinition)
 	{
-		UE_LOG(LogTemp, Error, TEXT("UNSInventoryItemInstance::SetItemDef cant set new item defenition, defenition already has"))
+		UE_LOG(LogTemp, Error, TEXT("UNSInventoryItemInstance::InitDefinition cant set new item defenition, defenition already has"))
 		return;
 	}
 	
@@ -62,8 +58,6 @@ void UNSItemInstance::SetItemDef(TSubclassOf<UNSItemDefinition> Definition)
 	{
 		Fragment->OnInstanceCreated(this);
 	}
-
-	UE_LOG(LogTemp, Warning, TEXT("UNSInventoryItemInstance::SetItemDef item created"))
 }
 
 

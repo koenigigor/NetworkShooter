@@ -41,5 +41,5 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Instanced)
 	TArray<TObjectPtr<UNSEquipmentFragment>> Fragments;
 
-	TSubclassOf<UNSEquipmentInstance> GetInstanceType();
+	TSubclassOf<UNSEquipmentInstance> GetInstanceType() const;
 };

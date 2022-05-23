@@ -5,7 +5,7 @@
 
 #include "Equipment/NSEquipmentInstance.h"
 
-TSubclassOf<UNSEquipmentInstance> UNSEquipmentDefinition::GetInstanceType()
+TSubclassOf<UNSEquipmentInstance> UNSEquipmentDefinition::GetInstanceType() const
 {
 	if (!InstanceType)
 		return UNSEquipmentInstance::StaticClass();

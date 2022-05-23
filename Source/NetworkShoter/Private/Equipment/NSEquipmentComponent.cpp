@@ -15,7 +15,7 @@ void FNSEquipmentList::PreReplicatedRemove(const TArrayView<int32> RemovedIndice
 {
 	for (const auto& Index : RemovedIndices)
 	{
-		auto& Entry = Entries[Index];
+		const auto& Entry = Entries[Index];
 		ensure(Entry.EquipmentInstance);
 		AccelerationMap.Remove(Entry.EquipmentInstance);
 		SlotMap.Remove(Entry.Slot);
@@ -55,13 +55,13 @@ void FNSEquipmentList::AddEntry(FNSEquipmentEntry Entry)
 	MarkItemDirty(Entry);
 }
 
-FNSEquipmentEntry FNSEquipmentList::RemoveEntry(UNSEquipmentInstance* Instance)
+FNSEquipmentEntry FNSEquipmentList::RemoveEntry(const UNSEquipmentInstance* Instance)
 {
 	if (AccelerationMap.Contains(Instance))
 	for (auto It = Entries.CreateIterator(); It; ++It)
 	{
 		FNSEquipmentEntry Entry = *It;
-		if (Entry.EquipmentInstance != Instance) continue;
+		if (Entry.EquipmentInstance != Instance) continue; //next iteration
 
 		AccelerationMap.Remove(Instance);
 		SlotMap.Remove(Entry.Slot);
@@ -75,7 +75,7 @@ FNSEquipmentEntry FNSEquipmentList::RemoveEntry(UNSEquipmentInstance* Instance)
 	return FNSEquipmentEntry();
 }
 
-FNSEquipmentEntry FNSEquipmentList::GetEntryBySlot(EEquipmentSlot Slot)
+FNSEquipmentEntry FNSEquipmentList::GetEntryBySlot(EEquipmentSlot Slot) const
 {
 	return SlotMap.FindRef(Slot);
 }
@@ -141,7 +141,7 @@ UNSEquipmentInstance* UNSEquipmentComponent::EquipItem(UNSItemInstance* Item)
 
 UNSItemInstance* UNSEquipmentComponent::UnEquipItemInSlot(EEquipmentSlot Slot, bool bDestroy)
 {
-	auto Entry = GetEquipmentBySlot(Slot);
+	const auto Entry = GetEquipmentBySlot(Slot);
 	if (!Entry.EquipmentInstance) return nullptr;
 
 	return UnEquipItem(Entry.EquipmentInstance, bDestroy);
@@ -150,13 +150,14 @@ UNSItemInstance* UNSEquipmentComponent::UnEquipItemInSlot(EEquipmentSlot Slot, b
 UNSItemInstance* UNSEquipmentComponent::UnEquipItem(UNSEquipmentInstance* Item, bool bDestroy)
 {
 	if (!Item) return nullptr;
-	
-	auto RemovedEntry = EquipmentList.RemoveEntry(Item);
+
+	//remove entry from list
+	const auto RemovedEntry = EquipmentList.RemoveEntry(Item);
 	if (!RemovedEntry.EquipmentInstance) return nullptr; //item not found
 
+	//send unequip to all fragments
 	const auto DefinitionClass = RemovedEntry.ItemInstance->FindFragmentByClass<UFragment_Equipable>()->GetDefinitionClass();
 	const auto Definition = NewObject<UNSEquipmentDefinition>(GetOwner(), DefinitionClass);
-
 	for (const auto& Fragment : Definition->Fragments)
 	{
 		Fragment->OnUnequip(RemovedEntry.EquipmentInstance);

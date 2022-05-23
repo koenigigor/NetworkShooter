@@ -19,7 +19,7 @@ struct FEquipmentActor
 };
 
 /**
- * 
+ * Fragment response for spawn actors who represent 'visual' of this equipment
  */
 UCLASS()
 class NETWORKSHOTER_API UEFragment_SpawnActors : public UNSEquipmentFragment
@@ -27,8 +27,6 @@ class NETWORKSHOTER_API UEFragment_SpawnActors : public UNSEquipmentFragment
 	GENERATED_BODY()
 
 public:
-	//spawn actor, attach socket, offset
-
 	virtual void OnEquip(UNSEquipmentInstance* Instance) override;
 	virtual void OnUnequip(UNSEquipmentInstance* Instance) override;
 

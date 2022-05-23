@@ -19,17 +19,21 @@ void UNSGameplayAbility_FromEquipment::EndAbility(const FGameplayAbilitySpecHand
 {
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 
-	UE_LOG(LogTemp, Warning, TEXT("Ability From Equipment start ending"))
-	if (HasAuthority(&ActivationInfo))
-	//if (auto EquipmentItem = GetAssociatedEquipment())
-	if (1)	//true for test //TODO
+	if (HasAuthority(&ActivationInfo) && !ItemStillEquipped())	
 	{
-		//if it last item
-		UE_LOG(LogTemp, Warning, TEXT("Ability From Equipment try clear ability"))
 		GetAbilitySystemComponentFromActorInfo()->ClearAbility(Handle);
-		UE_LOG(LogTemp, Warning, TEXT("Ability From Equipment clear successful"))
-	} else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Ability From Equipment associated equipment not found"))
 	}
+}
+
+bool UNSGameplayAbility_FromEquipment::ItemStillEquipped()
+{
+	/*
+	auto Equipment = GetAvatarActorFromActorInfo()->GetComponentByClass(UNSEquipmentComponent::StaticClass());
+	if (Equipment)
+	{
+		Equipment->
+	}*/
+
+	
+	return true;
 }

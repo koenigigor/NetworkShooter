@@ -29,12 +29,7 @@ void FInventoryList::PostReplicatedAdd(const TArrayView<int32> AddedIndices, int
 	{
 		auto& Entry = Entries[Index];
 		ensure(Entry.Item);
-
-		//auto Defenition = Entry.Item->GetItemDefinition();
-		//DefCountMap.FindOrAdd(Entry.Item->GetItemDefinition());
-		//TagToCountMap.Add(Item.Tag, Item.Value);
-
-		//todo this add is work?
+		
 		int32& CurrentValue = DefCountMap.FindOrAdd(Entry.Item->GetItemDefinition());
 		CurrentValue += Entry.StackCount;
 
@@ -47,7 +42,7 @@ void FInventoryList::PostReplicatedChange(const TArrayView<int32> ChangedIndices
 	for (const auto& Index : ChangedIndices)
 	{
 		auto& Entry = Entries[Index];
-		int32 Delta = Entry.StackCount - Entry.LastObservedCount;
+		const int32 Delta = Entry.StackCount - Entry.LastObservedCount;
 
 		int32& CurrentValue = DefCountMap.FindOrAdd(Entry.Item->GetItemDefinition());
 		CurrentValue += Delta;
@@ -63,13 +58,12 @@ void FInventoryList::AddEntry(TSubclassOf<UNSItemDefinition> Definition, int32 C
 
 void FInventoryList::AddEntry(UNSItemInstance* Item, int32 Count)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Start Add ItemInst in Inventory list"))
 	
 	if (IsStackable(Item->GetItemDefinition()) && DefCountMap.Contains(Item->GetItemDefinition()))
 	{
 		auto& Stack = FindItem_Mutable(Item->GetItemDefinition());
 		Stack.StackCount += Count;		
-		Item->DestroyObject();
+		Item->MarkAsGarbage();
 		
 		MarkItemDirty(Stack);
 		return;
@@ -78,89 +72,71 @@ void FInventoryList::AddEntry(UNSItemInstance* Item, int32 Count)
 	auto& Entry = Entries.AddDefaulted_GetRef();
 	Entry.Item = Item;
 	Entry.StackCount = Count;
-	int32& CurrentCount = DefCountMap.FindOrAdd(Item->GetItemDefinition());
-	UE_LOG(LogTemp, Warning, TEXT("Current item Count: %d"), CurrentCount)
 	
+	int32& CurrentCount = DefCountMap.FindOrAdd(Item->GetItemDefinition());
 	CurrentCount += Count;
-	UE_LOG(LogTemp, Warning, TEXT("New item Count: %d"), CurrentCount)
-	UE_LOG(LogTemp, Warning, TEXT("In Map Count: %d"), DefCountMap.FindOrAdd(Item->GetItemDefinition()))
 
 	MarkItemDirty(Entry);
 }
 
 TArray<FInventoryEntry> FInventoryList::RemoveEntry(TSubclassOf<UNSItemDefinition> Definition, int32 Count, bool bExactCount)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Start removind inventory entery"))
-	
-	TArray<FInventoryEntry> Result;
+	TArray<FInventoryEntry> RemovedEntries;
 
-	if (Count == 0 || !Definition || !DefCountMap.Contains(Definition)) return Result;
+	if (Count == 0 || !Definition || !DefCountMap.Contains(Definition)) return RemovedEntries;	//no item
+	if (bExactCount && DefCountMap[Definition] < Count) return RemovedEntries;					//no enough count
 	
-	if (bExactCount)
-	{
-		if (DefCountMap[Definition] < Count)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("cant remove, dont have this count item"))
-			return Result;
-		}
-	}
-
 	int32 CountToRemove = FMath::Min(Count, DefCountMap[Definition]);
 	for (auto It = Entries.CreateIterator(); It && CountToRemove != 0; ++It) 
 	{
 		FInventoryEntry& Entry = *It;
-		if (Entry.Item->GetItemDefinition() != Definition) continue;
+		if (Entry.Item->GetItemDefinition() != Definition) continue; //next iteration
 
 		if (Entry.StackCount <= CountToRemove)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("removing, stack"))
-			
+			//Remove entire stack
 			It.RemoveCurrent();
 
 			AccelerationMapRemoveValue(Definition, Entry.StackCount);
 			
-			Result.Add(Entry);
+			RemovedEntries.Add(Entry);
 			CountToRemove -= Entry.StackCount;
 			
 			MarkArrayDirty();
 		}
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("removing, breack stack"))
-			
+			//Remove part of stack
 			const int32 NewCount = Entry.StackCount - CountToRemove;
 			Entry.StackCount = NewCount;
 
 			AccelerationMapRemoveValue(Definition, CountToRemove);
 			
-			Result.Add(FInventoryEntry(CreateInstance(Definition), CountToRemove));
+			RemovedEntries.Add(FInventoryEntry(CreateInstance(Definition), CountToRemove));
 			CountToRemove = 0;
 
 			MarkItemDirty(Entry);
 		}
 	}
-	return Result;
+	return RemovedEntries;
 }
 
 TArray<FInventoryEntry> FInventoryList::RemoveEntry(UNSItemInstance* Item, int32 Count, bool bExactCount)
 {
 	//todo
+	//find specified Entry, remove it first,
+	//then RemoveEntry(Item->GetItemDefinition(), CountToRemove, bExactCount);
+	
 	return RemoveEntry(Item->GetItemDefinition(), Count, bExactCount);
 }
 
 void FInventoryList::AccelerationMapRemoveValue(TSubclassOf<UNSItemDefinition> Definition, int32 Value)
 {
-	if (Value<=0)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("FInventoryList::AccelerationMapRemoveValue Value cant be negative"))
-		return;
-	}
+	if (Value<=0) return;
 	
 	DefCountMap[Definition] -= Value;
 	if (DefCountMap[Definition] == 0)
 		DefCountMap.Remove(Definition);
-
-	UE_LOG(LogTemp, Warning, TEXT("Acceleration map value changed"))
 }
 
 FInventoryEntry& FInventoryList::FindItem_Mutable(TSubclassOf<UNSItemDefinition> Definition)
@@ -180,8 +156,6 @@ FInventoryEntry& FInventoryList::FindItem_Mutable(TSubclassOf<UNSItemDefinition>
 
 FInventoryEntry FInventoryList::FindItem(TSubclassOf<UNSItemDefinition> Definition)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Start find item"))
-	
 	if (DefCountMap.Contains(Definition))
 	for (const auto& Entry : Entries)
 	{
@@ -190,8 +164,7 @@ FInventoryEntry FInventoryList::FindItem(TSubclassOf<UNSItemDefinition> Definiti
 			return Entry;
 		}
 	}
-
-	UE_LOG(LogTemp, Warning, TEXT("item not found"))
+	
 	return FInventoryEntry();
 }
 
@@ -209,8 +182,6 @@ bool FInventoryList::IsStackable(TSubclassOf<UNSItemDefinition> Definition) cons
 UNSItemInstance* FInventoryList::CreateInstance(TSubclassOf<UNSItemDefinition> Definition)
 {
 	check(InventoryComponent);
-
-	UE_LOG(LogTemp, Warning, TEXT("FInventoryList::CreateInstance Start creating new Item Instance"))
 	
 	auto InstanceType = GetDefault<UNSItemDefinition>(Definition)->InstanceType;
 	if (!InstanceType)
@@ -219,10 +190,8 @@ UNSItemInstance* FInventoryList::CreateInstance(TSubclassOf<UNSItemDefinition> D
 	}
 	
 	auto NewInstance = NewObject<UNSItemInstance>(InventoryComponent->GetOwner(), InstanceType);
-	NewInstance->SetItemDef(Definition);
+	NewInstance->InitDefinition(Definition);
 
-	UE_LOG(LogTemp, Warning, TEXT("FInventoryList::CreateInstance Created new Item Instance"))
-	
 	return NewInstance;
 }
 
@@ -281,7 +250,7 @@ TArray<FInventoryEntry> UNSInventoryComponent::RemoveItem(TSubclassOf<UNSItemDef
 	
 	for (auto& Stack : RemovedStacks)
 	{
-		Stack.Item->DestroyObject();
+		Stack.Item->MarkAsGarbage();
 	}
 	
 	return TArray<FInventoryEntry>();

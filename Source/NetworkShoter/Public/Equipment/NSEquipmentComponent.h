@@ -48,9 +48,9 @@ struct FNSEquipmentList : public FFastArraySerializer
 	void AddEntry(FNSEquipmentEntry Entry);
 
 	/** Remove entry from array and return it */
-	FNSEquipmentEntry RemoveEntry(UNSEquipmentInstance* Instance);
+	FNSEquipmentEntry RemoveEntry(const UNSEquipmentInstance* Instance);
 	
-	FNSEquipmentEntry GetEntryBySlot(EEquipmentSlot Slot);
+	FNSEquipmentEntry GetEntryBySlot(EEquipmentSlot Slot) const;
 
 private:
 	friend UNSEquipmentComponent;

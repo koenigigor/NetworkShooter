@@ -19,7 +19,3 @@ void UNSEquipmentInstance::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 	DOREPLIFETIME(ThisClass, Instigator);
 	DOREPLIFETIME(ThisClass, SpawnedActors);
 }
-
-void UNSEquipmentInstance::OnRep_Instigator()
-{
-}

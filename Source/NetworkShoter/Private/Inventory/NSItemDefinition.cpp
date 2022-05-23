@@ -4,9 +4,6 @@
 #include "Inventory/NSItemDefinition.h"
 #include "Inventory/NSItemInstance.h"
 
-void UNSInventoryItemFragment::OnInstanceCreated(UNSItemInstance* Instance)
-{
-}
 
 UNSInventoryItemFragment* UNSItemDefinition::FindFragmentByClass(
 	TSubclassOf<UNSInventoryItemFragment> FragmentClass) const
@@ -24,7 +21,7 @@ UNSInventoryItemFragment* UNSItemDefinition::FindFragmentByClass(
 	return nullptr;
 }
 
-const UNSInventoryItemFragment* UNSItemDefinition::FindItemDefinitionFragment(const TSubclassOf<UNSItemDefinition> ItemDef,
+const UNSInventoryItemFragment* UNSItemDefinition::FindFragmentByClass(const TSubclassOf<UNSItemDefinition> ItemDef,
                                                                               const TSubclassOf<UNSInventoryItemFragment> FragmentClass)
 {
 	if (!ItemDef || !FragmentClass) return nullptr;

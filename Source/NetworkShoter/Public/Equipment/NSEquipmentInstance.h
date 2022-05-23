@@ -8,19 +8,14 @@
 class UNSItemInstance;
 
 /**
- * Support equipment item object.
- * Unlike lyra, i not separate item and equipment item classes
- * this object contains only extended info about equipment
- * like spawned actors, or etc.
+ * EquipmentInstance contains  info about equipped equipment
+ * like spawned actors, granted abilities, or etc.
  */
 UCLASS(BlueprintType, Blueprintable)
 class NETWORKSHOTER_API UNSEquipmentInstance : public UObject
 {
 	GENERATED_BODY()
-public:
-	//void Equip(); //where init definition 
-	//void Unequip();
-	
+public:	
 	virtual bool IsSupportedForNetworking() const override { return true; }
 	virtual UWorld* GetWorld() const override final;
 
@@ -32,7 +27,7 @@ public:
 	void SetInstigator(AActor* InInstigator) { Instigator = InInstigator; }
 
 	UFUNCTION()
-	void OnRep_Instigator();
+	void OnRep_Instigator() {}; //make virtual in future
 	
 
 	/** Array spawned actors, if we spawn actors on equip */
@@ -42,5 +37,3 @@ public:
 	UPROPERTY(ReplicatedUsing="OnRep_Instigator")
 	AActor* Instigator = nullptr;
 };
-
-//todo fragment on equip apply item attributes to owner
