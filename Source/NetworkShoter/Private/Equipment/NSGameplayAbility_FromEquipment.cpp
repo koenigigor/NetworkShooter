@@ -3,6 +3,7 @@
 
 #include "Equipment/NSGameplayAbility_FromEquipment.h"
 #include "AbilitySystemComponent.h"
+#include "Equipment/NSEquipmentComponent.h"
 #include "Equipment/NSEquipmentInstance.h"
 
 UNSEquipmentInstance* UNSGameplayAbility_FromEquipment::GetAssociatedEquipment()
@@ -27,13 +28,12 @@ void UNSGameplayAbility_FromEquipment::EndAbility(const FGameplayAbilitySpecHand
 
 bool UNSGameplayAbility_FromEquipment::ItemStillEquipped()
 {
-	/*
-	auto Equipment = GetAvatarActorFromActorInfo()->GetComponentByClass(UNSEquipmentComponent::StaticClass());
-	if (Equipment)
-	{
-		Equipment->
-	}*/
-
+	const auto OwnerEquipment = GetAvatarActorFromActorInfo()->FindComponentByClass<UNSEquipmentComponent>();
 	
-	return true;
+	UNSEquipmentComponent* ItemEquipment = nullptr;
+	if (const auto ItemOwner = GetAssociatedEquipment()->Instigator){
+		ItemEquipment = ItemOwner->FindComponentByClass<UNSEquipmentComponent>();
+	}
+	
+	return OwnerEquipment == ItemEquipment;
 }

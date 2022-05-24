@@ -52,9 +52,9 @@ struct FInventoryList : public FFastArraySerializer
 	void AddEntry(UNSItemInstance* Item, int32 Count = 1);
 
 	/** remove entry, array if item stack broken */
-	TArray<FInventoryEntry> RemoveEntry(TSubclassOf<UNSItemDefinition> Definition, int32 Count = 1, bool bExactCount = true);
+	bool RemoveEntry(TSubclassOf<UNSItemDefinition> Definition, TArray<FInventoryEntry>& RemovedEntries,  int32 Count = 1, bool bExactCount = true);
 	/** remove entry first starts from selected item */
-	TArray<FInventoryEntry> RemoveEntry(UNSItemInstance* Item, int32 Count = 1, bool bExactCount = true);
+	bool RemoveEntry(UNSItemInstance* Item, TArray<FInventoryEntry>& RemovedEntries, int32 Count = 1, bool bExactCount = true);
 	
 	/** return first item with definition */
 	FInventoryEntry FindItem(TSubclassOf<UNSItemDefinition> Definition);
@@ -110,9 +110,18 @@ public:
 	/** remove items from storage
 	 * @bDestroy = Destroy removed items
 	 * @bExactCount = if not have exact count of items, steel remove
+	 * @Item = Starts from spesified item
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory")
-	TArray<FInventoryEntry> RemoveItem(TSubclassOf<UNSItemDefinition> Definition, int32 Count = 1, bool bDestroy = false, bool bExactCount = true);
+	bool RemoveItem(TSubclassOf<UNSItemDefinition> Definition, TArray<FInventoryEntry>& RemovedItems, int32 Count = 1, bool bDestroy = false, bool bExactCount = true);
+
+	bool RemoveItem(UNSItemInstance* Item, TArray<FInventoryEntry>& RemovedItems, int32 Count = 1, bool bDestroy = false, bool bExactCount = true);
+	
+	/* read RemoveItem
+	 *	*BP function for not break overload
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory")
+	bool RemoveItemInstance(UNSItemInstance* Item, TArray<FInventoryEntry>& RemovedItems, int32 Count = 1, bool bDestroy = false, bool bExactCount = true);
 	
 	/** return first item with definition */
 	UFUNCTION(BlueprintPure, Category="Inventory")

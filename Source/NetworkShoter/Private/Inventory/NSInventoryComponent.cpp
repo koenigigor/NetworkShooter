@@ -79,12 +79,10 @@ void FInventoryList::AddEntry(UNSItemInstance* Item, int32 Count)
 	MarkItemDirty(Entry);
 }
 
-TArray<FInventoryEntry> FInventoryList::RemoveEntry(TSubclassOf<UNSItemDefinition> Definition, int32 Count, bool bExactCount)
+bool FInventoryList::RemoveEntry(TSubclassOf<UNSItemDefinition> Definition, TArray<FInventoryEntry>& RemovedEntries, int32 Count, bool bExactCount)
 {
-	TArray<FInventoryEntry> RemovedEntries;
-
-	if (Count == 0 || !Definition || !DefCountMap.Contains(Definition)) return RemovedEntries;	//no item
-	if (bExactCount && DefCountMap[Definition] < Count) return RemovedEntries;					//no enough count
+	if (Count == 0 || !Definition || !DefCountMap.Contains(Definition)) return false;	//no item
+	if (bExactCount && DefCountMap[Definition] < Count) return false;					//no enough count
 	
 	int32 CountToRemove = FMath::Min(Count, DefCountMap[Definition]);
 	for (auto It = Entries.CreateIterator(); It && CountToRemove != 0; ++It) 
@@ -118,16 +116,16 @@ TArray<FInventoryEntry> FInventoryList::RemoveEntry(TSubclassOf<UNSItemDefinitio
 			MarkItemDirty(Entry);
 		}
 	}
-	return RemovedEntries;
+	return true;
 }
 
-TArray<FInventoryEntry> FInventoryList::RemoveEntry(UNSItemInstance* Item, int32 Count, bool bExactCount)
+bool FInventoryList::RemoveEntry(UNSItemInstance* Item, TArray<FInventoryEntry>& RemovedEntries, int32 Count, bool bExactCount)
 {
 	//todo
 	//find specified Entry, remove it first,
 	//then RemoveEntry(Item->GetItemDefinition(), CountToRemove, bExactCount);
 	
-	return RemoveEntry(Item->GetItemDefinition(), Count, bExactCount);
+	return RemoveEntry(Item->GetItemDefinition(), RemovedEntries, Count, bExactCount);
 }
 
 void FInventoryList::AccelerationMapRemoveValue(TSubclassOf<UNSItemDefinition> Definition, int32 Value)
@@ -239,21 +237,46 @@ void UNSInventoryComponent::AddItem_Instance(UNSItemInstance* Item, int32 Count)
 	InventoryList.AddEntry(Item, Count);
 }
 
-TArray<FInventoryEntry> UNSInventoryComponent::RemoveItem(TSubclassOf<UNSItemDefinition> Definition, int32 Count, bool bDestroy,
+bool UNSInventoryComponent::RemoveItem(TSubclassOf<UNSItemDefinition> Definition, TArray<FInventoryEntry>& RemovedItems, int32 Count, bool bDestroy,
 	bool bExactCount)
 {
-	auto RemovedStacks = InventoryList.RemoveEntry(Definition, Count, bExactCount);
+	auto Result = InventoryList.RemoveEntry(Definition, RemovedItems, Count, bExactCount);
 
 	if (!bDestroy)
-		return RemovedStacks;
+		return Result;
 
 	
-	for (auto& Stack : RemovedStacks)
+	for (auto& Stack : RemovedItems)
 	{
 		Stack.Item->MarkAsGarbage();
 	}
 	
-	return TArray<FInventoryEntry>();
+	return Result;
+}
+
+bool UNSInventoryComponent::RemoveItem(UNSItemInstance* Item, TArray<FInventoryEntry>& RemovedItems, int32 Count, bool bDestroy,
+	bool bExactCount)
+{
+	if (!Item) return false;
+	
+	auto Result = InventoryList.RemoveEntry(Item, RemovedItems, Count, bExactCount);
+
+	if (!bDestroy)
+		return Result;
+
+	
+	for (auto& Stack : RemovedItems)
+	{
+		Stack.Item->MarkAsGarbage();
+	}
+	
+	return Result;
+}
+
+bool UNSInventoryComponent::RemoveItemInstance(UNSItemInstance* Item, TArray<FInventoryEntry>& RemovedItems, int32 Count, bool bDestroy,
+	bool bExactCount)
+{
+	return RemoveItem(Item, RemovedItems, Count, bDestroy, bExactCount);
 }
 
 FInventoryEntry UNSInventoryComponent::FindItem(TSubclassOf<UNSItemDefinition> Definition)

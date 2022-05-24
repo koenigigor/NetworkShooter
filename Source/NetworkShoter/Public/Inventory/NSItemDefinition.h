@@ -9,7 +9,7 @@ class UNSItemInstance;
 
 
 /** Single fragment information about item */
-UCLASS(DefaultToInstanced, EditInlineNew, Abstract)
+UCLASS(DefaultToInstanced, EditInlineNew, Abstract, Blueprintable)
 class UNSInventoryItemFragment : public UObject
 {
 	GENERATED_BODY()
