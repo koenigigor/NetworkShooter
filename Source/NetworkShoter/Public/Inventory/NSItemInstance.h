@@ -34,7 +34,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category=Inventory)
 	bool HasAttributeTag(FGameplayTag Tag) const;
 
-private:
+protected:
 	UPROPERTY(Replicated)
 	FGameplayTagAttributeContainer ItemAttributes;
 
@@ -56,7 +56,7 @@ public:
 		return Cast<T>(FindFragmentByClass(T::StaticClass()));
 	}
 
-private:
+protected:
 	UPROPERTY(Replicated)
 	TSubclassOf<UNSItemDefinition> ItemDefinition;
 };

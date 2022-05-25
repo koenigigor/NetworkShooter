@@ -64,6 +64,8 @@ void FInventoryList::AddEntry(UNSItemInstance* Item, int32 Count)
 		auto& Stack = FindItem_Mutable(Item->GetItemDefinition());
 		Stack.StackCount += Count;		
 		Item->MarkAsGarbage();
+
+		DefCountMap[Item->GetItemDefinition()] += Count;
 		
 		MarkItemDirty(Stack);
 		return;
@@ -169,8 +171,6 @@ FInventoryEntry FInventoryList::FindItem(TSubclassOf<UNSItemDefinition> Definiti
 bool FInventoryList::IsStackable(TSubclassOf<UNSItemDefinition> Definition) const
 {
 	const auto ItemInfo = GetDefault<UNSItemDefinition>(Definition)->FindFragmentByClass<UFragment_ItemInfo>(); //
-	
-	if (!ItemInfo)	{ UE_LOG(LogTemp, Warning, TEXT("IsStackable? item info not found")) }
 
 	if (ItemInfo && ItemInfo->bIsStackable)
 		return true;
@@ -186,8 +186,18 @@ UNSItemInstance* FInventoryList::CreateInstance(TSubclassOf<UNSItemDefinition> D
 	{
 		InstanceType = UNSItemInstance::StaticClass();
 	}
+
+	const UObject* Outer = InventoryComponent->GetOwner();
+	UNSItemInstance* NewInstance = nullptr;
+	if (Outer)
+	{
+		NewInstance = NewObject<UNSItemInstance>(InventoryComponent->GetOwner(), InstanceType);
+	}
+	else
+	{
+		NewInstance = NewObject<UNSItemInstance>(InventoryComponent, InstanceType);
+	} //self outer version for run tests 
 	
-	auto NewInstance = NewObject<UNSItemInstance>(InventoryComponent->GetOwner(), InstanceType);
 	NewInstance->InitDefinition(Definition);
 
 	return NewInstance;
