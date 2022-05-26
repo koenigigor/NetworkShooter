@@ -45,6 +45,7 @@ public:
    	void InitDefinition(TSubclassOf<UNSItemDefinition> Definition);
 
 public:
+	UFUNCTION(BlueprintPure)
 	TSubclassOf<UNSItemDefinition> GetItemDefinition() const { return ItemDefinition; }
 
 	UFUNCTION(BlueprintCallable, BlueprintPure=false, meta=(DeterminesOutputType=FragmentClass)) //todo why false

@@ -15,5 +15,6 @@ class NETWORKSHOTER_API UFragment_ItemInfo : public UNSInventoryItemFragment
 {
 	GENERATED_BODY()
 public:
+	UPROPERTY(EditDefaultsOnly)
 	bool bIsStackable = false;
 };

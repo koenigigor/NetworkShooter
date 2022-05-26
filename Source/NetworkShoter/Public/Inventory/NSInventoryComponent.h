@@ -110,7 +110,7 @@ public:
 	/** remove items from storage
 	 * @bDestroy = Destroy removed items
 	 * @bExactCount = if not have exact count of items, steel remove
-	 * @Item = Starts from spesified item
+	 * @Item = Starts from specified item
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory")
 	bool RemoveItem(TSubclassOf<UNSItemDefinition> Definition, TArray<FInventoryEntry>& RemovedItems, int32 Count = 1, bool bDestroy = false, bool bExactCount = true);
@@ -126,6 +126,9 @@ public:
 	/** return first item with definition */
 	UFUNCTION(BlueprintPure, Category="Inventory")
 	FInventoryEntry FindItem(TSubclassOf<UNSItemDefinition> Definition);
+
+	UFUNCTION(BlueprintPure, Category="Inventory")
+	int32 GetTotalCount(TSubclassOf<UNSItemDefinition> Definition);
 
 	UFUNCTION(BlueprintCallable, Category="Inventory")
 	TArray<FInventoryEntry> GetInventory();

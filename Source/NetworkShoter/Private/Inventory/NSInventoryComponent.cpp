@@ -71,6 +71,13 @@ void FInventoryList::AddEntry(UNSItemInstance* Item, int32 Count)
 		return;
 	}
 	
+	if (Count > 1 && !IsStackable(Item->GetItemDefinition()))
+	{
+		//recursive add 1 item if try add more then 1 unstackable item
+		AddEntry(CreateInstance(Item->GetItemDefinition()), Count - 1);	
+		Count = 1;
+	}
+	
 	auto& Entry = Entries.AddDefaulted_GetRef();
 	Entry.Item = Item;
 	Entry.StackCount = Count;
@@ -292,6 +299,11 @@ bool UNSInventoryComponent::RemoveItemInstance(UNSItemInstance* Item, TArray<FIn
 FInventoryEntry UNSInventoryComponent::FindItem(TSubclassOf<UNSItemDefinition> Definition)
 {
 	return InventoryList.FindItem(Definition);
+}
+
+int32 UNSInventoryComponent::GetTotalCount(TSubclassOf<UNSItemDefinition> Definition)
+{
+	return InventoryList.DefCountMap.Contains(Definition) ? InventoryList.DefCountMap[Definition] : 0;
 }
 
 TArray<FInventoryEntry> UNSInventoryComponent::GetInventory()

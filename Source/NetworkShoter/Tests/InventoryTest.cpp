@@ -11,37 +11,26 @@
 #include "Inventory/NSItemInstance.h"
 #include "Misc/AutomationTest.h"
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FInventoryDefaultsTest, "NetworkShooter.Inventory.Defaults", EAutomationTestFlags::ApplicationContextMask | EAutomationTestFlags::HighPriority | EAutomationTestFlags::ProductFilter)
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FInventoryItemsTest, "NetworkShooter.Inventory.Items", EAutomationTestFlags::ApplicationContextMask | EAutomationTestFlags::HighPriority | EAutomationTestFlags::ProductFilter)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FInventoryAddRemoveTest, "NetworkShooter.Inventory.AddAndRemove", EAutomationTestFlags::ApplicationContextMask | EAutomationTestFlags::HighPriority | EAutomationTestFlags::ProductFilter)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FInventoryCountTest, "NetworkShooter.Inventory.Count", EAutomationTestFlags::ApplicationContextMask | EAutomationTestFlags::HighPriority | EAutomationTestFlags::ProductFilter)
+
+
 
 UNSItemDefinitionTest::UNSItemDefinitionTest()
 {
 	auto ItemInfo = NewObject<UFragment_ItemInfo>();
 	ItemInfo->bIsStackable = true;
 	Fragments.Add(ItemInfo);
-	
-	UE_LOG(LogTemp, Display, TEXT("---Test Def construclor called---"))
-
 }
 
-bool FInventoryDefaultsTest::RunTest(const FString& Parameters)
-{
-	const int32 DefaultItemsCount = 0;
-	
-	//create inventory
-	auto Inventory = NewObject<UNSInventoryComponent>();
-	TestNotNull("Inventory exist", Inventory);
-
-	TestTrue("DefaultItemCount", Inventory->GetInventory().Num() == DefaultItemsCount);
-	
-	return true;
-}
-
-bool FInventoryItemsTest::RunTest(const FString& Parameters)
+/** Add Remove items Different ways */
+bool FInventoryAddRemoveTest::RunTest(const FString& Parameters)
 {
 	//create inventory
 	auto Inventory = NewObject<UNSInventoryComponent>();
 	TestNotNull("Inventory exist", Inventory);
+
+	AddInfo("Add items");
 
 	Inventory->AddItem_Definition(UNSItemDefinition::StaticClass());
 	TestTrue("Add first item", Inventory->GetInventory().Num() == 1);
@@ -60,7 +49,7 @@ bool FInventoryItemsTest::RunTest(const FString& Parameters)
 	TestTrue("Check count in stack", Stack == 3);
 
 	
-	//removing
+	AddInfo("Removing items");
 	
 	TArray<FInventoryEntry> RemovedItems;
 	Inventory->RemoveItem(UNSItemDefinitionTest::StaticClass(), RemovedItems, 1, true);
@@ -75,6 +64,39 @@ bool FInventoryItemsTest::RunTest(const FString& Parameters)
 	Inventory->RemoveItem(UNSItemDefinition::StaticClass(), RemovedItems, 99999, true, false);
 	TestTrue("remove last item", Inventory->GetInventory().Num() == 0);
 	
+	
+	return true;
+}
+
+/** Count Stackable/nonStackable items */
+bool FInventoryCountTest::RunTest(const FString& Parameters)
+{
+	auto Inventory = NewObject<UNSInventoryComponent>();
+	TestNotNull("Inventory exist", Inventory);
+	TArray<FInventoryEntry> RemovedItems;
+
+	AddInfo("Add stackable and non Stackable items");
+	
+	Inventory->AddItem_Definition(UNSItemDefinitionTest::StaticClass(), 2);
+	Inventory->AddItem_Definition(UNSItemDefinitionTest::StaticClass(), 2);
+	//1 stackable slot
+
+	Inventory->AddItem_Definition(UNSItemDefinition::StaticClass(), 2);
+	Inventory->AddItem_Definition(UNSItemDefinition::StaticClass());
+	//3 non stackable items
+
+	TestTrueExpr(Inventory->GetTotalCount(UNSItemDefinitionTest::StaticClass()) == 4);
+	TestTrueExpr(Inventory->GetTotalCount(UNSItemDefinition::StaticClass()) == 3);	
+	TestTrueExpr(Inventory->GetInventory().Num() == 4);
+
+	AddInfo("Remove stackable and non Stackable items");
+	
+	Inventory->RemoveItem(UNSItemDefinitionTest::StaticClass(), RemovedItems);
+	Inventory->RemoveItem(UNSItemDefinition::StaticClass(), RemovedItems);
+
+	TestTrueExpr(Inventory->GetTotalCount(UNSItemDefinitionTest::StaticClass()) == 3);
+	TestTrueExpr(Inventory->GetTotalCount(UNSItemDefinition::StaticClass()) == 2);
+	TestTrueExpr(Inventory->GetInventory().Num() == 3);
 	
 	return true;
 }
