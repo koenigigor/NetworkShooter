@@ -18,3 +18,4 @@ Content/Mixamo
 *.suo
 *.xcodeproj
 *.xcworkspace
+*.DotSettings.user
