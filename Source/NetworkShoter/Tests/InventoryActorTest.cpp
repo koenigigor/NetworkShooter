@@ -17,6 +17,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FInventorySpawnActorTest, "NetworkShooter.Inven
 namespace
 {
 	constexpr char* LandmineContainerBP = "Blueprint'/Game/NetworkShoter/Actors/Containers/BP_LandmineContainer.BP_LandmineContainer'";
+	constexpr char* PawnBP = "Blueprint'/Game/NetworkShoter/Character/ShoterPlayer_BP.ShoterPlayer_BP'";
 	
 }
 
@@ -30,10 +31,17 @@ bool FInventorySpawnActorTest::RunTest(const FString& Parameters)
 	const FTransform InitialTransform{FVector{1000.f}};	//or spawn prams always spawn
 	auto Container = NSTestUtils::SpawnBPActor<ANSItemContainer>(World, FString(LandmineContainerBP), InitialTransform);
 	TestNotNull("Container spawned", Container);
-	
+
+	auto Pawn = NSTestUtils::SpawnBPActor<APawn>(World, PawnBP);
+	TestNotNull("Pawn exist", Pawn);
+
+	auto Inventory = Pawn->FindComponentByClass<UNSInventoryComponent>();
+    TestNotNull("Inventory exist", Inventory);
 	
 	//interact with item to add it in inventory
+	Cast<IInteractInterface>(Container)->Execute_InteractWithPawn(Container, Pawn);
 	
+	TestTrueExpr(Inventory->GetInventory().Num() == 1);
 	
 	return true;
 }
