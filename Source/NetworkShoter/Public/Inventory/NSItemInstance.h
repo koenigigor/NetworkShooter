@@ -12,6 +12,7 @@ class UNSItemDefinition;
 /**
  * Base class of item instance
  * contain array item attributes (like reliability, ammo in weapon, etc)
+ * Instance constructs in Definition
  */
 UCLASS(BlueprintType)
 class NETWORKSHOTER_API UNSItemInstance : public UObject
@@ -37,12 +38,7 @@ public:
 protected:
 	UPROPERTY(Replicated)
 	FGameplayTagAttributeContainer ItemAttributes;
-
 	
-public:
-   	/** Initialise item, 1 time */
-   	UFUNCTION(BlueprintCallable)
-   	void InitDefinition(TSubclassOf<UNSItemDefinition> Definition);
 
 public:
 	UFUNCTION(BlueprintPure)
@@ -58,6 +54,8 @@ public:
 	}
 
 protected:
+	friend UNSItemDefinition;
+	
 	UPROPERTY(Replicated)
 	TSubclassOf<UNSItemDefinition> ItemDefinition;
 };

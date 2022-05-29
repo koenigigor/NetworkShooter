@@ -5,6 +5,24 @@
 #include "Inventory/NSItemInstance.h"
 
 
+UNSItemInstance* UNSItemDefinition::CreateInstance(UObject* Outer) const
+{
+	auto Instance = NewObject<UNSItemInstance>(Outer, GetInstanceType());
+	
+	Instance->ItemDefinition = GetClass();
+	for (auto& Fragment : Fragments)
+	{
+		Fragment->OnInstanceCreated(Instance);
+	}
+
+	return Instance;
+}
+
+TSubclassOf<UNSItemInstance> UNSItemDefinition::GetInstanceType() const
+{
+	return InstanceType ? InstanceType : UNSItemInstance::StaticClass();
+}
+
 UNSInventoryItemFragment* UNSItemDefinition::FindFragmentByClass(
 	TSubclassOf<UNSInventoryItemFragment> FragmentClass) const
 {

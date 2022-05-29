@@ -117,12 +117,6 @@ public:
 
 	bool RemoveItem(UNSItemInstance* Item, TArray<FInventoryEntry>& RemovedItems, int32 Count = 1, bool bDestroy = false, bool bExactCount = true);
 	
-	/* read RemoveItem
-	 *	*BP function for not break overload
-	 */
-	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory")
-	bool RemoveItemInstance(UNSItemInstance* Item, TArray<FInventoryEntry>& RemovedItems, int32 Count = 1, bool bDestroy = false, bool bExactCount = true);
-	
 	/** return first item with definition */
 	UFUNCTION(BlueprintPure, Category="Inventory")
 	FInventoryEntry FindItem(TSubclassOf<UNSItemDefinition> Definition);
@@ -133,6 +127,15 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Inventory")
 	TArray<FInventoryEntry> GetInventory();
 
+	/**	NSEquipment component return item by this function */
+	void AddItemFromEquipment(UNSItemInstance* Item);
+
+protected:
+	/* read RemoveItem
+	 *	BP function for not break overload */
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory")
+	bool RemoveItemInstance(UNSItemInstance* Item, TArray<FInventoryEntry>& RemovedItems, int32 Count = 1, bool bDestroy = false, bool bExactCount = true);
+	
 private:
 	UPROPERTY(Replicated)
 	FInventoryList InventoryList;

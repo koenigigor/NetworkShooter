@@ -34,6 +34,10 @@ public:
 	TArray<TObjectPtr<UNSInventoryItemFragment>> Fragments;
 
 public:
+	UNSItemInstance* CreateInstance(UObject* Outer) const;
+
+	TSubclassOf<UNSItemInstance> GetInstanceType() const;
+	
 	UNSInventoryItemFragment* FindFragmentByClass(TSubclassOf<UNSInventoryItemFragment> FragmentClass) const;
 	
 	template <class T>

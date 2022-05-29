@@ -7,6 +7,7 @@
 #include "Inventory/Fragment_Equipable.h"
 #include "Equipment/NSEquipmentDefinition.h"
 #include "Equipment/NSEquipmentInstance.h"
+#include "Inventory/NSInventoryComponent.h"
 #include "Inventory/NSItemInstance.h"
 #include "Net/UnrealNetwork.h"
 
@@ -125,7 +126,7 @@ UNSEquipmentInstance* UNSEquipmentComponent::EquipItem(UNSItemInstance* Item)
 	const auto Definition = NewObject<UNSEquipmentDefinition>(GetOwner(), Fragment->GetDefinitionClass());
 	
 	const EEquipmentSlot SlotsToEquip = SuggestSlotToEquip(Definition->Type);
-	UnEquipItemInSlot(SlotsToEquip);
+	UnEquipItemInSlot(SlotsToEquip);	//todo unequipped item?
 
 	//create instance
 	auto EquipmentInstance = NewObject<UNSEquipmentInstance>(GetOwner(), Definition->GetInstanceType());
@@ -139,15 +140,15 @@ UNSEquipmentInstance* UNSEquipmentComponent::EquipItem(UNSItemInstance* Item)
 	return EquipmentInstance;
 }
 
-UNSItemInstance* UNSEquipmentComponent::UnEquipItemInSlot(EEquipmentSlot Slot, bool bDestroy)
+UNSItemInstance* UNSEquipmentComponent::UnEquipItemInSlot(EEquipmentSlot Slot, bool bDestroy, bool bPutInInventory)
 {
 	const auto Entry = GetEquipmentBySlot(Slot);
 	if (!Entry.EquipmentInstance) return nullptr;
 
-	return UnEquipItem(Entry.EquipmentInstance, bDestroy);
+	return UnEquipItem(Entry.EquipmentInstance, bDestroy, bPutInInventory);
 }
 
-UNSItemInstance* UNSEquipmentComponent::UnEquipItem(UNSEquipmentInstance* Item, bool bDestroy)
+UNSItemInstance* UNSEquipmentComponent::UnEquipItem(UNSEquipmentInstance* Item, bool bDestroy, bool bPutInInventory)
 {
 	if (!Item) return nullptr;
 
@@ -168,6 +169,13 @@ UNSItemInstance* UNSEquipmentComponent::UnEquipItem(UNSEquipmentInstance* Item, 
 	{
 		RemovedEntry.ItemInstance->MarkAsGarbage();
 		return nullptr;
+	}
+
+	if (bPutInInventory)
+	{
+		const auto Inventory = GetOwner()->FindComponentByClass<UNSInventoryComponent>();
+		ensure(Inventory);
+		Inventory->AddItemFromEquipment(RemovedEntry.ItemInstance);
 	}
 
 	return RemovedEntry.ItemInstance;

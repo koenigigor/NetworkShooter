@@ -44,20 +44,3 @@ UNSInventoryItemFragment* UNSItemInstance::FindFragmentByClass(
 	return GetDefault<UNSItemDefinition>(GetItemDefinition())->FindFragmentByClass(FragmentClass);
 }
 
-
-void UNSItemInstance::InitDefinition(TSubclassOf<UNSItemDefinition> Definition)
-{
-	if (ItemDefinition)
-	{
-		UE_LOG(LogTemp, Error, TEXT("UNSInventoryItemInstance::InitDefinition cant set new item defenition, defenition already has"))
-		return;
-	}
-	
-	ItemDefinition = Definition;
-	for (auto& Fragment : GetDefault<UNSItemDefinition>(ItemDefinition)->Fragments)
-	{
-		Fragment->OnInstanceCreated(this);
-	}
-}
-
-

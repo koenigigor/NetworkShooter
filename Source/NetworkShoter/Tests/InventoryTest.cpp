@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#if WITH_AUTOMATION_WORKER
+#if WITH_AUTOMATION_TESTS
 
 #include "Tests/InventoryTest.h"
 #include "CoreMinimal.h"
@@ -37,10 +37,8 @@ bool FInventoryAddRemoveTest::RunTest(const FString& Parameters)
 	
 	Inventory->AddItem_Definition(UNSItemDefinitionTest::StaticClass());
 	TestTrue("Add second item", Inventory->GetInventory().Num() == 2);
-	
-	
-	auto Item = NewObject<UNSItemInstance>(Inventory, UNSItemInstance::StaticClass());
-	Item->InitDefinition(UNSItemDefinitionTest::StaticClass());
+
+	auto Item = GetDefault<UNSItemDefinitionTest>()->CreateInstance(Inventory);
 	Inventory->AddItem_Instance(Item, 2);
 
 	TestTrue("Add stackable item, count not change", Inventory->GetInventory().Num() == 2);

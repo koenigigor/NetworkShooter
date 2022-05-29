@@ -85,12 +85,13 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Equipment")
 	UNSEquipmentInstance* EquipItem(UNSItemInstance* Item);
 
-	/** @DestroyItem if true destroy item instance and return nullptr */
+	/** @DestroyItem if true destroy item instance and return nullptr
+	 *	@bPutInInventory send item to owners inventory component */
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Equipment")
-	UNSItemInstance* UnEquipItem(UNSEquipmentInstance* Item, bool bDestroy = false);
+	UNSItemInstance* UnEquipItem(UNSEquipmentInstance* Item, bool bDestroy = false, bool bPutInInventory = true);
 
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Equipment")
-	UNSItemInstance* UnEquipItemInSlot(EEquipmentSlot Slot, bool bDestroy = false);
+	UNSItemInstance* UnEquipItemInSlot(EEquipmentSlot Slot, bool bDestroy = false, bool bPutInInventory = true);
 
 	
 	UFUNCTION(BlueprintCallable, Category="Equipment")

@@ -28,7 +28,7 @@ void FInventoryList::PostReplicatedAdd(const TArrayView<int32> AddedIndices, int
 	for (const auto& Index : AddedIndices)
 	{
 		auto& Entry = Entries[Index];
-		ensure(Entry.Item);
+		ensure(Entry.Item);	//sometimes object can not replicate in time
 		
 		int32& CurrentValue = DefCountMap.FindOrAdd(Entry.Item->GetItemDefinition());
 		CurrentValue += Entry.StackCount;
@@ -58,6 +58,8 @@ void FInventoryList::AddEntry(TSubclassOf<UNSItemDefinition> Definition, int32 C
 
 void FInventoryList::AddEntry(UNSItemInstance* Item, int32 Count)
 {
+	UE_LOG(LogTemp, Display, TEXT("AddItem IsStackable = %d, Contains = %d"), IsStackable(Item->GetItemDefinition()), DefCountMap.Contains(Item->GetItemDefinition()))
+
 	
 	if (IsStackable(Item->GetItemDefinition()) && DefCountMap.Contains(Item->GetItemDefinition()))
 	{
@@ -188,26 +190,9 @@ UNSItemInstance* FInventoryList::CreateInstance(TSubclassOf<UNSItemDefinition> D
 {
 	check(InventoryComponent);
 	
-	auto InstanceType = GetDefault<UNSItemDefinition>(Definition)->InstanceType;
-	if (!InstanceType)
-	{
-		InstanceType = UNSItemInstance::StaticClass();
-	}
-
-	const UObject* Outer = InventoryComponent->GetOwner();
-	UNSItemInstance* NewInstance = nullptr;
-	if (Outer)
-	{
-		NewInstance = NewObject<UNSItemInstance>(InventoryComponent->GetOwner(), InstanceType);
-	}
-	else
-	{
-		NewInstance = NewObject<UNSItemInstance>(InventoryComponent, InstanceType);
-	} //self outer version for run tests 
+	UObject* Outer = InventoryComponent->GetOwner() ? (UObject*)InventoryComponent->GetOwner() : (UObject*)InventoryComponent;
 	
-	NewInstance->InitDefinition(Definition);
-
-	return NewInstance;
+	return GetDefault<UNSItemDefinition>(Definition)->CreateInstance(Outer);
 }
 
 #pragma endregion FInventoryList
@@ -315,6 +300,17 @@ TArray<FInventoryEntry> UNSInventoryComponent::GetInventory()
 		Results.Add(Entry);
 	}
 	return Results;
+}
+
+void UNSInventoryComponent::AddItemFromEquipment(UNSItemInstance* Item)
+{
+	AddItem_Instance(Item);
+	
+	//if (AddItem_Instance(Item))	TODO
+		return;
+
+	//drop item to world
+		//spawn item container
 }
 
 
