@@ -13,9 +13,7 @@ class UNSWeaponSliderComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FSliderUpdate);
 
-/**
- * just TArray<UNSItemInstance> and replicate subobjects not work
- */
+/** TArray<UNSItemInstance> and replicate subobjects not work */
 
 USTRUCT(BlueprintType)
 struct FSlotEntry : public FFastArraySerializerItem

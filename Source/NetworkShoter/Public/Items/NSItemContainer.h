@@ -8,6 +8,8 @@
 #include "NSItemContainer.generated.h"
 
 class UNSItemDefinition;
+class USceneComponent;
+class UStaticMeshComponent;
 
 UCLASS()
 class NETWORKSHOTER_API ANSItemContainer : public AActor, public IInteractInterface
@@ -17,10 +19,10 @@ class NETWORKSHOTER_API ANSItemContainer : public AActor, public IInteractInterf
 public:	
 	ANSItemContainer();
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TSubclassOf<UNSItemDefinition> ItemToPick;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	int32 Count = 1;
 
 	virtual bool InteractWithPawn_Implementation(APawn* InteractWith) override;
