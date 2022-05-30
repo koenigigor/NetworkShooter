@@ -34,6 +34,8 @@ void FInventoryList::PostReplicatedAdd(const TArrayView<int32> AddedIndices, int
 		CurrentValue += Entry.StackCount;
 
 		Entry.LastObservedCount = Entry.StackCount;
+
+		InventoryComponent->ItemAdded.Broadcast(Entry.Item);
 	}
 }
 
@@ -86,6 +88,8 @@ void FInventoryList::AddEntry(UNSItemInstance* Item, int32 Count)
 	
 	int32& CurrentCount = DefCountMap.FindOrAdd(Item->GetItemDefinition());
 	CurrentCount += Count;
+
+	InventoryComponent->ItemAdded.Broadcast(Item);
 
 	MarkItemDirty(Entry);
 }

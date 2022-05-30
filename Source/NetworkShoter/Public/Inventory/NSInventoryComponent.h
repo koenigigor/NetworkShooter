@@ -10,6 +10,8 @@ class UNSItemInstance;
 class UNSItemDefinition;
 class UNSInventoryComponent;
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FInventoryItemDelegate, UNSItemInstance* Item);
+
 USTRUCT(BlueprintType)
 struct FInventoryEntry : public FFastArraySerializerItem
 {
@@ -130,6 +132,9 @@ public:
 	/**	NSEquipment component return item by this function */
 	void AddItemFromEquipment(UNSItemInstance* Item);
 
+	/** New item added on inventory */
+	FInventoryItemDelegate ItemAdded;
+	
 protected:
 	/* read RemoveItem
 	 *	BP function for not break overload */

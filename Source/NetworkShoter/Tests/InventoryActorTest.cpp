@@ -32,7 +32,8 @@ bool FInventorySpawnActorTest::RunTest(const FString& Parameters)
 	auto Container = NSTestUtils::SpawnBPActor<ANSItemContainer>(World, FString(LandmineContainerBP), InitialTransform);
 	TestNotNull("Container spawned", Container);
 
-	auto Pawn = NSTestUtils::SpawnBPActor<APawn>(World, PawnBP);
+	const FTransform PawnInitialTransform{FVector{100.f}};
+	auto Pawn = NSTestUtils::SpawnBPActor<APawn>(World, FString(PawnBP), PawnInitialTransform);
 	TestNotNull("Pawn exist", Pawn);
 
 	auto Inventory = Pawn->FindComponentByClass<UNSInventoryComponent>();
