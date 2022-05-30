@@ -17,8 +17,10 @@ void UMapVoteController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(UMapVoteController, Voting_Maps);
-	DOREPLIFETIME_CONDITION_NOTIFY(UMapVoteController, Voting_Votes, COND_None, REPNOTIFY_Always); // arrays not rep notify if change inner property
+	DOREPLIFETIME(ThisClass, bVoteStarted);
+	DOREPLIFETIME(ThisClass, VoteTime);
+	DOREPLIFETIME(ThisClass, Voting_Maps);
+	DOREPLIFETIME_CONDITION_NOTIFY(ThisClass, Voting_Votes, COND_None, REPNOTIFY_Always); // arrays not rep notify if change inner property
 }
 
 void UMapVoteController::StartVote(float TimeToVote)

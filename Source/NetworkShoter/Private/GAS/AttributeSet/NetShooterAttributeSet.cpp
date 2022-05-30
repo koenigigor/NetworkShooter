@@ -25,8 +25,10 @@ void UNetShooterAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimePropert
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(UNetShooterAttributeSet, Health);
-	DOREPLIFETIME(UNetShooterAttributeSet, Armor);
+	DOREPLIFETIME(ThisClass, Health);
+	DOREPLIFETIME(ThisClass, Armor);
+	DOREPLIFETIME(ThisClass, WalkSpeed);
+	DOREPLIFETIME(ThisClass, Stamina);
 }
 
 void UNetShooterAttributeSet::OnRep_Health(const FGameplayAttributeData& OldValue)
