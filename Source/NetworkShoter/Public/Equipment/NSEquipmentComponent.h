@@ -11,6 +11,9 @@ class UNSEquipmentDefinition;
 class UNSItemInstance;
 class UNSEquipmentComponent;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FEquipDelegate, EEquipmentType, WeaponType, EEquipmentSlot, EquipmentSlot);
+
+
 /** A single piece of applied equipment */
 USTRUCT(BlueprintType)
 struct FNSEquipmentEntry : public FFastArraySerializerItem
@@ -99,6 +102,10 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category="Equipment")
 	TArray<FNSEquipmentEntry> GetAllEquipment();
+
+public:
+	UPROPERTY(BlueprintAssignable)
+	FEquipDelegate ItemEquip;
 	
 private:
 	/** List of all equipped items */

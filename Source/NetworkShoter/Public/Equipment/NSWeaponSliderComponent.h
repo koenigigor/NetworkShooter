@@ -6,10 +6,12 @@
 #include "Components/ActorComponent.h"
 #include "NSWeaponSliderComponent.generated.h"
 
-
 class UNSInventoryComponent;
 class UNSEquipmentComponent;
 class UNSItemInstance;
+class UNSWeaponSliderComponent;
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FSliderUpdate);
 
 /**
  * just TArray<UNSItemInstance> and replicate subobjects not work
@@ -32,11 +34,14 @@ struct FItemSlots : public FFastArraySerializer
 {
 	GENERATED_BODY()
 
+	FItemSlots(){};
+	FItemSlots(UNSWeaponSliderComponent* InSlider):OwningSlider(InSlider){};
+
 	void AddItem(UNSItemInstance* Item);
 	void RemoveIndex(int32 Index);
 
-	void PreReplicatedRemove(const TArrayView<int32> RemovedIndices, int32 FinalSize){};
-	void PostReplicatedAdd(const TArrayView<int32> AddedIndices, int32 FinalSize){};
+	void PreReplicatedRemove(const TArrayView<int32> RemovedIndices, int32 FinalSize);
+	void PostReplicatedAdd(const TArrayView<int32> AddedIndices, int32 FinalSize);
 	void PostReplicatedChange(const TArrayView<int32> ChangedIndices, int32 FinalSize){};
 	
 	bool NetDeltaSerialize(FNetDeltaSerializeInfo& DeltaParams)
@@ -54,6 +59,9 @@ struct FItemSlots : public FFastArraySerializer
 	}
 
 	int32 Num() const {return Entries.Num(); }
+
+	UPROPERTY(NotReplicated)
+	UNSWeaponSliderComponent* OwningSlider = nullptr;
 };
 
 template<>
@@ -76,8 +84,11 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual bool ReplicateSubobjects(class UActorChannel* Channel, class FOutBunch* Bunch, FReplicationFlags* RepFlags) override;
 
-	UPROPERTY(EditDefaultsOnly, Category="Setup")
-	int32 MaxSlots = 3;
+	UPROPERTY(BlueprintAssignable)
+	FSliderUpdate SliderUpdate;
+
+	UPROPERTY(BlueprintAssignable)
+	FSliderUpdate ActiveSlotChange;
 
 	UFUNCTION(BlueprintCallable, Server, Unreliable, Category="Equipment")
 	void NextWeapon(bool bUp = true);
@@ -87,6 +98,8 @@ public:
 
 	UFUNCTION(BlueprintPure, Category="Equipment")
 	TArray<UNSItemInstance*> GetSlider();
+
+	int32 GetActiveSlot() const { return ActiveSlot; }
 	
 protected:
 	virtual void BeginPlay() override;
@@ -94,11 +107,13 @@ protected:
 	UFUNCTION()
 	void AddItemOnSlider(UNSItemInstance* Item);
 
-	UPROPERTY(Replicated)
+	UPROPERTY(EditDefaultsOnly, Category="Setup")
+	int32 MaxSlots = 3;
+	
+	UPROPERTY(ReplicatedUsing="OnRep_ActiveSlot", BlueprintReadOnly)
 	int32 ActiveSlot = -1;
 
 	UPROPERTY(Replicated)
-	//TArray<UNSItemInstance*> Slots;
 	FItemSlots Slots;
 
 	/** keep previous removed weapon for not re add it on remove */
@@ -109,4 +124,8 @@ protected:
 	UNSEquipmentComponent* Equipment = nullptr;
 	UPROPERTY()
 	UNSInventoryComponent* Inventory = nullptr;
+
+protected:
+	UFUNCTION()
+	void OnRep_ActiveSlot();
 };

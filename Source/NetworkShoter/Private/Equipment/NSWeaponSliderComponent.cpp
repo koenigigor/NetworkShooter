@@ -28,10 +28,26 @@ void FItemSlots::RemoveIndex(int32 Index)
 	MarkArrayDirty();
 }
 
+void FItemSlots::PreReplicatedRemove(const TArrayView<int32> RemovedIndices, int32 FinalSize)
+{
+	if (OwningSlider)
+	{
+		OwningSlider->SliderUpdate.Broadcast();
+	}
+}
+
+void FItemSlots::PostReplicatedAdd(const TArrayView<int32> AddedIndices, int32 FinalSize)
+{	
+	if (OwningSlider)
+	{
+		OwningSlider->SliderUpdate.Broadcast();
+	}
+}
+
 #pragma endregion ItemsArray
 
 
-UNSWeaponSliderComponent::UNSWeaponSliderComponent()
+UNSWeaponSliderComponent::UNSWeaponSliderComponent() : Slots(this)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 	SetIsReplicatedByDefault(true);
@@ -97,6 +113,8 @@ UNSItemInstance* UNSWeaponSliderComponent::RemoveWeaponFromSlider(bool bAddInSto
 
 	NextWeapon();
 
+	SliderUpdate.Broadcast();
+	
 	return RemovedWeapon;
 }
 
@@ -138,7 +156,13 @@ void UNSWeaponSliderComponent::AddItemOnSlider(UNSItemInstance* Item)
 	if (!Inventory->RemoveItem(Item, RemovedItems)) return;
 	
 	Slots.AddItem(RemovedItems[0].Item);
+
+	SliderUpdate.Broadcast();
 	
 	UE_LOG(LogWeaponSlider, Display, TEXT("ItemAdded on slider : "), *RemovedItems[0].Item->GetName())
 }
 
+void UNSWeaponSliderComponent::OnRep_ActiveSlot()
+{
+	ActiveSlotChange.Broadcast();
+}

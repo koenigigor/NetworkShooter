@@ -137,6 +137,9 @@ UNSEquipmentInstance* UNSEquipmentComponent::EquipItem(UNSItemInstance* Item)
 	}
 	
 	EquipmentList.AddEntry(FNSEquipmentEntry(Item, EquipmentInstance, SlotsToEquip));
+	
+	ItemEquip.Broadcast(Definition->Type, SlotsToEquip);
+	
 	return EquipmentInstance;
 }
 
