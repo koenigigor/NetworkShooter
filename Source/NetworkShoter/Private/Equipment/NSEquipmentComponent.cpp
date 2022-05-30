@@ -126,7 +126,7 @@ UNSEquipmentInstance* UNSEquipmentComponent::EquipItem(UNSItemInstance* Item)
 	const auto Definition = NewObject<UNSEquipmentDefinition>(GetOwner(), Fragment->GetDefinitionClass());
 	
 	const EEquipmentSlot SlotsToEquip = SuggestSlotToEquip(Definition->Type);
-	UnEquipItemInSlot(SlotsToEquip);	//todo unequipped item?
+	UnEquipItemInSlot(SlotsToEquip);
 
 	//create instance
 	auto EquipmentInstance = NewObject<UNSEquipmentInstance>(GetOwner(), Definition->GetInstanceType());

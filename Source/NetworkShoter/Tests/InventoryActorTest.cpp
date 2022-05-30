@@ -16,7 +16,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FInventorySpawnActorTest, "NetworkShooter.Inven
 
 namespace
 {
-	constexpr char* LandmineContainerBP = "Blueprint'/Game/NetworkShoter/Actors/Containers/BP_LandmineContainer.BP_LandmineContainer'";
+	constexpr char* LandmineContainerBP = "Blueprint'/Game/NetworkShoter/Tests/Test_landmineContainer.Test_landmineContainer'";
 	constexpr char* PawnBP = "Blueprint'/Game/NetworkShoter/Character/ShoterPlayer_BP.ShoterPlayer_BP'";
 	
 }

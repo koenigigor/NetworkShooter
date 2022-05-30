@@ -11,7 +11,7 @@
 #include "NSTestUtils.h"
 #include "EngineUtils.h"
 #include "Items/NSItemContainer.h"
-
+#include "Equipment/NSWeaponSliderComponent.h"
 
 
 namespace
@@ -44,12 +44,13 @@ bool FEquipmentReEquipTest::RunTest(const FString& Parameters)
 	auto Equipment = Pawn->FindComponentByClass<UNSEquipmentComponent>();
 	TestNotNull("Inventory exist", Inventory);
 	TestNotNull("EquipmentExist", Equipment);
-	
-	//FString WeaponDefBP_1 = "Blueprint'/Game/NetworkShoter/Items/ItemSword.ItemSword'";
-	//FString WeaponDefBP_2 = "Blueprint'/Game/NetworkShoter/Items/ItemRiffle.ItemRiffle'";
 
-	FString WeaponContainerBP_1 = "Blueprint'/Game/NetworkShoter/Actors/Containers/BP_SwordContainer.BP_SwordContainer'";
-	FString WeaponContainerBP_2 = "Blueprint'/Game/NetworkShoter/Actors/Containers/BP_RiffleContainer.BP_RiffleContainer'";
+	//remove weapon slider for he not consume weapons
+	if (const auto WeaponSlider = Pawn->FindComponentByClass<UNSWeaponSliderComponent>())
+		WeaponSlider->DestroyComponent();
+
+	FString WeaponContainerBP_1 = "Blueprint'/Game/NetworkShoter/Tests/Test_SwordContainer.Test_SwordContainer'";
+	FString WeaponContainerBP_2 = "Blueprint'/Game/NetworkShoter/Tests/Test_RiffleContainer.Test_RiffleContainer'";
 	
 	SpawnItemContainerAndInteract(World, Pawn, WeaponContainerBP_1);
 
@@ -64,6 +65,7 @@ bool FEquipmentReEquipTest::RunTest(const FString& Parameters)
 	TestTrue("Inventory must be empty", Inventory->GetInventory().Num() == 0);
 
 	SpawnItemContainerAndInteract(World, Pawn, WeaponContainerBP_2); //Add second weapon
+	
 	auto SecondWeaponItem = Inventory->GetInventory()[0].Item;
 	Inventory->RemoveItem(SecondWeaponItem, RemovedItems);
 	Equipment->EquipItem(FirstWeaponItem);
@@ -74,7 +76,7 @@ bool FEquipmentReEquipTest::RunTest(const FString& Parameters)
 	
 	return true;
 }
-//todo item in inventory, if equip remove it
+//todo if item in inventory, on equip remove it	(make property owned inventory in item instance)
 
 
 #endif
