@@ -26,5 +26,11 @@ public:
 	int32 Count = 1;
 
 	virtual bool InteractWithPawn_Implementation(APawn* InteractWith) override;
+
+protected:
+	UFUNCTION(BlueprintNativeEvent)
+	bool CanInteract();
 	
+	UFUNCTION(BlueprintNativeEvent)
+	void ItemGathered();
 };
