@@ -12,7 +12,7 @@ class UNSItemInstance;
 class UNSEquipmentComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FEquipDelegate, EEquipmentType, WeaponType, EEquipmentSlot, EquipmentSlot);
-
+DECLARE_MULTICAST_DELEGATE_OneParam(FUnEquipDelegate, UNSEquipmentInstance* Item);
 
 /** A single piece of applied equipment */
 USTRUCT(BlueprintType)
@@ -106,6 +106,9 @@ public:
 public:
 	UPROPERTY(BlueprintAssignable)
 	FEquipDelegate ItemEquip;
+
+	/** Item mark as garbage after call this delegate */
+	FUnEquipDelegate ItemUnequip;
 	
 private:
 	/** List of all equipped items */

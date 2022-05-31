@@ -12,7 +12,6 @@ class UNSEquipmentInstance;
  * Gameplay ability who granted by equipment,
  * get reference on equipment,
  * clear ability on ent if associated equipment no longer equip
- * //todo switch force end on unequip?
  */
 UCLASS()
 class NETWORKSHOTER_API UNSGameplayAbility_FromEquipment : public UGameplayAbility
@@ -23,8 +22,17 @@ public:
 	UNSEquipmentInstance* GetAssociatedEquipment();
 
 protected:
+	
+	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
+	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
+	virtual void OnRemoveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
+	
+	/** Force cancel ability on unequip item */
+	UPROPERTY(EditDefaultsOnly)
+	bool bForceCancel = false;
 
-private:
+	UFUNCTION()
+	void OnUnequip(UNSEquipmentInstance* Item);
 	bool ItemStillEquipped();
 };

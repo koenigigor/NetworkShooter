@@ -36,7 +36,6 @@ void FNSEquipmentList::PostReplicatedAdd(const TArrayView<int32> AddedIndices, i
 
 void FNSEquipmentList::PostReplicatedChange(const TArrayView<int32> ChangedIndices, int32 FinalSize)
 {
-	UE_LOG(LogTemp, Error, TEXT("Equipment PostReplicatedAdd, think it imposible root"))
 	for (const auto& Index : ChangedIndices)
 	{
 		auto& Entry = Entries[Index];
@@ -166,6 +165,8 @@ UNSItemInstance* UNSEquipmentComponent::UnEquipItem(UNSEquipmentInstance* Item, 
 	{
 		Fragment->OnUnequip(RemovedEntry.EquipmentInstance);
 	}
+	
+	ItemUnequip.Broadcast(Item);
 	Item->MarkAsGarbage();
 
 	if (bDestroy)

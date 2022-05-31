@@ -95,6 +95,5 @@ protected:
 
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 
-	/** Cant find ClampAttribute(), make own */
-	void ClampAttribute(const FGameplayAttribute& Attribute, float& NewValue ,const FGameplayAttributeData& Min, const FGameplayAttributeData& Max);
+	void ClampAttribute(const FGameplayAttribute& Attribute, float& NewValue);
 };

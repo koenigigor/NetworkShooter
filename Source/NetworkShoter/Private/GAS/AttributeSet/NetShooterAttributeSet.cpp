@@ -57,48 +57,29 @@ void UNetShooterAttributeSet::OnRep_Stamina(const FGameplayAttributeData& OldVal
 //dont know how clamp without notify if current already max/min
 void UNetShooterAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute,  float& NewValue)
 {
-	if (Attribute == GetHealthAttribute())
-	{
-		ClampAttribute(GetHealthAttribute(), NewValue, MinHealth, MaxHealth);
-	}
-
-	if (Attribute == GetArmorAttribute())
-	{
-		ClampAttribute(GetArmorAttribute(), NewValue, MinArmor, MaxArmor);
-	}
-
-	if (Attribute == GetWalkSpeedAttribute())
-	{
-		ClampAttribute(GetWalkSpeedAttribute(), NewValue, MinWalkSpeed, MaxWalkSpeed);
-	}
-
-	if (Attribute == GetStaminaAttribute())
-	{
-		ClampAttribute(GetStaminaAttribute(), NewValue, MinStamina, MaxStamina);
-	}	
+	ClampAttribute(Attribute, NewValue);
 
 	Super::PreAttributeChange(Attribute, NewValue);
 }
 
-void UNetShooterAttributeSet::ClampAttribute(const FGameplayAttribute& Attribute,
-		float& NewValue ,const FGameplayAttributeData& Min, const FGameplayAttributeData& Max)
+void UNetShooterAttributeSet::ClampAttribute(const FGameplayAttribute& Attribute, float& NewValue)
 {
-	float MaxValue = Max.GetCurrentValue();
-	float MinValue = Min.GetCurrentValue();
-	
-	if (NewValue > MaxValue)
+	if (Attribute == GetHealthAttribute())
 	{
-		GetOwningAbilitySystemComponent()->ApplyModToAttribute(Attribute, EGameplayModOp::Override, MaxValue); //without damage calculation not border by 0
-
-		NewValue = MaxValue;
+		NewValue = FMath::Clamp(NewValue, GetMinHealth(), GetMaxHealth());
 	}
-
-	if (NewValue < MinValue)
+	else if (Attribute == GetArmorAttribute())
 	{
-		GetOwningAbilitySystemComponent()->ApplyModToAttribute(Attribute, EGameplayModOp::Override, MinValue);
-
-		NewValue = MinValue;
+		NewValue = FMath::Clamp(NewValue, GetMinArmor(), GetMaxArmor());
 	}
+	else if (Attribute == GetWalkSpeedAttribute())
+	{
+		NewValue = FMath::Clamp(NewValue, GetMinWalkSpeed(), GetMaxWalkSpeed());
+	}
+	else if (Attribute == GetStaminaAttribute())
+	{
+		NewValue = FMath::Clamp(NewValue, GetMinStamina(), GetMaxStamina());
+	}	
 }
 
 
