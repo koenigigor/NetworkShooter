@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayEffectTypes.h"
 #include "NSEquipmentInstance.generated.h"
 
 class UNSItemInstance;
@@ -36,4 +37,7 @@ public:
 
 	UPROPERTY(ReplicatedUsing="OnRep_Instigator")
 	AActor* Instigator = nullptr;
+
+	/** if has EFragment_Attributes keep this effect who response for add equipment attributes */
+	FActiveGameplayEffectHandle ApplyAttributesEffectHandle;
 };
