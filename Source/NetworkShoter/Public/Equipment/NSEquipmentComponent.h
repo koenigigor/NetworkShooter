@@ -24,13 +24,13 @@ struct FNSEquipmentEntry : public FFastArraySerializerItem
 	FNSEquipmentEntry(UNSItemInstance* InItemInstance, UNSEquipmentInstance* InEquipmentInstance, EEquipmentSlot InSlot)
 						: ItemInstance(InItemInstance), EquipmentInstance(InEquipmentInstance), Slot(InSlot){}
 	
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly)
 	UNSItemInstance* ItemInstance = nullptr;
 	
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly)
 	UNSEquipmentInstance* EquipmentInstance = nullptr;
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly)
 	EEquipmentSlot Slot = EEquipmentSlot::None;
 };
 
@@ -100,6 +100,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Equipment")
 	FNSEquipmentEntry GetEquipmentBySlot(EEquipmentSlot Slot) { return EquipmentList.GetEntryBySlot(Slot); };
 
+	UFUNCTION(BlueprintPure, Category="Equipment")
+	UNSItemInstance* GetItemByEquipment(UNSEquipmentInstance* Equipment);
+	
 	UFUNCTION(BlueprintCallable, Category="Equipment")
 	TArray<FNSEquipmentEntry> GetAllEquipment();
 

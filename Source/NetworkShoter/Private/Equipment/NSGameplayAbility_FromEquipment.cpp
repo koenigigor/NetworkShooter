@@ -15,7 +15,7 @@ UNSEquipmentInstance* UNSGameplayAbility_FromEquipment::GetAssociatedEquipment()
 }
 
 void UNSGameplayAbility_FromEquipment::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo,
-	const FGameplayAbilitySpec& Spec)
+                                                     const FGameplayAbilitySpec& Spec)
 {
 	Super::OnGiveAbility(ActorInfo, Spec);
 

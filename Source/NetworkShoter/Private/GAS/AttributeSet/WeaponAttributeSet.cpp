@@ -7,7 +7,7 @@
 
 UWeaponAttributeSet::UWeaponAttributeSet():
 	WeaponDamage(0.f),
-	Ammo(0.f),
+	//Ammo(0.f),
 	MaxAmmo(0.f),
 	ShootsPerSec(1.f),
 	ReloadTime(0.f),
@@ -20,7 +20,7 @@ void UWeaponAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME_CONDITION(UWeaponAttributeSet, WeaponDamage, COND_OwnerOnly);
-	DOREPLIFETIME_CONDITION(UWeaponAttributeSet, Ammo, COND_OwnerOnly);
+	//DOREPLIFETIME_CONDITION(UWeaponAttributeSet, Ammo, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(UWeaponAttributeSet, MaxAmmo, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(UWeaponAttributeSet, ShootsPerSec, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(UWeaponAttributeSet, ReloadTime, COND_OwnerOnly);
@@ -30,7 +30,7 @@ void UWeaponAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 void UWeaponAttributeSet::CopyFrom(const UWeaponAttributeSet* Other)
 {
 	WeaponDamage = Other->WeaponDamage;
-	Ammo = Other->Ammo;
+	//Ammo = Other->Ammo;
 	MaxAmmo = Other->MaxAmmo;
 	ShootsPerSec = Other->ShootsPerSec;
 	ReloadTime = Other->ReloadTime;

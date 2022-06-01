@@ -185,6 +185,12 @@ UNSItemInstance* UNSEquipmentComponent::UnEquipItem(UNSEquipmentInstance* Item, 
 	return RemovedEntry.ItemInstance;
 }
 
+UNSItemInstance* UNSEquipmentComponent::GetItemByEquipment(UNSEquipmentInstance* Equipment)
+{
+	if (!EquipmentList.AccelerationMap.Contains(Equipment)) return nullptr;
+	return EquipmentList.AccelerationMap[Equipment];
+}
+
 TArray<FNSEquipmentEntry> UNSEquipmentComponent::GetAllEquipment()
 {
 	TArray<FNSEquipmentEntry> Result;

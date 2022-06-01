@@ -18,6 +18,6 @@ class NETWORKSHOTER_API UFragment_ItemAttribute : public UNSInventoryItemFragmen
 public:
 	virtual void OnInstanceCreated(UNSItemInstance* Instance) override;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, meta=(Categories="ItemAttribute"))
 	TMap<FGameplayTag, float> Attributes;
 };

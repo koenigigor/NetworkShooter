@@ -36,9 +36,9 @@ public:
 	FGameplayAttributeData WeaponDamage;
 	ATTRIBUTE_ACCESSORS(UWeaponAttributeSet, WeaponDamage)
 
-	UPROPERTY(BlueprintReadOnly, Replicated, Category="Weapon|Attribute|Range")
-	FGameplayAttributeData Ammo;
-	ATTRIBUTE_ACCESSORS(UWeaponAttributeSet, Ammo)
+//	UPROPERTY(BlueprintReadOnly, Replicated, Category="Weapon|Attribute|Range")
+//	FGameplayAttributeData Ammo;
+//	ATTRIBUTE_ACCESSORS(UWeaponAttributeSet, Ammo)
 
 	UPROPERTY(BlueprintReadOnly, Replicated, Category="Weapon|Attribute|Range")
 	FGameplayAttributeData MaxAmmo;

@@ -3,6 +3,7 @@
 
 #include "GAS/AttributeSet/NetShooterAttributeSet.h"
 
+#include "GameplayEffectExtension.h"
 #include "Net/UnrealNetwork.h"
 
 UNetShooterAttributeSet::UNetShooterAttributeSet()
@@ -60,6 +61,34 @@ void UNetShooterAttributeSet::PreAttributeChange(const FGameplayAttribute& Attri
 	ClampAttribute(Attribute, NewValue);
 
 	Super::PreAttributeChange(Attribute, NewValue);
+}
+
+//void ULyraHealthSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
+void UNetShooterAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
+{
+	Super::PostGameplayEffectExecute(Data);
+
+	//TODO TODO TODO damage notify there
+	
+	if (Data.EvaluatedData.Attribute == GetHealthAttribute())
+	{
+		if (Data.EvaluatedData.Magnitude < 0.f)	//is damage
+		{
+			auto Causer = Data.EffectSpec.GetEffectContext().GetEffectCauser();
+			auto Instigator = Data.EffectSpec.GetEffectContext().GetInstigator();
+			auto Target = GetOwningActor();
+			auto Damage = Data.EvaluatedData.Magnitude;
+			
+			ensure(Causer);
+			ensure(Instigator);
+			
+			UE_LOG(LogTemp, Display, TEXT("UNetShooterAttributeSet %s damaged from %s by %s on %f"), *Target->GetName(), *Instigator->GetName(), *Causer->GetName(), Damage)
+		}
+		else    //is healing
+		{
+			UE_LOG(LogTemp, Display, TEXT("UNetShooterAttributeSet Im Healed on %f"), Data.EvaluatedData.Magnitude)
+		}
+	}
 }
 
 void UNetShooterAttributeSet::ClampAttribute(const FGameplayAttribute& Attribute, float& NewValue)

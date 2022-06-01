@@ -95,5 +95,7 @@ protected:
 
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 
+	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
+
 	void ClampAttribute(const FGameplayAttribute& Attribute, float& NewValue);
 };

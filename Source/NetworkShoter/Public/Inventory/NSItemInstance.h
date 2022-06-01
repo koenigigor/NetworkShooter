@@ -23,16 +23,16 @@ class NETWORKSHOTER_API UNSItemInstance : public UObject
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 public:
-	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category=Inventory)
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category=Inventory, meta=(GameplayTagFilter="ItemAttribute"))
 	void AddStatTagValue(FGameplayTag Tag, float Value);
 
-	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category= Inventory)
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category= Inventory, meta=(GameplayTagFilter="ItemAttribute"))
 	void RemoveStatTagValue(FGameplayTag Tag, float Value);
 
-	UFUNCTION(BlueprintCallable, Category=Inventory)
+	UFUNCTION(BlueprintCallable, Category=Inventory, meta=(GameplayTagFilter="ItemAttribute"))
 	float GetStatTagStackValue(FGameplayTag Tag) const;
 
-	UFUNCTION(BlueprintCallable, Category=Inventory)
+	UFUNCTION(BlueprintCallable, Category=Inventory, meta=(GameplayTagFilter="ItemAttribute"))
 	bool HasAttributeTag(FGameplayTag Tag) const;
 
 protected:
