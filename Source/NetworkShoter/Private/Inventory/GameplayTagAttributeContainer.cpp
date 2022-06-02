@@ -9,11 +9,13 @@ void FGameplayTagAttributeContainer::AddAttribute(FGameplayTag Tag, float Value)
 		
 	for (auto& Attribute : Attributes)
 	{
-		if (Attribute.Tag == Tag)
+		if (Attribute.GetTag() == Tag)
 		{
-			const float NewValue = Attribute.Value + Value;
-			Attribute.Value = NewValue;
+			const float NewValue = Attribute.GetValue() + Value;
+			Attribute.SetValue(NewValue);
 			TagToCountMap[Tag] = NewValue;
+			BroadcastAttributeChange(Attribute);
+			
 			MarkItemDirty(Attribute);
 			return;
 		}
@@ -23,6 +25,7 @@ void FGameplayTagAttributeContainer::AddAttribute(FGameplayTag Tag, float Value)
 	auto& NewItem = Attributes.Emplace_GetRef(Tag, Value);
 	MarkItemDirty(NewItem);
 	TagToCountMap.Add(Tag, Value);
+	BroadcastAttributeChange(NewItem);
 }
 
 void FGameplayTagAttributeContainer::RemoveAttribute(FGameplayTag Tag, float Value)
@@ -32,21 +35,25 @@ void FGameplayTagAttributeContainer::RemoveAttribute(FGameplayTag Tag, float Val
 	for (auto It = Attributes.CreateIterator(); It; ++It)
 	{
 		FGameplayTagAttribute& Attribute = *It;
-		if (Attribute.Tag != Tag) continue; //next iteration
+		if (Attribute.GetTag() != Tag) continue; //next iteration
 		
-		if (Attribute.Value <= Value)
+		if (Attribute.GetValue() <= Value)
 		{
-			It.RemoveCurrent();
+			Attribute.SetValue(0);	//set 0 for can broadcast value
 			TagToCountMap.Remove(Tag);
+			BroadcastAttributeChange(Attribute);
+			It.RemoveCurrent();
 			MarkArrayDirty();
 		}
 		else
 		{
-			const float NewValue = Attribute.Value - Value;
-			Attribute.Value = NewValue;
+			const float NewValue = Attribute.GetValue() - Value;
+			Attribute.SetValue(NewValue);
 			TagToCountMap[Tag] = NewValue;
 			MarkItemDirty(Attribute);
 		}
+		
+		BroadcastAttributeChange(Attribute);
 		return;
 	}
 }
@@ -61,12 +68,25 @@ bool FGameplayTagAttributeContainer::ContainAttribute(FGameplayTag Tag) const
 	return TagToCountMap.Contains(Tag);
 }
 
+FItemAttributeChange& FGameplayTagAttributeContainer::GetItemAttributeValueChangeDelegate(FGameplayTag Attribute)
+{
+	return AttributeValueChangeDelegates.FindOrAdd(Attribute);
+}
+
+void FGameplayTagAttributeContainer::BroadcastAttributeChange(FGameplayTagAttribute Attribute)
+{
+	//if not contains then nobody not listen changes
+	if (AttributeValueChangeDelegates.Contains(Attribute.GetTag()))
+		AttributeValueChangeDelegates[Attribute.GetTag()].Broadcast(Attribute);
+}
+
 void FGameplayTagAttributeContainer::PreReplicatedRemove(const TArrayView<int32> RemovedIndices, int32 FinalSize)
 {
 	for (const auto& Index : RemovedIndices)
 	{
-		const FGameplayTag Tag = Attributes[Index].Tag;
+		const FGameplayTag Tag = Attributes[Index].GetTag();
 		TagToCountMap.Remove(Tag);
+		BroadcastAttributeChange(Attributes[Index]);
 	}
 }
 
@@ -75,7 +95,8 @@ void FGameplayTagAttributeContainer::PostReplicatedAdd(const TArrayView<int32> A
 	for (const auto& Index : AddedIndices)
 	{
 		const auto& Item = Attributes[Index];
-		TagToCountMap.Add(Item.Tag, Item.Value);
+		TagToCountMap.Add(Item.GetTag(), Item.GetValue());
+		BroadcastAttributeChange(Item);
 	}
 }
 
@@ -83,8 +104,11 @@ void FGameplayTagAttributeContainer::PostReplicatedChange(const TArrayView<int32
 {
 	for (const auto& Index : ChangedIndices)
 	{
-		const auto& Item = Attributes[Index];
-		TagToCountMap[Item.Tag] = Item.Value;
+		auto& Item = Attributes[Index];
+		TagToCountMap[Item.GetTag()] = Item.GetValue();
+		BroadcastAttributeChange(Item);
+		
+		Item.SetValue(Item.GetValue());	//update previous value
 	}
 }
 

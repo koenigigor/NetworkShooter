@@ -10,6 +10,9 @@
 //build.cs "NetCore"
 
 struct FGameplayTagAttributeContainer;
+struct FGameplayTagAttribute;
+
+DECLARE_MULTICAST_DELEGATE_OneParam(FItemAttributeChange, const FGameplayTagAttribute& Attribute);
 
 /**
  * One tag row, tag + float attribute
@@ -28,14 +31,21 @@ struct FGameplayTagAttribute : public FFastArraySerializerItem
 	{
 	}
 
-private:
-	friend FGameplayTagAttributeContainer;
+	float GetValue() const { return Value; };
+	float GetPreviousValue() const { return PreviousValue; };
+	void SetValue(float NewValue) { PreviousValue = Value; Value = NewValue; };
 
+	FGameplayTag GetTag() const { return Tag; };
+	
+private:
 	UPROPERTY()
 	FGameplayTag Tag;
 
 	UPROPERTY()
 	float Value = 0.f;
+	
+	UPROPERTY(NotReplicated)
+	float PreviousValue = 0.f;
 };
 
 
@@ -54,8 +64,13 @@ struct FGameplayTagAttributeContainer : public FFastArraySerializer
 	float GetAttribute(FGameplayTag Tag) const;
 
 	bool ContainAttribute(FGameplayTag Tag) const;
+
+	FItemAttributeChange& GetItemAttributeValueChangeDelegate(FGameplayTag Attribute);
+
+private:
+	void BroadcastAttributeChange(FGameplayTagAttribute Attribute);
 	
-	
+public:
 	//~FFastArraySerializer contract
 	void PreReplicatedRemove(const TArrayView<int32> RemovedIndices, int32 FinalSize);
 	void PostReplicatedAdd(const TArrayView<int32> AddedIndices, int32 FinalSize);
@@ -75,6 +90,8 @@ private:
 
 	// Accelerated list of tag stacks for queries
 	TMap<FGameplayTag, float> TagToCountMap;
+
+	TMap<FGameplayTag, FItemAttributeChange> AttributeValueChangeDelegates;
 };
 
 template<>

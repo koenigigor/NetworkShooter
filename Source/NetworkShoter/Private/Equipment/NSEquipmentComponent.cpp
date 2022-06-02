@@ -47,12 +47,12 @@ void FNSEquipmentList::PostReplicatedChange(const TArrayView<int32> ChangedIndic
 
 void FNSEquipmentList::AddEntry(FNSEquipmentEntry Entry)
 {
-	Entries.Add(Entry);
+	auto& AddedEntry = Entries.Add_GetRef(Entry);
 	
 	AccelerationMap.Add(Entry.EquipmentInstance, Entry.ItemInstance);
 	SlotMap.Add(Entry.Slot, Entry);
 	
-	MarkItemDirty(Entry);
+	MarkItemDirty(AddedEntry);
 }
 
 FNSEquipmentEntry FNSEquipmentList::RemoveEntry(const UNSEquipmentInstance* Instance)
@@ -84,6 +84,7 @@ FNSEquipmentEntry FNSEquipmentList::GetEntryBySlot(EEquipmentSlot Slot) const
 UNSEquipmentComponent::UNSEquipmentComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
+	SetIsReplicatedByDefault(true);
 }
 
 void UNSEquipmentComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

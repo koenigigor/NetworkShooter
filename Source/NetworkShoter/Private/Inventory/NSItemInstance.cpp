@@ -36,6 +36,11 @@ bool UNSItemInstance::HasAttributeTag(FGameplayTag Tag) const
 }
 #pragma endregion
 
+FItemAttributeChange& UNSItemInstance::GetItemAttributeValueChangeDelegate(FGameplayTag Attribute)
+{
+	return ItemAttributes.GetItemAttributeValueChangeDelegate(Attribute);
+}
+
 UNSInventoryItemFragment* UNSItemInstance::FindFragmentByClass(
 	TSubclassOf<UNSInventoryItemFragment> FragmentClass) const
 {

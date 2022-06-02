@@ -34,6 +34,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category=Inventory, meta=(GameplayTagFilter="ItemAttribute"))
 	bool HasAttributeTag(FGameplayTag Tag) const;
+	
+	FItemAttributeChange& GetItemAttributeValueChangeDelegate(FGameplayTag Attribute);
 
 protected:
 	UPROPERTY(Replicated)

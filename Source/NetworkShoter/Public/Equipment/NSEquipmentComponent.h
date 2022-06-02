@@ -45,7 +45,7 @@ struct FNSEquipmentList : public FFastArraySerializer
 
 	bool NetDeltaSerialize(FNetDeltaSerializeInfo& DeltaParams)
 	{
-		return FFastArraySerializer::FastArrayDeltaSerialize<FNSEquipmentEntry, FNSEquipmentList>(Entries, DeltaParams, *this);
+		return FastArrayDeltaSerialize<FNSEquipmentEntry, FNSEquipmentList>(Entries, DeltaParams, *this);
 	}
 
 	void AddEntry(FNSEquipmentEntry Entry);
