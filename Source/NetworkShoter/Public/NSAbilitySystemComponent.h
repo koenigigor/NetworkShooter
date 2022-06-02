@@ -32,4 +32,9 @@ public:
 
 	UFUNCTION(Server, Reliable)
 	void Server_SendInputPressToAbility(const FGameplayTagContainer& GameplayTagContainer);
+
+	virtual int32 HandleGameplayEvent(FGameplayTag EventTag, const FGameplayEventData* Payload) override;
+
+private:
+	bool HasPayload(const FGameplayEventData* Payload);
 };

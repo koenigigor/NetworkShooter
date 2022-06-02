@@ -21,6 +21,44 @@ void UNSAbilitySystemComponent::SendInputPressToAbility(const FGameplayTagContai
 		Server_SendInputPressToAbility(GameplayTagContainer);
 }
 
+int32 UNSAbilitySystemComponent::HandleGameplayEvent(FGameplayTag EventTag, const FGameplayEventData* Payload)
+{
+	//if no payload try activate not event way ( event way cant activate local predicted ability on server )
+	
+	if (!HasPayload(Payload))
+	{
+		int32 TriggeredCount = 0;
+		if (GameplayEventTriggeredAbilities.Contains(EventTag))
+		{
+			TArray<FGameplayAbilitySpecHandle> TriggeredAbilityHandles = GameplayEventTriggeredAbilities[EventTag];
+
+			for (const FGameplayAbilitySpecHandle& AbilityHandle : TriggeredAbilityHandles)
+			{
+				if (TryActivateAbility(AbilityHandle))
+				{
+					TriggeredCount++;
+				}
+			}
+		}
+		return TriggeredCount;
+	}
+	
+	return Super::HandleGameplayEvent(EventTag, Payload);
+}
+
+bool UNSAbilitySystemComponent::HasPayload(const FGameplayEventData* Payload)
+{
+	if (!Payload) return false;
+	if (!Payload->Instigator &&
+		!Payload->Target &&
+		!Payload->TargetData.IsValid(0))
+	{
+		return false;
+	}
+
+	return true;
+}
+
 void UNSAbilitySystemComponent::Server_SendInputReleaseToAbility_Implementation(
 	const FGameplayTagContainer& GameplayTagContainer)
 {
