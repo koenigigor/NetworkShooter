@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Abilities/GameplayAbility.h"
+#include "GAS/Ability/NSGameplayAbility.h"
 #include "NSGameplayAbility_FromEquipment.generated.h"
 
 class UNSEquipmentInstance;
@@ -14,7 +14,7 @@ class UNSEquipmentInstance;
  * clear ability on ent if associated equipment no longer equip
  */
 UCLASS()
-class NETWORKSHOTER_API UNSGameplayAbility_FromEquipment : public UGameplayAbility
+class NETWORKSHOTER_API UNSGameplayAbility_FromEquipment : public UNSGameplayAbility
 {
 	GENERATED_BODY()
 

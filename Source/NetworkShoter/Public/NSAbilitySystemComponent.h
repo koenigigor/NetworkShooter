@@ -35,6 +35,23 @@ public:
 
 	virtual int32 HandleGameplayEvent(FGameplayTag EventTag, const FGameplayEventData* Payload) override;
 
+public:
+	/** Add/Remove ability for wants to activate,
+	 *
+	 * binds to enhanced input in Lyra HeroComponent
+	 * LyraIC->BindAbilityActions(InputConfig, this, &ThisClass::Input_AbilityInputTagPressed, &ThisClass::Input_AbilityInputTagReleased
+	 */
+	void InputTagPressed(const FGameplayTag& Tag);
+	void InputTagReleased(const FGameplayTag& Tag);
+
+	/* tick, called from NSPlayerController::PostProcessInput
+	 * tries activate ability each frame while button is pressed */
+	void ProcessInputHoldAbilities();
+
 private:
-	bool HasPayload(const FGameplayEventData* Payload);
+	/** stored abilities who input still pressed */
+	TMap<FGameplayTag, FGameplayAbilitySpecHandle> AbilitiesWhoWaitInputRelease;
+
+	/* is ability activated while input hold? */
+	bool IsInputHoldAbility(const FGameplayAbilitySpecHandle& Handle);
 };

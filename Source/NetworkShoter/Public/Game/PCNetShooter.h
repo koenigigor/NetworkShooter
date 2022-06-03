@@ -32,6 +32,8 @@ class NETWORKSHOTER_API APCNetShooter : public APlayerController
 	virtual void OnRep_Pawn() override;
 
 public:
+	virtual void PostProcessInput(const float DeltaTime, const bool bGamePaused) override;
+	
 	UFUNCTION(BlueprintImplementableEvent)
 	void BP_ClientOnPossess(APawn* InPawn);
 
