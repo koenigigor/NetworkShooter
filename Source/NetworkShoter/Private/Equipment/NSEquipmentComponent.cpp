@@ -30,6 +30,8 @@ void FNSEquipmentList::PostReplicatedAdd(const TArrayView<int32> AddedIndices, i
 		auto& Entry = Entries[Index];
 		ensure(Entry.EquipmentInstance);
 		AccelerationMap.Add(Entry.EquipmentInstance, Entry.ItemInstance);
+		//Entry.EquipmentInstance->SetInstigator(Owning);
+		Entry.EquipmentInstance->SourceItem = Entry.ItemInstance; //\/ then can remove acceleration map
 		SlotMap.Add(Entry.Slot, Entry);		//it must override previous value todo check
 	} 
 }
@@ -131,6 +133,8 @@ UNSEquipmentInstance* UNSEquipmentComponent::EquipItem(UNSItemInstance* Item)
 	//create instance
 	auto EquipmentInstance = NewObject<UNSEquipmentInstance>(GetOwner(), Definition->GetInstanceType());
 	EquipmentInstance->SetInstigator(GetOwner());
+	EquipmentInstance->SourceItem = Item;
+	
 	for (const auto& EquipmentFragment : Definition->Fragments)
 	{
 		EquipmentFragment->OnEquip(EquipmentInstance);
@@ -186,10 +190,13 @@ UNSItemInstance* UNSEquipmentComponent::UnEquipItem(UNSEquipmentInstance* Item, 
 	return RemovedEntry.ItemInstance;
 }
 
+// todo remove function
 UNSItemInstance* UNSEquipmentComponent::GetItemByEquipment(UNSEquipmentInstance* Equipment)
 {
-	if (!EquipmentList.AccelerationMap.Contains(Equipment)) return nullptr;
-	return EquipmentList.AccelerationMap[Equipment];
+	//if (!EquipmentList.AccelerationMap.Contains(Equipment)) return nullptr;
+	//return EquipmentList.AccelerationMap[Equipment];
+
+	return Equipment->SourceItem;
 }
 
 TArray<FNSEquipmentEntry> UNSEquipmentComponent::GetAllEquipment()

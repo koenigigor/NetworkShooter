@@ -38,6 +38,10 @@ public:
 	UPROPERTY(ReplicatedUsing="OnRep_Instigator")
 	AActor* Instigator = nullptr;
 
+	/** Item who response for create this weapon */
+	UPROPERTY()
+	UNSItemInstance* SourceItem = nullptr;
+
 	/** if has EFragment_Attributes keep this effect who response for add equipment attributes */
 	FActiveGameplayEffectHandle ApplyAttributesEffectHandle;
 };

@@ -20,7 +20,10 @@ class NETWORKSHOTER_API UNSGameplayAbility_FromEquipment : public UNSGameplayAbi
 
 public:
 	UFUNCTION(BlueprintPure)
-	UNSEquipmentInstance* GetAssociatedEquipment();
+	UNSEquipmentInstance* GetAssociatedEquipment() const;
+
+	virtual bool CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const override;
+	virtual void ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
 
 protected:
 	
@@ -32,6 +35,9 @@ protected:
 	/** Force cancel ability on unequip item */
 	UPROPERTY(EditDefaultsOnly)
 	bool bForceCancel = false;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Costs", meta=(Categories="ItemAttribute"))
+	TMap<FGameplayTag, float> ItemAttributeCost;
 
 	UFUNCTION()
 	void OnUnequip(UNSEquipmentInstance* Item);

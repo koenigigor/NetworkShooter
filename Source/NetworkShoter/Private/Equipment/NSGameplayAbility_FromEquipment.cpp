@@ -5,13 +5,58 @@
 #include "AbilitySystemComponent.h"
 #include "Equipment/NSEquipmentComponent.h"
 #include "Equipment/NSEquipmentInstance.h"
+#include "Inventory/NSItemInstance.h"
 
-UNSEquipmentInstance* UNSGameplayAbility_FromEquipment::GetAssociatedEquipment()
+UNSEquipmentInstance* UNSGameplayAbility_FromEquipment::GetAssociatedEquipment() const
 {
 	if (auto Spec = GetCurrentAbilitySpec())
 		return Cast<UNSEquipmentInstance>(Spec->SourceObject);
 	
 	return nullptr;
+}
+
+bool UNSGameplayAbility_FromEquipment::CheckCost(const FGameplayAbilitySpecHandle Handle,
+	const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const
+{
+	if (!Super::CheckCost(Handle, ActorInfo, OptionalRelevantTags)) return false;
+
+	UE_LOG(LogTemp, Warning, TEXT("Before check item attribute cost"))
+	
+	if (ItemAttributeCost.Num() == 0) return true;
+
+	UE_LOG(LogTemp, Warning, TEXT("Start check item attribute cost"))
+	
+	const auto EquipmentItem = GetAssociatedEquipment();
+	if (EquipmentItem && EquipmentItem->SourceItem)
+	{
+		for (const auto& Cost : ItemAttributeCost)
+		{
+			if (EquipmentItem->SourceItem->GetStatTagStackValue(Cost.Key) < Cost.Value) return false;
+		}
+
+		UE_LOG(LogTemp, Warning, TEXT("Check item attribute cost success"))
+		return true;
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("UNSGameplayAbility_FromEquipment::CheckCost EquipmentItem && EquipmentItem->SourceItem nullptr"))
+	return false;
+}
+
+void UNSGameplayAbility_FromEquipment::ApplyCost(const FGameplayAbilitySpecHandle Handle,
+	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const
+{
+	Super::ApplyCost(Handle, ActorInfo, ActivationInfo);
+
+	UE_LOG(LogTemp, Warning, TEXT("Start apply item attribute cost"))
+	
+	const auto EquipmentItem = GetAssociatedEquipment();
+	if (EquipmentItem && EquipmentItem->SourceItem)
+	{
+		for (const auto& Cost : ItemAttributeCost)
+		{
+			EquipmentItem->SourceItem->RemoveStatTagValue(Cost.Key, Cost.Value);
+		} 
+	}
 }
 
 void UNSGameplayAbility_FromEquipment::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo,

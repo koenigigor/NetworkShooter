@@ -279,6 +279,20 @@ bool UNSInventoryComponent::RemoveItem(UNSItemInstance* Item, TArray<FInventoryE
 	return Result;
 }
 
+bool UNSInventoryComponent::RemoveItems(const TMap<TSubclassOf<UNSItemDefinition>, int32>& Items, TArray<FInventoryEntry>& RemovedItems, bool bDestroy, bool bExactCount)
+{
+	if (bExactCount)
+	{
+		if (!CheckItems(Items)) return false;
+	}
+
+	for (const auto& Item : Items)
+	{
+		RemoveItem(Item.Key, RemovedItems, Item.Value, bDestroy, bExactCount);
+	}
+	return true;
+}
+
 bool UNSInventoryComponent::RemoveItemInstance(UNSItemInstance* Item, TArray<FInventoryEntry>& RemovedItems, int32 Count, bool bDestroy,
 	bool bExactCount)
 {
@@ -288,6 +302,15 @@ bool UNSInventoryComponent::RemoveItemInstance(UNSItemInstance* Item, TArray<FIn
 FInventoryEntry UNSInventoryComponent::FindItem(TSubclassOf<UNSItemDefinition> Definition)
 {
 	return InventoryList.FindItem(Definition);
+}
+
+bool UNSInventoryComponent::CheckItems(const TMap<TSubclassOf<UNSItemDefinition>, int32>& Items)
+{
+	for (const auto& Item : Items)
+	{
+		if (GetTotalCount(Item.Key) < Item.Value) return false;
+	}
+	return true;
 }
 
 int32 UNSInventoryComponent::GetTotalCount(TSubclassOf<UNSItemDefinition> Definition)
