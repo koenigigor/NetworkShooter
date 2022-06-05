@@ -33,7 +33,7 @@ protected:
 	virtual void OnRemoveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
 	
 	/** Force cancel ability on unequip item */
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "Setup")
 	bool bForceCancel = false;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Costs", meta=(Categories="ItemAttribute"))

@@ -190,15 +190,6 @@ UNSItemInstance* UNSEquipmentComponent::UnEquipItem(UNSEquipmentInstance* Item, 
 	return RemovedEntry.ItemInstance;
 }
 
-// todo remove function
-UNSItemInstance* UNSEquipmentComponent::GetItemByEquipment(UNSEquipmentInstance* Equipment)
-{
-	//if (!EquipmentList.AccelerationMap.Contains(Equipment)) return nullptr;
-	//return EquipmentList.AccelerationMap[Equipment];
-
-	return Equipment->SourceItem;
-}
-
 TArray<FNSEquipmentEntry> UNSEquipmentComponent::GetAllEquipment()
 {
 	TArray<FNSEquipmentEntry> Result;

@@ -19,12 +19,8 @@ bool UNSGameplayAbility_FromEquipment::CheckCost(const FGameplayAbilitySpecHandl
 	const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const
 {
 	if (!Super::CheckCost(Handle, ActorInfo, OptionalRelevantTags)) return false;
-
-	UE_LOG(LogTemp, Warning, TEXT("Before check item attribute cost"))
 	
 	if (ItemAttributeCost.Num() == 0) return true;
-
-	UE_LOG(LogTemp, Warning, TEXT("Start check item attribute cost"))
 	
 	const auto EquipmentItem = GetAssociatedEquipment();
 	if (EquipmentItem && EquipmentItem->SourceItem)
@@ -34,11 +30,9 @@ bool UNSGameplayAbility_FromEquipment::CheckCost(const FGameplayAbilitySpecHandl
 			if (EquipmentItem->SourceItem->GetStatTagStackValue(Cost.Key) < Cost.Value) return false;
 		}
 
-		UE_LOG(LogTemp, Warning, TEXT("Check item attribute cost success"))
 		return true;
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("UNSGameplayAbility_FromEquipment::CheckCost EquipmentItem && EquipmentItem->SourceItem nullptr"))
 	return false;
 }
 
@@ -46,8 +40,6 @@ void UNSGameplayAbility_FromEquipment::ApplyCost(const FGameplayAbilitySpecHandl
 	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const
 {
 	Super::ApplyCost(Handle, ActorInfo, ActivationInfo);
-
-	UE_LOG(LogTemp, Warning, TEXT("Start apply item attribute cost"))
 	
 	const auto EquipmentItem = GetAssociatedEquipment();
 	if (EquipmentItem && EquipmentItem->SourceItem)

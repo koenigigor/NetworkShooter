@@ -20,12 +20,12 @@ FVector UShootBase::GetMuzzleLocation() const
 	const auto WeaponOwner = Cast<APawn>(AttachedTo->GetOwner());
 	const auto MuzzleLocation = WeaponActor->GetRootComponent()->GetSocketLocation("Muzzle"); //intend weapon mesh is root
 
-	
+	/*
 	UE_LOG(LogTemp, Display, TEXT("WeaponActor = %s"), *WeaponActor->GetName())
 	UE_LOG(LogTemp, Display, TEXT("AttachedTo = %s"), *AttachedTo->GetName())
 	UE_LOG(LogTemp, Display, TEXT("AttachedToSocket = %s"), *AttachedToSocket.ToString())
 	UE_LOG(LogTemp, Display, TEXT("WeaponOwner = %s"), *WeaponOwner->GetName())
-	
+	*/
 
 	///up down look correction
 	//const auto OwnerToMuzzle = (WeaponOwner->GetActorLocation() - MuzzleLocation) * FVector(1,1,0);

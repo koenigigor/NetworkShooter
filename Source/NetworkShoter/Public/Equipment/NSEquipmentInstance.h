@@ -39,7 +39,7 @@ public:
 	AActor* Instigator = nullptr;
 
 	/** Item who response for create this weapon */
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly)
 	UNSItemInstance* SourceItem = nullptr;
 
 	/** if has EFragment_Attributes keep this effect who response for add equipment attributes */
