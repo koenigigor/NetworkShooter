@@ -3,20 +3,20 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Abilities/GameplayAbility.h"
+#include "Equipment/NSGameplayAbility_FromEquipment.h"
 #include "ShootBase.generated.h"
-
-class AWeapon;
 
 /**
  * Base class for shoot ability
  * Shoot ability must be give player by weapon equipments
  */
 UCLASS(Abstract)
-class NETWORKSHOTER_API UShootBase : public UGameplayAbility
+class NETWORKSHOTER_API UShootBase : public UNSGameplayAbility_FromEquipment
 {
 	GENERATED_BODY()
 protected:
+	FVector GetMuzzleLocation() const;
+	
 	void GetShootStartAndDirection(FVector& Start, FVector& Direction, float Length = 1000);
 	
 	void GetShootStartAndDirectionWithSpread(FVector& Start, FVector& Direction, float Length = 1000);	
@@ -28,10 +28,6 @@ protected:
 	/** Preform one shoot */
 	UFUNCTION(BlueprintCallable)
 	virtual void MakeShoot() { };
-	
-	/** return reference on weapon associated with this ability */
-	UFUNCTION(BlueprintPure)
-	AWeapon* GetAssociatedWeapon();
 
 	/** return trace channel for hit traces */
 	virtual ECollisionChannel GetTraceChannel();
@@ -40,6 +36,21 @@ protected:
 	UFUNCTION(BlueprintPure)
 	FGameplayEffectSpecHandle MakeDamageEffectSpec();
 
+	/** Min spread half angle, lerp on WeaponAttribute.SpreadPercent (0..1) */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Setup")
+	float SpreadMin = 5.f;
+
+	/** Max spread half angle, lerp on WeaponAttribute.SpreadPercent (0..1) */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Setup")
+	float SpreadMax = 10.f;
+	
+	/** larger exponent will cluster points more tightly around the center */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Setup")
+	float SpreadExponent = 50.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Setup")
+	float ShootDistance = 1000.f;
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Setup")
 	FGameplayTag ShootCueTag;
 
