@@ -34,7 +34,7 @@ protected:
 
 	/** Create damage effect spec, set causer and instigator */
 	UFUNCTION(BlueprintPure)
-	FGameplayEffectSpecHandle MakeDamageEffectSpec();
+	FGameplayEffectSpecHandle MakeDamageEffectSpec() const;
 
 	/** Min spread half angle, lerp on WeaponAttribute.SpreadPercent (0..1) */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Setup")

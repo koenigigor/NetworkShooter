@@ -16,7 +16,6 @@ FVector UShootBase::GetMuzzleLocation() const
 	
 	const auto WeaponActor = GetAssociatedEquipment()->SpawnedActors[0];
 	const auto AttachedTo = WeaponActor->GetRootComponent()->GetAttachParent();
-	const auto AttachedToSocket = WeaponActor->GetAttachParentSocketName();
 	const auto WeaponOwner = Cast<APawn>(AttachedTo->GetOwner());
 	const auto MuzzleLocation = WeaponActor->GetRootComponent()->GetSocketLocation("Muzzle"); //intend weapon mesh is root
 
@@ -28,31 +27,17 @@ FVector UShootBase::GetMuzzleLocation() const
 	*/
 
 	///up down look correction
-	//const auto OwnerToMuzzle = (WeaponOwner->GetActorLocation() - MuzzleLocation) * FVector(1,1,0);
 	const auto OwnerToMuzzle = (MuzzleLocation - WeaponOwner->GetActorLocation()).GetAbs() * FVector(1,1,0);
-	const auto ViewPitchAxis =  FRotator(WeaponOwner->GetViewRotation().Pitch, 0,0);
-	const auto OwnerToMuzzleRotated = ViewPitchAxis.RotateVector(OwnerToMuzzle);
+	const auto RotatedMuzzleOffset = OwnerToMuzzle.Length() * WeaponOwner->GetViewRotation().Vector();
+	const auto RotatedNuzzleLocation = WeaponOwner->GetActorLocation() + RotatedMuzzleOffset + FVector(0, 0, (MuzzleLocation - WeaponOwner->GetActorLocation()).GetAbs().Z);
+
+	DrawDebugPoint(GetWorld(), RotatedNuzzleLocation, 15, FColor::Magenta, false, 4, 1);
+
+	return RotatedNuzzleLocation;
 	
-
-	const auto RotatedLength = OwnerToMuzzle.Length() * WeaponOwner->GetViewRotation().Vector();
-	DebugPoint = WeaponOwner->GetActorLocation() + RotatedLength + FVector(0, 0, (MuzzleLocation - WeaponOwner->GetActorLocation()).GetAbs().Z);
-	DrawDebugPoint(GetWorld(), DebugPoint, 15, FColor::Magenta, false, 4, 1);
-	return DebugPoint;
-
-	UE_LOG(LogTemp, Display, TEXT("OwnerToMuzzle = %s"), *OwnerToMuzzle.ToString())
-	UE_LOG(LogTemp, Display, TEXT("ViewPitchAxis = %s"), *ViewPitchAxis.ToString())
-	UE_LOG(LogTemp, Display, TEXT("OwnerToMuzzleRotated = %s"), *OwnerToMuzzleRotated.ToString())
-	
-	const auto MuzzleLocationRotated = MuzzleLocation - OwnerToMuzzle + OwnerToMuzzleRotated;
-	UE_LOG(LogTemp, Display, TEXT("MuzzleLocationRotated = %s"), *MuzzleLocationRotated.ToString())
-
-	DebugPoint = MuzzleLocationRotated;
-	//DrawDebugPoint(GetWorld(), DebugPoint, 15, FColor::Magenta, false, 4, 1);
-
 	//todo on +-45 degrees work ok, but more is not ok
 	//todo height correction (crouch) 
 	
-	return MuzzleLocationRotated;
 }
 
 void UShootBase::GetShootStartAndDirection(FVector& Start, FVector& Direction, float Length)
@@ -103,7 +88,7 @@ ECollisionChannel UShootBase::GetTraceChannel()
 	return ECollisionChannel::ECC_GameTraceChannel2;
 }
 
-FGameplayEffectSpecHandle UShootBase::MakeDamageEffectSpec()
+FGameplayEffectSpecHandle UShootBase::MakeDamageEffectSpec() const
 {
 	const auto Instigator = GetAvatarActorFromActorInfo();
 	ensure(GetAssociatedEquipment()->SpawnedActors.IsValidIndex(0));

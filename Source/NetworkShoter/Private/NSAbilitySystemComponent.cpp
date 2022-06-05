@@ -67,7 +67,12 @@ int32 UNSAbilitySystemComponent::HandleGameplayEvent(FGameplayTag EventTag, cons
 			}
 		}
 
-		//return 0; //not able catch tag by AbilityTask_WaitGameplayEvent
+		if (const FGameplayEventMulticastDelegate* Delegate = GenericGameplayEventCallbacks.Find(EventTag))
+		{
+			Delegate->Broadcast(Payload);
+		} //for AbilityTask_WaitGameplayEvent
+		
+		return 0; 
 	}
 	
 	return Super::HandleGameplayEvent(EventTag, Payload);
