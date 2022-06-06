@@ -32,10 +32,11 @@ void FInventoryList::PostReplicatedAdd(const TArrayView<int32> AddedIndices, int
 		
 		int32& CurrentValue = DefCountMap.FindOrAdd(Entry.Item->GetItemDefinition());
 		CurrentValue += Entry.StackCount;
-
+		
+		const int32 Delta = Entry.StackCount - Entry.LastObservedCount;
 		Entry.LastObservedCount = Entry.StackCount;
 
-		InventoryComponent->ItemAdded.Broadcast(Entry.Item);
+		InventoryComponent->ItemAdded.Broadcast(Entry.Item, Delta);
 	}
 }
 
@@ -50,6 +51,15 @@ void FInventoryList::PostReplicatedChange(const TArrayView<int32> ChangedIndices
 		CurrentValue += Delta;
 
 		Entry.LastObservedCount = Entry.StackCount;
+
+		if (Delta>0)
+		{
+			InventoryComponent->ItemAdded.Broadcast(Entry.Item, Delta);
+		}
+		else
+		{
+			InventoryComponent->ItemRemoved.Broadcast(Entry.Item, Delta);
+		}
 	}
 }
 
@@ -60,9 +70,6 @@ void FInventoryList::AddEntry(TSubclassOf<UNSItemDefinition> Definition, int32 C
 
 void FInventoryList::AddEntry(UNSItemInstance* Item, int32 Count)
 {
-	UE_LOG(LogTemp, Display, TEXT("AddItem IsStackable = %d, Contains = %d"), IsStackable(Item->GetItemDefinition()), DefCountMap.Contains(Item->GetItemDefinition()))
-
-	
 	if (IsStackable(Item->GetItemDefinition()) && DefCountMap.Contains(Item->GetItemDefinition()))
 	{
 		auto& Stack = FindItem_Mutable(Item->GetItemDefinition());
@@ -70,6 +77,7 @@ void FInventoryList::AddEntry(UNSItemInstance* Item, int32 Count)
 		Item->MarkAsGarbage();
 
 		DefCountMap[Item->GetItemDefinition()] += Count;
+		InventoryComponent->ItemAdded.Broadcast(Item, Count);
 		
 		MarkItemDirty(Stack);
 		return;
@@ -89,7 +97,7 @@ void FInventoryList::AddEntry(UNSItemInstance* Item, int32 Count)
 	int32& CurrentCount = DefCountMap.FindOrAdd(Item->GetItemDefinition());
 	CurrentCount += Count;
 
-	InventoryComponent->ItemAdded.Broadcast(Item);
+	InventoryComponent->ItemAdded.Broadcast(Item, Count);
 
 	MarkItemDirty(Entry);
 }
@@ -111,6 +119,7 @@ bool FInventoryList::RemoveEntry(TSubclassOf<UNSItemDefinition> Definition, TArr
 			It.RemoveCurrent();
 
 			AccelerationMapRemoveValue(Definition, Entry.StackCount);
+			InventoryComponent->ItemAdded.Broadcast(Entry.Item, Entry.StackCount);
 			
 			RemovedEntries.Add(Entry);
 			CountToRemove -= Entry.StackCount;
@@ -123,9 +132,12 @@ bool FInventoryList::RemoveEntry(TSubclassOf<UNSItemDefinition> Definition, TArr
 			const int32 NewCount = Entry.StackCount - CountToRemove;
 			Entry.StackCount = NewCount;
 
-			AccelerationMapRemoveValue(Definition, CountToRemove);
+			auto RemovedEntry = FInventoryEntry(CreateInstance(Definition), CountToRemove);
 			
-			RemovedEntries.Add(FInventoryEntry(CreateInstance(Definition), CountToRemove));
+			AccelerationMapRemoveValue(Definition, CountToRemove);
+			InventoryComponent->ItemAdded.Broadcast(RemovedEntry.Item, RemovedEntry.StackCount);
+			
+			RemovedEntries.Add(RemovedEntry);
 			CountToRemove = 0;
 
 			MarkItemDirty(Entry);

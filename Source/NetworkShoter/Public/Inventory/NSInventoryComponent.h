@@ -10,7 +10,7 @@ class UNSItemInstance;
 class UNSItemDefinition;
 class UNSInventoryComponent;
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FInventoryItemDelegate, UNSItemInstance* Item);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FInventoryItemDelegate, UNSItemInstance* Item, int32 Count)
 
 USTRUCT(BlueprintType)
 struct FInventoryEntry : public FFastArraySerializerItem
@@ -138,6 +138,7 @@ public:
 
 	/** New item added on inventory */
 	FInventoryItemDelegate ItemAdded;
+	FInventoryItemDelegate ItemRemoved;
 	
 protected:
 	/* read RemoveItem

@@ -141,7 +141,7 @@ void UNSWeaponSliderComponent::BeginPlay()
 	Inventory->ItemAdded.AddUObject(this, &UNSWeaponSliderComponent::AddItemOnSlider);
 }
 
-void UNSWeaponSliderComponent::AddItemOnSlider(UNSItemInstance* Item)
+void UNSWeaponSliderComponent::AddItemOnSlider(UNSItemInstance* Item, int32 Count)
 {
 	if (Slots.Num() >= MaxSlots || Item == RemovedWeapon) return;
 	

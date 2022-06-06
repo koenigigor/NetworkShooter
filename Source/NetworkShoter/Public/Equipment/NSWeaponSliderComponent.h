@@ -103,7 +103,7 @@ protected:
 	virtual void BeginPlay() override;
 
 	UFUNCTION()
-	void AddItemOnSlider(UNSItemInstance* Item);
+	void AddItemOnSlider(UNSItemInstance* Item, int32 Count);
 
 	UPROPERTY(EditDefaultsOnly, Category="Setup")
 	int32 MaxSlots = 3;
