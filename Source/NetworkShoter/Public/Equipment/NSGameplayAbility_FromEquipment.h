@@ -19,6 +19,8 @@ class NETWORKSHOTER_API UNSGameplayAbility_FromEquipment : public UNSGameplayAbi
 	GENERATED_BODY()
 
 public:
+	UNSGameplayAbility_FromEquipment();
+	
 	UFUNCTION(BlueprintPure)
 	UNSEquipmentInstance* GetAssociatedEquipment() const;
 

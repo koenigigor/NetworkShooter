@@ -7,6 +7,11 @@
 #include "Equipment/NSEquipmentInstance.h"
 #include "Inventory/NSItemInstance.h"
 
+UNSGameplayAbility_FromEquipment::UNSGameplayAbility_FromEquipment()
+{
+	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
+}
+
 UNSEquipmentInstance* UNSGameplayAbility_FromEquipment::GetAssociatedEquipment() const
 {
 	if (auto Spec = GetCurrentAbilitySpec())
