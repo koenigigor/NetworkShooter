@@ -10,10 +10,6 @@
 
 FVector UShootBase::GetMuzzleLocation() const
 {
-	FVector DebugPoint;
-
-	UE_LOG(LogTemp, Display, TEXT("UShootBase::GetMuzzleLocation %s"), *GetName())
-	
 	const auto WeaponActor = GetAssociatedEquipment()->SpawnedActors[0];
 	const auto AttachedTo = WeaponActor->GetRootComponent()->GetAttachParent();
 	const auto WeaponOwner = Cast<APawn>(AttachedTo->GetOwner());
@@ -31,7 +27,7 @@ FVector UShootBase::GetMuzzleLocation() const
 	const auto RotatedMuzzleOffset = OwnerToMuzzle.Length() * WeaponOwner->GetViewRotation().Vector();
 	const auto RotatedNuzzleLocation = WeaponOwner->GetActorLocation() + RotatedMuzzleOffset + FVector(0, 0, (MuzzleLocation - WeaponOwner->GetActorLocation()).GetAbs().Z);
 
-	DrawDebugPoint(GetWorld(), RotatedNuzzleLocation, 15, FColor::Magenta, false, 4, 1);
+	//DrawDebugPoint(GetWorld(), RotatedNuzzleLocation, 15, FColor::Magenta, false, 4, 1);
 
 	return RotatedNuzzleLocation;
 	
@@ -54,7 +50,7 @@ void UShootBase::GetShootStartAndDirection(FVector& Start, FVector& Direction, f
 	
 	Direction = (ViewEnd - Start).GetSafeNormal();
 
-	DrawDebugDirectionalArrow(GetWorld(), Start, Start + Direction * 100.f,3.f, FColor::Green, false, 5.f);
+	//DrawDebugDirectionalArrow(GetWorld(), Start, Start + Direction * 100.f,3.f, FColor::Green, false, 5.f);
 }
 
 void UShootBase::GetShootStartAndDirectionWithSpread(FVector& Start, FVector& Direction, float Length)
@@ -86,6 +82,14 @@ void UShootBase::MakeHit(FHitResult& OutHit)
 ECollisionChannel UShootBase::GetTraceChannel()
 {
 	return ECollisionChannel::ECC_GameTraceChannel2;
+}
+
+float UShootBase::GetShootDelay() const
+{
+	const float ShootsPerSec = 
+	GetAbilitySystemComponentFromActorInfo()->GetNumericAttribute(UWeaponAttributeSet::GetShootsPerSecAttribute());
+
+	return FMath::IsNearlyZero(ShootsPerSec) ? 1.f : 1/ShootsPerSec;
 }
 
 FGameplayEffectSpecHandle UShootBase::MakeDamageEffectSpec() const

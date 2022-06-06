@@ -61,7 +61,6 @@ private:
 	UPROPERTY()
 	TArray<FNSEquipmentEntry> Entries;
 
-	TMap<UNSEquipmentInstance*, UNSItemInstance*> AccelerationMap;
 	TMap<EEquipmentSlot, FNSEquipmentEntry> SlotMap;
 };
 

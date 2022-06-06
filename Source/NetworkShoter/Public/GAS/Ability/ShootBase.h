@@ -32,6 +32,10 @@ protected:
 	/** return trace channel for hit traces */
 	virtual ECollisionChannel GetTraceChannel();
 
+	/** delay after shoot (shooting speed) */
+	UFUNCTION(BlueprintPure)
+	float GetShootDelay() const;
+	
 	/** Create damage effect spec, set causer and instigator */
 	UFUNCTION(BlueprintPure)
 	FGameplayEffectSpecHandle MakeDamageEffectSpec() const;
