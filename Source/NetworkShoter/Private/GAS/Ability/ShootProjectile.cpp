@@ -18,19 +18,16 @@ void UShootProjectile::MakeShoot()
 
 FVector UShootProjectile::SuggestProjectileVelocity()
 {
-	if (!GetAssociatedWeapon())
-		return FVector::ZeroVector;
-	
 	FHitResult Hit;
 	MakeHit(Hit);
 
 	const FVector StartPoint = Hit.TraceStart;
 	const FVector EndPoint = Hit.bBlockingHit ? Hit.ImpactPoint : Hit.TraceEnd;
-	const float Speed = GetAssociatedWeapon()->WeaponData->ProjectileSpeed;
 
 	FVector Velocity;
 	
-	bool bSolutionFound = UGameplayStatics::SuggestProjectileVelocity(GetWorld(), Velocity, StartPoint, EndPoint, Speed,
+	bool bSolutionFound = UGameplayStatics::SuggestProjectileVelocity(
+		GetWorld(), Velocity, StartPoint, EndPoint, ProjectileSpeed,
 		false, 6.f, 0, ESuggestProjVelocityTraceOption::DoNotTrace);
 
 	if (!bSolutionFound)
@@ -48,9 +45,6 @@ ECollisionChannel UShootProjectile::GetTraceChannel()
 
 void UShootProjectile::SpawnProjectile(FVector Velocity)
 {
-	auto ProjectileClass = GetAssociatedWeapon()->WeaponData->ProjectileClass;
-	FTransform SpawnTransform = GetAssociatedWeapon()->GetRootComponent()->GetSocketTransform("Muzzle");
-
 	auto SpawnedActor = UGameplayStatics::BeginDeferredActorSpawnFromClass(GetWorld(), ProjectileClass, FTransform::Identity, ESpawnActorCollisionHandlingMethod::AlwaysSpawn, GetAvatarActorFromActorInfo());
 
 	auto Projectile = StaticCast<ANSProjectile*>(SpawnedActor);
@@ -58,5 +52,5 @@ void UShootProjectile::SpawnProjectile(FVector Velocity)
 	Projectile->SetInstigator(Cast<APawn>(GetAvatarActorFromActorInfo()));
 	Projectile->ProjectileMovement->Velocity = Velocity;
 	
-	UGameplayStatics::FinishSpawningActor(SpawnedActor, SpawnTransform);
+	UGameplayStatics::FinishSpawningActor(SpawnedActor, FTransform(GetMuzzleLocation()));
 }

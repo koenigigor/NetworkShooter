@@ -5,13 +5,50 @@
 #include "AbilitySystemComponent.h"
 #include "Equipment/NSEquipmentComponent.h"
 #include "Equipment/NSEquipmentInstance.h"
+#include "Inventory/NSItemInstance.h"
 
-UNSEquipmentInstance* UNSGameplayAbility_FromEquipment::GetAssociatedEquipment()
+UNSEquipmentInstance* UNSGameplayAbility_FromEquipment::GetAssociatedEquipment() const
 {
 	if (auto Spec = GetCurrentAbilitySpec())
 		return Cast<UNSEquipmentInstance>(Spec->SourceObject);
 	
 	return nullptr;
+}
+
+bool UNSGameplayAbility_FromEquipment::CheckCost(const FGameplayAbilitySpecHandle Handle,
+	const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const
+{
+	if (!Super::CheckCost(Handle, ActorInfo, OptionalRelevantTags)) return false;
+	
+	if (ItemAttributeCost.Num() == 0) return true;
+	
+	const auto EquipmentItem = GetAssociatedEquipment();
+	if (EquipmentItem && EquipmentItem->SourceItem)
+	{
+		for (const auto& Cost : ItemAttributeCost)
+		{
+			if (EquipmentItem->SourceItem->GetStatTagStackValue(Cost.Key) < Cost.Value) return false;
+		}
+
+		return true;
+	}
+
+	return false;
+}
+
+void UNSGameplayAbility_FromEquipment::ApplyCost(const FGameplayAbilitySpecHandle Handle,
+	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const
+{
+	Super::ApplyCost(Handle, ActorInfo, ActivationInfo);
+	
+	const auto EquipmentItem = GetAssociatedEquipment();
+	if (EquipmentItem && EquipmentItem->SourceItem)
+	{
+		for (const auto& Cost : ItemAttributeCost)
+		{
+			EquipmentItem->SourceItem->RemoveStatTagValue(Cost.Key, Cost.Value);
+		} 
+	}
 }
 
 void UNSGameplayAbility_FromEquipment::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo,

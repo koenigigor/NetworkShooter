@@ -11,6 +11,7 @@ UWeaponAttributeSet::UWeaponAttributeSet():
 	MaxAmmo(0.f),
 	ShootsPerSec(1.f),
 	ReloadTime(0.f),
+	SpreadPercent(0.f),
 	MeleePerSecond(1.f)
 {
 }
@@ -25,6 +26,7 @@ void UWeaponAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 	DOREPLIFETIME_CONDITION(UWeaponAttributeSet, ShootsPerSec, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(UWeaponAttributeSet, ReloadTime, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(UWeaponAttributeSet, MeleePerSecond, COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UWeaponAttributeSet, SpreadPercent, COND_OwnerOnly);
 }
 
 void UWeaponAttributeSet::CopyFrom(const UWeaponAttributeSet* Other)
@@ -35,4 +37,19 @@ void UWeaponAttributeSet::CopyFrom(const UWeaponAttributeSet* Other)
 	ShootsPerSec = Other->ShootsPerSec;
 	ReloadTime = Other->ReloadTime;
 	MeleePerSecond = Other->MeleePerSecond;
+}
+
+void UWeaponAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
+{
+	ClampAttribute(Attribute, NewValue);
+	
+	Super::PreAttributeChange(Attribute, NewValue);
+}
+
+void UWeaponAttributeSet::ClampAttribute(const FGameplayAttribute& Attribute, float& NewValue)
+{
+	if (Attribute == GetSpreadPercentAttribute())
+	{
+		NewValue = FMath::Clamp(NewValue, 0.f, 1.f);
+	}
 }

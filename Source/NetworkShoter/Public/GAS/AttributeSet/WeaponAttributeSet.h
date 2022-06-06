@@ -28,6 +28,10 @@ public:
 
 	/** Copy params from other WeaponAttributeSet */
 	void CopyFrom(const UWeaponAttributeSet* Other);
+
+	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
+
+	void ClampAttribute(const FGameplayAttribute& Attribute, float& NewValue);
 	
 	/** Weapon parameters, must be set when weapon equip */ //TODO check if can make 2 attribute set in character? make weapon attribute set
 
@@ -50,10 +54,17 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, Replicated, Category="Weapon|Attribute|Range")
 	FGameplayAttributeData ReloadTime;
+	ATTRIBUTE_ACCESSORS(UWeaponAttributeSet, ReloadTime)
+
+	/** 0..1 spread coefficient in abilities (in shoot response for lerp between min and max values) */
+	UPROPERTY(BlueprintReadOnly, Replicated, Category="Weapon|Attribute|Range")
+	FGameplayAttributeData SpreadPercent;
+	ATTRIBUTE_ACCESSORS(UWeaponAttributeSet, SpreadPercent)
 
 	/** Melee Parameters */
 	UPROPERTY(BlueprintReadOnly, Replicated, Category="Weapon|Attribute|Melee")
 	FGameplayAttributeData MeleePerSecond;
+	ATTRIBUTE_ACCESSORS(UWeaponAttributeSet, MeleePerSecond)
 
 	/*
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Melee")

@@ -57,10 +57,22 @@ int32 UNSAbilitySystemComponent::HandleGameplayEvent(FGameplayTag EventTag, cons
 		}
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Unknown input tag %s"), *EventTag.ToString())
+			//input tag without Press/Release tags, temporary cam delete after move to advanced input and call  InputTagPressed/Released direct from there
+			if (GameplayEventTriggeredAbilities.Contains(EventTag))
+			{
+				for (const auto& AbilityHandle : GameplayEventTriggeredAbilities[EventTag])
+				{
+					TryActivateAbility(AbilityHandle);
+				}
+			}
 		}
 
-		return 0;
+		if (const FGameplayEventMulticastDelegate* Delegate = GenericGameplayEventCallbacks.Find(EventTag))
+		{
+			Delegate->Broadcast(Payload);
+		} //for AbilityTask_WaitGameplayEvent
+		
+		return 0; 
 	}
 	
 	return Super::HandleGameplayEvent(EventTag, Payload);

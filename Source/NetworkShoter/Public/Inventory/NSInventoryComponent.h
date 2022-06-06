@@ -118,10 +118,14 @@ public:
 	bool RemoveItem(TSubclassOf<UNSItemDefinition> Definition, TArray<FInventoryEntry>& RemovedItems, int32 Count = 1, bool bDestroy = false, bool bExactCount = true);
 
 	bool RemoveItem(UNSItemInstance* Item, TArray<FInventoryEntry>& RemovedItems, int32 Count = 1, bool bDestroy = false, bool bExactCount = true);
+
+	bool RemoveItems(const TMap<TSubclassOf<UNSItemDefinition>, int32>& Items, TArray<FInventoryEntry>& RemovedItems, bool bDestroy = false, bool bExactCount = true);
 	
 	/** return first item with definition */
 	UFUNCTION(BlueprintPure, Category="Inventory")
 	FInventoryEntry FindItem(TSubclassOf<UNSItemDefinition> Definition);
+
+	bool CheckItems(const TMap<TSubclassOf<UNSItemDefinition>, int32>& Items);
 
 	UFUNCTION(BlueprintPure, Category="Inventory")
 	int32 GetTotalCount(TSubclassOf<UNSItemDefinition> Definition);

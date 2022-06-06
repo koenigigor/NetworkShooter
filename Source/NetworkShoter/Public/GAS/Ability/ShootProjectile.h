@@ -6,6 +6,8 @@
 #include "GAS/Ability/ShootBase.h"
 #include "ShootProjectile.generated.h"
 
+class ANSProjectile;
+
 /**
  * 
  */
@@ -13,7 +15,13 @@ UCLASS()
 class NETWORKSHOTER_API UShootProjectile : public UShootBase
 {
 	GENERATED_BODY()
-
+public:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Setup")
+	float ProjectileSpeed = 1300.f;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Setup")
+	TSubclassOf<ANSProjectile> ProjectileClass = nullptr;
+	
 	virtual void MakeShoot() override;
 	
 	UFUNCTION(BlueprintCallable)

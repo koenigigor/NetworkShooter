@@ -61,7 +61,6 @@ private:
 	UPROPERTY()
 	TArray<FNSEquipmentEntry> Entries;
 
-	TMap<UNSEquipmentInstance*, UNSItemInstance*> AccelerationMap;
 	TMap<EEquipmentSlot, FNSEquipmentEntry> SlotMap;
 };
 
@@ -99,9 +98,6 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category="Equipment")
 	FNSEquipmentEntry GetEquipmentBySlot(EEquipmentSlot Slot) { return EquipmentList.GetEntryBySlot(Slot); };
-
-	UFUNCTION(BlueprintPure, Category="Equipment")
-	UNSItemInstance* GetItemByEquipment(UNSEquipmentInstance* Equipment);
 	
 	UFUNCTION(BlueprintCallable, Category="Equipment")
 	TArray<FNSEquipmentEntry> GetAllEquipment();

@@ -18,7 +18,6 @@ void FNSEquipmentList::PreReplicatedRemove(const TArrayView<int32> RemovedIndice
 	{
 		const auto& Entry = Entries[Index];
 		ensure(Entry.EquipmentInstance);
-		AccelerationMap.Remove(Entry.EquipmentInstance);
 		SlotMap.Remove(Entry.Slot);
 	} 
 }
@@ -29,7 +28,8 @@ void FNSEquipmentList::PostReplicatedAdd(const TArrayView<int32> AddedIndices, i
 	{
 		auto& Entry = Entries[Index];
 		ensure(Entry.EquipmentInstance);
-		AccelerationMap.Add(Entry.EquipmentInstance, Entry.ItemInstance);
+		//Entry.EquipmentInstance->SetInstigator(Owning);
+		Entry.EquipmentInstance->SourceItem = Entry.ItemInstance; //\/ then can remove acceleration map
 		SlotMap.Add(Entry.Slot, Entry);		//it must override previous value todo check
 	} 
 }
@@ -40,7 +40,6 @@ void FNSEquipmentList::PostReplicatedChange(const TArrayView<int32> ChangedIndic
 	{
 		auto& Entry = Entries[Index];
 		ensure(Entry.EquipmentInstance);
-		AccelerationMap[Entry.EquipmentInstance] = Entry.ItemInstance;
 		SlotMap.Add(Entry.Slot, Entry);
 	} 
 }
@@ -49,7 +48,7 @@ void FNSEquipmentList::AddEntry(FNSEquipmentEntry Entry)
 {
 	auto& AddedEntry = Entries.Add_GetRef(Entry);
 	
-	AccelerationMap.Add(Entry.EquipmentInstance, Entry.ItemInstance);
+	Entry.EquipmentInstance->SourceItem = Entry.ItemInstance;
 	SlotMap.Add(Entry.Slot, Entry);
 	
 	MarkItemDirty(AddedEntry);
@@ -57,13 +56,11 @@ void FNSEquipmentList::AddEntry(FNSEquipmentEntry Entry)
 
 FNSEquipmentEntry FNSEquipmentList::RemoveEntry(const UNSEquipmentInstance* Instance)
 {
-	if (AccelerationMap.Contains(Instance))
 	for (auto It = Entries.CreateIterator(); It; ++It)
 	{
 		FNSEquipmentEntry Entry = *It;
 		if (Entry.EquipmentInstance != Instance) continue; //next iteration
-
-		AccelerationMap.Remove(Instance);
+		
 		SlotMap.Remove(Entry.Slot);
 		
 		It.RemoveCurrent();
@@ -131,6 +128,8 @@ UNSEquipmentInstance* UNSEquipmentComponent::EquipItem(UNSItemInstance* Item)
 	//create instance
 	auto EquipmentInstance = NewObject<UNSEquipmentInstance>(GetOwner(), Definition->GetInstanceType());
 	EquipmentInstance->SetInstigator(GetOwner());
+	EquipmentInstance->SourceItem = Item;
+	
 	for (const auto& EquipmentFragment : Definition->Fragments)
 	{
 		EquipmentFragment->OnEquip(EquipmentInstance);
@@ -184,12 +183,6 @@ UNSItemInstance* UNSEquipmentComponent::UnEquipItem(UNSEquipmentInstance* Item, 
 	}
 
 	return RemovedEntry.ItemInstance;
-}
-
-UNSItemInstance* UNSEquipmentComponent::GetItemByEquipment(UNSEquipmentInstance* Equipment)
-{
-	if (!EquipmentList.AccelerationMap.Contains(Equipment)) return nullptr;
-	return EquipmentList.AccelerationMap[Equipment];
 }
 
 TArray<FNSEquipmentEntry> UNSEquipmentComponent::GetAllEquipment()
