@@ -4,7 +4,6 @@
 #include "GAS/Ability/ShootTrace.h"
 
 #include "Game/NSGameState.h"
-#include "Items/Weapon.h"
 
 void UShootTrace::MakeShoot()
 {

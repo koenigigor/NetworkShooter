@@ -6,7 +6,7 @@
 #include "DrawDebugHelpers.h"
 #include "NSFunctionLibrary.h"
 #include "Equipment/NSEquipmentInstance.h"
-#include "Items/Weapon.h"
+#include "GAS/AttributeSet/WeaponAttributeSet.h"
 
 FVector UShootBase::GetMuzzleLocation() const
 {

@@ -4,7 +4,6 @@
 #include "GAS/Ability/ShootProjectile.h"
 
 #include "GameFramework/ProjectileMovementComponent.h"
-#include "Items/Weapon.h"
 #include "Kismet/GameplayStatics.h"
 #include "Items/NSProjectile.h"
 

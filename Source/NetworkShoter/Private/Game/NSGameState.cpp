@@ -7,7 +7,6 @@
 #include "Game/NSPlayerState.h"
 #include "Game/PCNetShooter.h"
 #include "GameFramework/PlayerState.h"
-#include "Items/Weapon.h"
 #include "Net/UnrealNetwork.h"
 
 
@@ -205,14 +204,7 @@ void ANSGameState::ApplyDamageInfoFromActors(AController* DamageInstigator, AAct
 	
 	if (DamageCauser)
 	{
-		if (auto Weapon = Cast<AWeapon>(DamageCauser))
-		{
-			CauserName = Weapon -> WeaponData -> Name.ToString();
-		}
-		else
-		{
-			CauserName = DamageCauser->GetName();
-		}
+		CauserName = DamageCauser->GetName();
 	}
 	else
 	{
