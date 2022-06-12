@@ -116,10 +116,32 @@ void UNSAbilitySystemComponent::ServerReplicateSubclass_Implementation(FGameplay
 
 void UNSAbilitySystemComponent::ProcessInputHoldAbilities()
 {
-	for (const auto& AbilityHandle : AbilitiesWhoWaitInputRelease)
+	TArray<FGameplayTag> InvalidAbilities;
+	for (auto& AbilityHandle : AbilitiesWhoWaitInputRelease)
 	{
-		TryActivateAbility(AbilityHandle.Value);
+		if (FindAbilitySpecFromHandle(AbilityHandle.Value))
+		{
+			TryActivateAbility(AbilityHandle.Value);
+		}
+		else
+		{	//find new ability with this activation tag, or invalidate it
+			if (GameplayEventTriggeredAbilities.Contains(AbilityHandle.Key))
+			{
+				AbilityHandle.Value = GameplayEventTriggeredAbilities[AbilityHandle.Key][0];
+			}
+			else
+			{
+				InvalidAbilities.Add(AbilityHandle.Key);
+			}
+		}
+	}//mb iterator instead foreach, and remove iterator, be faster?
+	
+	for (const auto& InvalidTag : InvalidAbilities)
+	{
+		AbilitiesWhoWaitInputRelease.Remove(InvalidTag);
 	}
+
+	//todo OnGiveAbility(), check if input for this ability already pressed
 }
 
 bool UNSAbilitySystemComponent::IsInputHoldAbility(const FGameplayAbilitySpecHandle& Handle)
