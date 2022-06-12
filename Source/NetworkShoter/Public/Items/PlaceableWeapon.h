@@ -25,8 +25,6 @@ class NETWORKSHOTER_API APlaceableWeapon : public AGameplayAbilityTargetActor
 
 	virtual void ConfirmTargetingAndContinue() override;
 	
-	virtual void ConfirmTargeting() override;
-	
 /**  TargetActor overrides end  */
 
 

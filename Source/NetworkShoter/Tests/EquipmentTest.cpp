@@ -11,7 +11,6 @@
 #include "NSTestUtils.h"
 #include "EngineUtils.h"
 #include "Items/NSItemContainer.h"
-#include "Equipment/NSWeaponSliderComponent.h"
 
 
 namespace
@@ -44,10 +43,6 @@ bool FEquipmentReEquipTest::RunTest(const FString& Parameters)
 	auto Equipment = Pawn->FindComponentByClass<UNSEquipmentComponent>();
 	TestNotNull("Inventory exist", Inventory);
 	TestNotNull("EquipmentExist", Equipment);
-
-	//remove weapon slider for he not consume weapons
-	if (const auto WeaponSlider = Pawn->FindComponentByClass<UNSWeaponSliderComponent>())
-		WeaponSlider->DestroyComponent();
 
 	FString WeaponContainerBP_1 = "Blueprint'/Game/NetworkShoter/Tests/Test_SwordContainer.Test_SwordContainer'";
 	FString WeaponContainerBP_2 = "Blueprint'/Game/NetworkShoter/Tests/Test_RiffleContainer.Test_RiffleContainer'";

@@ -9,8 +9,9 @@
 class UNSItemInstance;
 class UNSItemDefinition;
 class UNSInventoryComponent;
+struct FInventoryEntry;
 
-DECLARE_MULTICAST_DELEGATE_TwoParams(FInventoryItemDelegate, UNSItemInstance* Item, int32 Count)
+DECLARE_MULTICAST_DELEGATE_OneParam(FInventoryItemDelegate, FInventoryEntry Item)
 
 USTRUCT(BlueprintType)
 struct FInventoryEntry : public FFastArraySerializerItem
@@ -57,7 +58,11 @@ struct FInventoryList : public FFastArraySerializer
 	bool RemoveEntry(TSubclassOf<UNSItemDefinition> Definition, TArray<FInventoryEntry>& RemovedEntries,  int32 Count = 1, bool bExactCount = true);
 	/** remove entry first starts from selected item */
 	bool RemoveEntry(UNSItemInstance* Item, TArray<FInventoryEntry>& RemovedEntries, int32 Count = 1, bool bExactCount = true);
-	
+
+private:
+	void RemoveEntryInternal(TIndexedContainerIterator<TArray<FInventoryEntry>, FInventoryEntry, int>& Iterator, int32& CountToRemove, TArray<FInventoryEntry>& RemovedEntries);
+
+public:
 	/** return first item with definition */
 	FInventoryEntry FindItem(TSubclassOf<UNSItemDefinition> Definition);
 
@@ -136,9 +141,8 @@ public:
 	/**	NSEquipment component return item by this function */
 	void AddItemFromEquipment(UNSItemInstance* Item);
 
-	/** New item added on inventory */
-	FInventoryItemDelegate ItemAdded;
-	FInventoryItemDelegate ItemRemoved;
+	/** Item update/add/remove on inventory */
+	FInventoryItemDelegate ItemUpdate;
 	
 protected:
 	/* read RemoveItem

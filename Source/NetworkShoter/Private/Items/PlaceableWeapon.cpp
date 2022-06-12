@@ -16,30 +16,18 @@ void APlaceableWeapon::StartTargeting(UGameplayAbility* Ability)
 
 bool APlaceableWeapon::IsConfirmTargetingAllowed()
 {
-	UE_LOG(LogTemp, Warning, TEXT("QWERTY IsConfirmTargetingAllowed ReportForDuty"))
 	return CanPlace();
 }
 
 void APlaceableWeapon::ConfirmTargetingAndContinue()
 {
-	UE_LOG(LogTemp, Warning, TEXT("QWERTY APlaceableWeapon ReportForDuty, Server %d"), HasAuthority())
 	if (IsConfirmTargetingAllowed())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("QWERTY APlaceableWeapon Finish place, Server %d"), HasAuthority())
-		
 		FinishPlaceWeapon();
 		
 		TargetDataReadyDelegate.Broadcast(FGameplayAbilityTargetDataHandle());
 	}
 }
-
-void APlaceableWeapon::ConfirmTargeting()
-{
-	UE_LOG(LogTemp, Warning, TEXT("QWERTY ConfirmTargeting , Server %d"), HasAuthority())
-	
-	Super::ConfirmTargeting();
-}
-
 
 // Sets default values
 APlaceableWeapon::APlaceableWeapon()

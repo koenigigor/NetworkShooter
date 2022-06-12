@@ -102,6 +102,18 @@ void UNSAbilitySystemComponent::InputTagReleased(const FGameplayTag& Tag)
 	AbilitiesWhoWaitInputRelease.Remove(Tag);
 }
 
+void UNSAbilitySystemComponent::ServerReplicateGameplayEvent_Implementation(const FGameplayTag& Tag)
+{
+	const FGameplayEventData Payload;
+	HandleGameplayEvent(Tag, &Payload);
+}
+
+void UNSAbilitySystemComponent::ServerReplicateSubclass_Implementation(FGameplayAbilitySpecHandle AbilityHandle,
+	TSubclassOf<UObject> ObjectClass)
+{
+	OnClassReplicate.Broadcast(AbilityHandle, ObjectClass);
+}
+
 void UNSAbilitySystemComponent::ProcessInputHoldAbilities()
 {
 	for (const auto& AbilityHandle : AbilitiesWhoWaitInputRelease)

@@ -84,8 +84,8 @@ public:
 	virtual bool ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags) override;
 	
 	/** It not removed item from storage, don*t forget do it outside */
-	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Equipment")
-	UNSEquipmentInstance* EquipItem(UNSItemInstance* Item);
+	UFUNCTION(BlueprintCallable, Server, Reliable, Category="Equipment")
+	void EquipItem(UNSItemInstance* Item);
 
 	/** @DestroyItem if true destroy item instance and return nullptr
 	 *	@bPutInInventory send item to owners inventory component */
@@ -103,6 +103,10 @@ public:
 	TArray<FNSEquipmentEntry> GetAllEquipment();
 
 public:
+	/** On equip try found item in owners inventory ind remove it */
+	UPROPERTY(EditDefaultsOnly)
+	bool bTryRemoveItemFromInventory = true;
+	
 	UPROPERTY(BlueprintAssignable)
 	FEquipDelegate ItemEquip;
 

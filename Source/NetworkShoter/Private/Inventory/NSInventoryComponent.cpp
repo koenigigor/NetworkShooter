@@ -18,8 +18,12 @@ void FInventoryList::PreReplicatedRemove(const TArrayView<int32> RemovedIndices,
 		auto& Entry = Entries[Index];
 		ensure(Entry.Item);
 		AccelerationMapRemoveValue(Entry.Item->GetItemDefinition(), Entry.StackCount);
-		
-		Entry.LastObservedCount = 0; //i think in not need because entry is deleted?
+
+		const int32 RemovedCount = Entry.StackCount;
+		Entry.LastObservedCount = Entry.StackCount;
+		Entry.StackCount = 0;
+
+		InventoryComponent->ItemUpdate.Broadcast(Entry);
 	}
 }
 
@@ -33,10 +37,9 @@ void FInventoryList::PostReplicatedAdd(const TArrayView<int32> AddedIndices, int
 		int32& CurrentValue = DefCountMap.FindOrAdd(Entry.Item->GetItemDefinition());
 		CurrentValue += Entry.StackCount;
 		
-		const int32 Delta = Entry.StackCount - Entry.LastObservedCount;
 		Entry.LastObservedCount = Entry.StackCount;
 
-		InventoryComponent->ItemAdded.Broadcast(Entry.Item, Delta);
+		InventoryComponent->ItemUpdate.Broadcast(Entry);
 	}
 }
 
@@ -50,16 +53,9 @@ void FInventoryList::PostReplicatedChange(const TArrayView<int32> ChangedIndices
 		int32& CurrentValue = DefCountMap.FindOrAdd(Entry.Item->GetItemDefinition());
 		CurrentValue += Delta;
 
+		InventoryComponent->ItemUpdate.Broadcast(Entry);
+		
 		Entry.LastObservedCount = Entry.StackCount;
-
-		if (Delta>0)
-		{
-			InventoryComponent->ItemAdded.Broadcast(Entry.Item, Delta);
-		}
-		else
-		{
-			InventoryComponent->ItemRemoved.Broadcast(Entry.Item, Delta);
-		}
 	}
 }
 
@@ -77,7 +73,7 @@ void FInventoryList::AddEntry(UNSItemInstance* Item, int32 Count)
 		Item->MarkAsGarbage();
 
 		DefCountMap[Item->GetItemDefinition()] += Count;
-		InventoryComponent->ItemAdded.Broadcast(Item, Count);
+		InventoryComponent->ItemUpdate.Broadcast(Stack);
 		
 		MarkItemDirty(Stack);
 		return;
@@ -97,7 +93,7 @@ void FInventoryList::AddEntry(UNSItemInstance* Item, int32 Count)
 	int32& CurrentCount = DefCountMap.FindOrAdd(Item->GetItemDefinition());
 	CurrentCount += Count;
 
-	InventoryComponent->ItemAdded.Broadcast(Item, Count);
+	InventoryComponent->ItemUpdate.Broadcast(Entry);
 
 	MarkItemDirty(Entry);
 }
@@ -110,49 +106,74 @@ bool FInventoryList::RemoveEntry(TSubclassOf<UNSItemDefinition> Definition, TArr
 	int32 CountToRemove = FMath::Min(Count, DefCountMap[Definition]);
 	for (auto It = Entries.CreateIterator(); It && CountToRemove != 0; ++It) 
 	{
-		FInventoryEntry& Entry = *It;
+		const FInventoryEntry& Entry = *It;
 		if (Entry.Item->GetItemDefinition() != Definition) continue; //next iteration
 
-		if (Entry.StackCount <= CountToRemove)
-		{
-			//Remove entire stack
-			It.RemoveCurrent();
-
-			AccelerationMapRemoveValue(Definition, Entry.StackCount);
-			InventoryComponent->ItemAdded.Broadcast(Entry.Item, Entry.StackCount);
-			
-			RemovedEntries.Add(Entry);
-			CountToRemove -= Entry.StackCount;
-			
-			MarkArrayDirty();
-		}
-		else
-		{
-			//Remove part of stack
-			const int32 NewCount = Entry.StackCount - CountToRemove;
-			Entry.StackCount = NewCount;
-
-			auto RemovedEntry = FInventoryEntry(CreateInstance(Definition), CountToRemove);
-			
-			AccelerationMapRemoveValue(Definition, CountToRemove);
-			InventoryComponent->ItemAdded.Broadcast(RemovedEntry.Item, RemovedEntry.StackCount);
-			
-			RemovedEntries.Add(RemovedEntry);
-			CountToRemove = 0;
-
-			MarkItemDirty(Entry);
-		}
+		RemoveEntryInternal(It, CountToRemove, RemovedEntries);
 	}
 	return true;
 }
 
 bool FInventoryList::RemoveEntry(UNSItemInstance* Item, TArray<FInventoryEntry>& RemovedEntries, int32 Count, bool bExactCount)
 {
-	//todo
-	//find specified Entry, remove it first,
-	//then RemoveEntry(Item->GetItemDefinition(), CountToRemove, bExactCount);
+	if (Count == 0 || !Item) return false;	//no item
+	const auto Definition = Item->GetItemDefinition();
+	if (!DefCountMap.Contains(Definition)) return  false;
+	
+	if (bExactCount && DefCountMap[Definition] < Count) return false;					//no enough count
+	
+	int32 CountToRemove = FMath::Min(Count, DefCountMap[Definition]);
+	for (auto It = Entries.CreateIterator(); It && CountToRemove != 0; ++It) 
+	{
+		const FInventoryEntry& Entry = *It;
+		if (Entry.Item == Item)
+		{
+			RemoveEntryInternal(It, CountToRemove, RemovedEntries);
+		}
+	}
+
+	if (RemovedEntries.Num()==0) return false; //target item instance not found
+	if (CountToRemove == 0) return true;
 	
 	return RemoveEntry(Item->GetItemDefinition(), RemovedEntries, Count, bExactCount);
+}
+
+void FInventoryList::RemoveEntryInternal(
+	TIndexedContainerIterator<TArray<FInventoryEntry>, FInventoryEntry, int>& Iterator, int32& CountToRemove, TArray<FInventoryEntry>& RemovedEntries)
+{
+	FInventoryEntry& Entry = *Iterator;
+
+	const auto Definition = Entry.Item->GetItemDefinition();
+	if (Entry.StackCount <= CountToRemove)
+	{
+		AccelerationMapRemoveValue(Definition, Entry.StackCount);
+
+		auto EntryForDelegate = FInventoryEntry(Entry.Item, 0);
+		EntryForDelegate.LastObservedCount = Entry.StackCount;
+		InventoryComponent->ItemUpdate.Broadcast(EntryForDelegate);
+			
+		RemovedEntries.Add(Entry);
+		CountToRemove -= Entry.StackCount;
+			
+		Iterator.RemoveCurrent();
+		MarkArrayDirty();
+	}
+	else
+	{
+		//Remove part of stack
+		const int32 NewCount = Entry.StackCount - CountToRemove;
+		Entry.StackCount = NewCount;
+
+		const auto RemovedEntry = FInventoryEntry(CreateInstance(Definition), CountToRemove);
+			
+		AccelerationMapRemoveValue(Definition, CountToRemove);
+		InventoryComponent->ItemUpdate.Broadcast(Entry);
+			
+		RemovedEntries.Add(RemovedEntry);
+		CountToRemove = 0;
+
+		MarkItemDirty(Entry);
+	}
 }
 
 void FInventoryList::AccelerationMapRemoveValue(TSubclassOf<UNSItemDefinition> Definition, int32 Value)

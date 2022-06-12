@@ -113,12 +113,24 @@ bool UNSEquipmentComponent::ReplicateSubobjects(UActorChannel* Channel, FOutBunc
 	return WroteSomething;
 }
 
-UNSEquipmentInstance* UNSEquipmentComponent::EquipItem(UNSItemInstance* Item)
+void UNSEquipmentComponent::EquipItem_Implementation(UNSItemInstance* Item)
 {
-	if (!Item) return nullptr;
+	if (!Item) return;
 
 	const auto Fragment = Item->FindFragmentByClass<UFragment_Equipable>();
-	if (!Fragment) return nullptr;
+	if (!Fragment) return;
+
+	//todo CanEquip(Item); //check owner, etc...
+
+	//if item in inventory remove it	//todo come up with something better
+	if (bTryRemoveItemFromInventory)
+	{
+		const auto Inventory = GetOwner()->FindComponentByClass<UNSInventoryComponent>();
+		ensure(Inventory);
+		
+		TArray<FInventoryEntry> RemovedItems;
+		Inventory->RemoveItem(Item, RemovedItems);
+	}
 	
 	const auto Definition = NewObject<UNSEquipmentDefinition>(GetOwner(), Fragment->GetDefinitionClass());
 	
@@ -139,7 +151,7 @@ UNSEquipmentInstance* UNSEquipmentComponent::EquipItem(UNSItemInstance* Item)
 	
 	ItemEquip.Broadcast(Definition->Type, SlotsToEquip);
 	
-	return EquipmentInstance;
+	return;
 }
 
 UNSItemInstance* UNSEquipmentComponent::UnEquipItemInSlot(EEquipmentSlot Slot, bool bDestroy, bool bPutInInventory)

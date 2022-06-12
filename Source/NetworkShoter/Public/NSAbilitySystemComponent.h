@@ -6,6 +6,8 @@
 #include "AbilitySystemComponent.h"
 #include "NSAbilitySystemComponent.generated.h"
 
+DECLARE_MULTICAST_DELEGATE_TwoParams(FServerReplicateSubclassDelegate, FGameplayAbilitySpecHandle AbilityHandle, const TSubclassOf<UObject> ObjectClass)
+
 /**
  * 
  */
@@ -25,6 +27,16 @@ public:
 	void InputTagPressed(const FGameplayTag& Tag);
 	void InputTagReleased(const FGameplayTag& Tag);
 
+public:
+	/** Send gameplay event without payload on server */
+	UFUNCTION(BlueprintCallable, Server, Reliable)
+	void ServerReplicateGameplayEvent(const FGameplayTag& Tag);
+
+	/** used by UAbilityTask_SendSubclassOnServer */
+	UFUNCTION(Server, Reliable)
+	void ServerReplicateSubclass(FGameplayAbilitySpecHandle AbilityHandle, TSubclassOf<UObject> ObjectClass);
+	FServerReplicateSubclassDelegate OnClassReplicate;
+	
 	/* tick, called from NSPlayerController::PostProcessInput
 	 * tries activate ability each frame while button is pressed */
 	void ProcessInputHoldAbilities();
