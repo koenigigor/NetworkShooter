@@ -6,7 +6,7 @@
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemInterface.h"
 #include "Equipment/NSEquipmentInstance.h"
-#include "Equipment/NSGameplayAbility_FromEquipment.h"
+#include "GAS/Ability/NSGameplayAbility_FromEquipment.h"
 
 void UEFragment_Ability::OnEquip(UNSEquipmentInstance* Instance)
 {

@@ -232,7 +232,7 @@ void UTeamSetupManager::GetPlayersToShuffle(TArray<ANSPlayerState*>& PlayersToSh
 		}
 		else
 		{
-			if (!Teams.Contains(NSPlayer->GetTeamID_Verbose()))
+			if (!Teams.Contains(NSPlayer->GetTeamID()))
 			{
 				PlayersToShuffle.Add(NSPlayer);
 			}

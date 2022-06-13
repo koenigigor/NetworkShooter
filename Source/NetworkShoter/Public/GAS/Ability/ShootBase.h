@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Equipment/NSGameplayAbility_FromEquipment.h"
+#include "GAS/Ability/NSGameplayAbility_FromEquipment.h"
 #include "ShootBase.generated.h"
 
 /**

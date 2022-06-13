@@ -6,8 +6,7 @@
 #include "Abilities/Tasks/AbilityTask.h"
 #include "AbilityTask_DoExplosiveDamage.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FCalculateExplosiveDamage, FGameplayEffectSpecHandle, SpecHandle, FGameplayAbilityTargetDataHandle, TargetData);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FCalculateExplosiveDamageFinishExecute, FGameplayEffectSpecHandle, SpecHandle, FGameplayAbilityTargetDataHandle, TargetData);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCalculateExplosiveDamage);
 
 /**
  * Calculate explosive damage based on radius
@@ -28,17 +27,17 @@ class NETWORKSHOTER_API UAbilityTask_DoExplosiveDamage : public UAbilityTask
 	FVector Location;
 	float Radius = 0.f;
 	float BaseDamage = 0.f;
+	
+	UPROPERTY()
 	UCurveFloat* Damping = nullptr;
 
+	UPROPERTY()
 	AActor* Causer = nullptr;
 
 	TSubclassOf<UGameplayEffect> GameplayEffectClass;
 
 	UPROPERTY(BlueprintAssignable)
-	FCalculateExplosiveDamage Damaged;
-	
-	UPROPERTY(BlueprintAssignable)
-	FCalculateExplosiveDamageFinishExecute FinishExecute;
+	FCalculateExplosiveDamage FinishExecute;
 	
 	virtual void Activate() override;
 };

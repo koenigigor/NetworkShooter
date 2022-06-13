@@ -7,21 +7,17 @@
 #include "GameFramework/PlayerStart.h"
 #include "NSPlayerStart.generated.h"
 
-/**
- * PlayerStart with division by commands
- */
+/** PlayerStart with command division */
 UCLASS()
 class NETWORKSHOTER_API ANSPlayerStart : public APlayerStart
 {
 	GENERATED_BODY()
-public:
-	//ANSPlayerStart();
-	
-	/** Return true if pawn can be spawned in this point
-	 */
+public:	
+	/** Return true if pawn can be spawned in this point */
 	bool CanSpawn(AController* Controller);
+	
 protected:
 	/** Teams who can be spawned in this point */
-	UPROPERTY(EditAnywhere)  //todo , meta=(NoElementDuplicate))
+	UPROPERTY(EditAnywhere)
 	TArray<EGameTeam> AllowedTeams {EGameTeam::Neutral};
 };

@@ -145,8 +145,8 @@ bool ANSGameState::CanDamage(AActor* DamagedActor, AActor* DamageCauser)
 		{
 			if (DamageCauser->GetInstigator()->GetPlayerState<ANSPlayerState>())
 			{
-				auto TeamDamagedActor = DamagedActor->GetInstigator()->GetPlayerState<ANSPlayerState>()->GetTeamID();
-				auto TeamDamageCauser = DamageCauser->GetInstigator()->GetPlayerState<ANSPlayerState>()->GetTeamID();
+				auto TeamDamagedActor = DamagedActor->GetInstigator()->GetPlayerState<ANSPlayerState>()->GetGenericTeamId();
+				auto TeamDamageCauser = DamageCauser->GetInstigator()->GetPlayerState<ANSPlayerState>()->GetGenericTeamId();
 				if (TeamDamagedActor == TeamDamageCauser && TeamDamagedActor!=-1)
 				{
 					UE_LOG(LogTemp, Warning, TEXT("CanDamage: Cant damage your timmates"))
@@ -261,12 +261,12 @@ void ANSGameState::AddStatisticWhenPawnKilled(APawn* WhoKilled)
 	//get last damage info for this pawn
 	FDamageInfo DamageInfo = GetKillInfo(WhoKilled);
 
-	auto DeathActorTeam = WhoKilled->GetPlayerState<ANSPlayerState>()->GetTeamID().GetId();
+	auto DeathActorTeam = WhoKilled->GetPlayerState<ANSPlayerState>()->GetGenericTeamId().GetId();
 	
 	//add kill count
     if (DamageInfo.Instigator)
     {
-		auto InstigatorTeam = DamageInfo.Instigator -> GetPlayerState<ANSPlayerState>() -> GetTeamID().GetId();
+		auto InstigatorTeam = DamageInfo.Instigator -> GetPlayerState<ANSPlayerState>() -> GetGenericTeamId().GetId();
 
     	//if same team, decrease
     	if (DeathActorTeam == 0 || DeathActorTeam != InstigatorTeam)
@@ -291,7 +291,7 @@ void ANSGameState::AddStatisticWhenPawnKilled(APawn* WhoKilled)
 	{
 		if (Assistant != DamageInfo.Instigator)
 		{
-			auto AssistantTeam = Assistant -> GetPlayerState<ANSPlayerState>() -> GetTeamID().GetId();
+			auto AssistantTeam = Assistant -> GetPlayerState<ANSPlayerState>() -> GetGenericTeamId().GetId();
 
 			if (DeathActorTeam == 0 || DeathActorTeam != AssistantTeam)
 			{

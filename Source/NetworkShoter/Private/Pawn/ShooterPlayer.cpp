@@ -3,7 +3,7 @@
 
 #include "Pawn/ShooterPlayer.h"
 #include "AbilitySystemComponent.h"
-#include "NSAbilitySystemComponent.h"
+#include "GAS/NSAbilitySystemComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GAS/AttributeSet/NetShooterAttributeSet.h"
 #include "Game/NSPlayerState.h"

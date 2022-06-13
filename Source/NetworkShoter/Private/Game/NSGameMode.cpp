@@ -5,7 +5,7 @@
 
 #include "EngineUtils.h"
 #include "GenericTeamAgentInterface.h"
-#include "NSPlayerStart.h"
+#include "Actors/NSPlayerStart.h"
 #include "TeamAttitudeSettings.h"
 #include "Game/NSPlayerState.h"
 #include "Game/PCNetShooter.h"
@@ -24,7 +24,6 @@ void ANSGameMode::StartPlay()
 {
 	Super::StartPlay();
 
-	//Setup our teams detection
 	FGenericTeamId::SetAttitudeSolver(&UTeamAttitudeSettings::GetAttitude);
 }
 
@@ -51,8 +50,6 @@ void ANSGameMode::PostLogin(APlayerController* NewPlayer)
 	{
 		SetMatchState(EMatchState::WaitingToStart);
 	}
-		
-	//NewPlayer -> GetPlayerState<ANSPlayerState>() -> Team = "Team A";
 }
 
 //~==============================================================================================
@@ -129,7 +126,7 @@ void ANSGameMode::WaitingToStartMatchHandle()
 
 void ANSGameMode::StartMatchHandle()
 {
-	UE_LOG(LogTemp, Error, TEXT("Start match"))
+	UE_LOG(LogTemp, Display, TEXT("Start match"))
 	
 	BP_MatchStarted();
 	if (NSGameState)
@@ -140,7 +137,7 @@ void ANSGameMode::StartMatchHandle()
 
 void ANSGameMode::EndMatchHandle()
 {
-	UE_LOG(LogTemp, Error, TEXT("End match"))
+	UE_LOG(LogTemp, Display, TEXT("End match"))
 	
 	BP_MatchFinished();
 	if (NSGameState)

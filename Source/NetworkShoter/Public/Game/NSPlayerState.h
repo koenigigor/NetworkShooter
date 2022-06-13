@@ -73,8 +73,8 @@ protected:
 	// Team
 public:
 	//IGenericTeamAgentInterface
-	virtual void SetGenericTeamId(const FGenericTeamId& NewTeamID) override;  //change TeamID to NewTeamID and no errors )
-	virtual FGenericTeamId GetGenericTeamId() const override;
+	virtual void SetGenericTeamId(const FGenericTeamId& NewTeamID) override { TeamID = NewTeamID; };
+	virtual FGenericTeamId GetGenericTeamId() const override { return TeamID; };
 	//~IGenericTeamAgentInterface
 	
 private:
@@ -83,10 +83,7 @@ private:
 	
 public:
 	UFUNCTION(BlueprintPure)
-	FGenericTeamId GetTeamID();
-
-	UFUNCTION(BlueprintPure)
-	EGameTeam GetTeamID_Verbose();
+	EGameTeam GetTeamID() const;
 	
 	//~==============================================================================================
 	// PlayerStatistic

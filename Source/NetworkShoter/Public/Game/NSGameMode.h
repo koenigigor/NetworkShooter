@@ -60,9 +60,6 @@ protected:
 	virtual void WaitingToStartMatchHandle();
 	virtual void StartMatchHandle();
 	virtual void EndMatchHandle();
-
-	UFUNCTION(BlueprintImplementableEvent)
-	void BP_RequiredPlayersConnected();
 	
 	UFUNCTION(BlueprintImplementableEvent)
 	void BP_MatchStarted();
@@ -130,6 +127,7 @@ protected:
 	/** Death controllers to respawn */
 	UPROPERTY()
 	TArray<APlayerController*> DeathControllers;
-	
+
+	UPROPERTY()
 	ANSGameState* NSGameState = nullptr;
 };

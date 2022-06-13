@@ -3,6 +3,7 @@
 
 #include "GAS/AbilityTask/AbilityTask_DoExplosiveDamage.h"
 
+#include "AbilitySystemComponent.h"
 #include "GAS/MyGameplayEffectSpec.h"
 
 
@@ -28,13 +29,13 @@ void UAbilityTask_DoExplosiveDamage::Activate()
 
 	if (Location==FVector::ZeroVector || Radius <= 0.f || BaseDamage <= 0.f)
 	{
-		FinishExecute.Broadcast(nullptr, nullptr);
+		FinishExecute.Broadcast();
 		return;
 	}
 
 	//get overlap actors
 	TArray<FOverlapResult> DamagedActors;
-	bool OverlapSomething = GetWorld()->OverlapMultiByChannel(DamagedActors,
+	const bool OverlapSomething = GetWorld()->OverlapMultiByChannel(DamagedActors,
 		Location,
 		FQuat::Identity,
 		ECollisionChannel::ECC_GameTraceChannel2,
@@ -42,7 +43,7 @@ void UAbilityTask_DoExplosiveDamage::Activate()
 
 	if (!OverlapSomething)
 	{
-		FinishExecute.Broadcast(nullptr, nullptr);
+		FinishExecute.Broadcast();
 		return;
 	}
 
@@ -54,8 +55,8 @@ void UAbilityTask_DoExplosiveDamage::Activate()
 		float ResultDamage = BaseDamage;
 		if (Damping)
 		{
-			float Distance = FVector::Distance(Location, DamagedActor.GetActor()->GetActorLocation());
-			float DamagePercent = Damping->GetFloatValue(Distance/Radius);
+			const float Distance = FVector::Distance(Location, DamagedActor.GetActor()->GetActorLocation());
+			const float DamagePercent = Damping->GetFloatValue(Distance/Radius);
 			ResultDamage = BaseDamage * DamagePercent;
 		}
 
@@ -79,10 +80,9 @@ void UAbilityTask_DoExplosiveDamage::Activate()
 		TargetData->TargetActorArray.Add(DamageMap.Key);
 		FGameplayAbilityTargetDataHandle Handle(TargetData);
 
-		Damaged.Broadcast(SpecHandle, Handle);
-		
-		//UGameplayAbility::ApplyGameplayEffectSpecToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, SpecHandle, TargetData);
+		//apply effect
+		TargetData->ApplyGameplayEffectSpec(*SpecHandle.Data.Get(), AbilitySystemComponent->GetPredictionKeyForNewAction());
 	}
 
-	FinishExecute.Broadcast(nullptr, nullptr);
+	FinishExecute.Broadcast();
 }

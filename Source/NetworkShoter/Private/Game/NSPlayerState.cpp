@@ -3,7 +3,7 @@
 
 #include "Game/NSPlayerState.h"
 
-#include "NSAbilitySystemComponent.h"
+#include "GAS/NSAbilitySystemComponent.h"
 #include "Game/NSGameMode.h"
 #include "Net/UnrealNetwork.h"
 
@@ -56,25 +56,9 @@ UAbilitySystemComponent* ANSPlayerState::GetAbilitySystemComponent() const
 	return AbilitySystemComponent;
 }
 
-void ANSPlayerState::SetGenericTeamId(const FGenericTeamId& NewTeamID)
-{
-	TeamID = NewTeamID;
-}
-
-FGenericTeamId ANSPlayerState::GetGenericTeamId() const
-{
-	return TeamID;
-}
-
-FGenericTeamId ANSPlayerState::GetTeamID()
-{
-	return GetGenericTeamId();
-}
-
-EGameTeam ANSPlayerState::GetTeamID_Verbose()
-{
-	auto L_TeamID = GetGenericTeamId().GetId();
-	return EGameTeam(L_TeamID);
+EGameTeam ANSPlayerState::GetTeamID() const
+{	
+	return StaticCast<EGameTeam>(GetGenericTeamId().GetId());
 }
 
 void ANSPlayerState::RespawnHandle_Implementation()
@@ -105,6 +89,5 @@ void ANSPlayerState::AddDeath()
 
 void ANSPlayerState::OnRep_PlayerStatistic()
 {
-    // notify client about statistic is update
 	PlayerStatisticUpdateDelegate.Broadcast();
 }

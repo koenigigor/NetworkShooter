@@ -1,14 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "NSPlayerStart.h"
+#include "Actors/NSPlayerStart.h"
 
 #include "Game/NSPlayerState.h"
-/*
-ANSPlayerStart::ANSPlayerStart()
-{
-	AllowedTeams[0] = (EGameTeam::Neutral);
-}*/
 
 bool ANSPlayerStart::CanSpawn(AController* Controller)
 {

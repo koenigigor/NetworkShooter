@@ -3,7 +3,7 @@
 
 #include "GAS/AbilityTask/AbilityTask_SendSubclassOnServer.h"
 
-#include "NSAbilitySystemComponent.h"
+#include "GAS/NSAbilitySystemComponent.h"
 
 UAbilityTask_SendSubclassOnServer* UAbilityTask_SendSubclassOnServer::AbilityTask_SendSubclassOnServer(
 	UGameplayAbility* OwningAbility, TSubclassOf<UObject> InClassToSend)

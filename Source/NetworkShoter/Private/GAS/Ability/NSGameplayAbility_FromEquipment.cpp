@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Equipment/NSGameplayAbility_FromEquipment.h"
+#include "GAS/Ability/NSGameplayAbility_FromEquipment.h"
 #include "AbilitySystemComponent.h"
 #include "Equipment/NSEquipmentComponent.h"
 #include "Equipment/NSEquipmentInstance.h"

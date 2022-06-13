@@ -3,7 +3,7 @@
 
 #include "Game/PCNetShooter.h"
 
-#include "NSAbilitySystemComponent.h"
+#include "GAS/NSAbilitySystemComponent.h"
 #include "Game/Components/ChatController.h"
 #include "Game/Components/MapVoteController.h"
 #include "Game/NSPlayerState.h"
@@ -50,34 +50,10 @@ ANSHUD* APCNetShooter::GetNSHUD()
 {
 	if (!NSHUD) 
 	{
-		//protect for cast every call
 		NSHUD = Cast<ANSHUD>(GetHUD());
 	}
 	
 	return NSHUD;
-}
-
-void APCNetShooter::OnPossess(APawn* InPawn)
-{
-	Super::OnPossess(InPawn);
-
-	//if it local client possess (spectator)
-	if (GetNetMode() != ENetMode::NM_DedicatedServer)
-	{
-		OnRep_Pawn();
-	}
-}
-
-void APCNetShooter::OnRep_Pawn()
-{
-	Super::OnRep_Pawn();
-//пока не стоит объявлять делегат ради 2х функций
-	
-	BP_ClientOnPossess(GetPawn());
-    
-	GetNSHUD()->OnPossess(GetPawn());
-
-	
 }
 
 void APCNetShooter::PostProcessInput(const float DeltaTime, const bool bGamePaused)
@@ -100,11 +76,13 @@ void APCNetShooter::AcknowledgePossession(APawn* P)
 	Super::AcknowledgePossession(P);
 
 	//is like on rep pawn?
+	BP_ClientOnPossess(GetPawn());
+    
+	GetNSHUD()->OnPossess(GetPawn());
 	
 
 	//init ASC on client for use local predicted abilities	
-	AShooterPlayer* ShooterPlayer = Cast<AShooterPlayer>(P);
-	if (ShooterPlayer)
+	if (const auto ShooterPlayer = Cast<AShooterPlayer>(P))
 	{
 		ShooterPlayer->GetAbilitySystemComponent()->InitAbilityActorInfo(ShooterPlayer, ShooterPlayer);
 	}
@@ -113,7 +91,7 @@ void APCNetShooter::AcknowledgePossession(APawn* P)
 
 void APCNetShooter::SendChatMessage_Implementation(const FString& Message)
 {
-	if (auto ChatController = GetWorld()->GetGameState()->FindComponentByClass<UChatController>())
+	if (const auto ChatController = GetWorld()->GetGameState()->FindComponentByClass<UChatController>())
 	{
 		ChatController->SendMessage_Player(Message, GetPlayerState<ANSPlayerState>());
 	}
@@ -121,7 +99,7 @@ void APCNetShooter::SendChatMessage_Implementation(const FString& Message)
 
 void APCNetShooter::VoteForMap_Implementation(FName MapRow, bool Up)
 {
-	if (auto MapVoteController = GetWorld()->GetGameState()->FindComponentByClass<UMapVoteController>())
+	if (const auto MapVoteController = GetWorld()->GetGameState()->FindComponentByClass<UMapVoteController>())
 	{
 		MapVoteController->VoteForMap(this, MapRow, Up);
 	}
