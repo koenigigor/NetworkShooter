@@ -45,11 +45,11 @@ public:
 	
 	/** Call for start match */
 	UFUNCTION(BlueprintCallable)
-	virtual void StartMatch();
+	void StartMatch();
 
 	/** Call for end match */
 	UFUNCTION(BlueprintCallable)
-	virtual void EndMatch();
+	void EndMatch();
 
 	virtual bool HasMatchStarted() const override;
 
@@ -67,6 +67,9 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent)
 	void BP_MatchFinished();
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void BP_MatchInProgressLogin(APlayerController* NewPlayer);
+
 	EMatchState MatchState = EMatchState::WaitingConnection;
 
 	
@@ -76,6 +79,14 @@ protected:
 	/** Spawn Character in his command player start, and possess to it */
     UFUNCTION(BlueprintCallable)
     void SpawnPlayer(AController* Controller);
+
+	/** Spawn all players (call on start match) */
+	UFUNCTION(BlueprintCallable)
+	void SpawnPlayers();
+	
+	/** Un possess all players (call on end match) */
+	UFUNCTION(BlueprintCallable)
+	void UnPossessPlayers();
 
 	/** respawn first death player*/
 	void RespawnDeathPlayer();

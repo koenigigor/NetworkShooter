@@ -50,6 +50,11 @@ void ANSGameMode::PostLogin(APlayerController* NewPlayer)
 	{
 		SetMatchState(EMatchState::WaitingToStart);
 	}
+
+	if (HasMatchStarted())
+	{
+		BP_MatchInProgressLogin(NewPlayer);
+	}
 }
 
 //~==============================================================================================
@@ -57,11 +62,7 @@ void ANSGameMode::PostLogin(APlayerController* NewPlayer)
 
 void ANSGameMode::StartMatch()
 {
-	if (HasMatchStarted())
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Match already started"))
-		return;
-	}
+	if (HasMatchStarted()) return;
 
 	//Let the game session override the StartMatch function, in case it wants to wait for arbitration
 	if (GameSession -> HandleStartMatchRequest()) { return; }
@@ -186,6 +187,22 @@ void ANSGameMode::SpawnPlayer(AController* Controller)
 	{
 		NSPlayerState -> RespawnHandle();
 	}
+}
+
+void ANSGameMode::SpawnPlayers()
+{
+	for (const auto& PlayerState : GameState->PlayerArray)
+	{
+		SpawnPlayer(PlayerState->GetOwningController());
+	} 
+}
+
+void ANSGameMode::UnPossessPlayers()
+{
+	for (const auto& PlayerState : GameState->PlayerArray)
+	{
+		PlayerState->GetOwningController()->UnPossess();
+	} 
 }
 
 void ANSGameMode::RespawnDeathPlayer()
