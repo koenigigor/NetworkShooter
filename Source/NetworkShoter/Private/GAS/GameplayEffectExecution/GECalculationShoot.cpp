@@ -82,6 +82,4 @@ void UGECalculationShoot::Execute_Implementation(const FGameplayEffectCustomExec
 	{
 		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(GetAttributeCapture_CalculationShoot().ArmorProperty, EGameplayModOp::Override, OutArmor));
 	}
-	
-	UMyGameplayEffectSpec::DamageNotify(ExecutionParams, ResultDamage);
 }

@@ -22,6 +22,4 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Ability|GameplayEffect")
 	static FGameplayEffectSpecHandle SetEffectCauser(const FGameplayEffectSpecHandle& SpecHandle, AActor* Causer);
-
-	static void DamageNotify(const FGameplayEffectCustomExecutionParameters& ExecutionParams, float Damage);
 };

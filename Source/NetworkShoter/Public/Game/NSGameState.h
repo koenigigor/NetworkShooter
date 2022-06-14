@@ -47,7 +47,7 @@ struct FDamageInfo
 
 	/** Time when damage was been applied */
 	UPROPERTY(BlueprintReadOnly)
-	float Time;
+	float Time = 0.f;
 };
 
 /**

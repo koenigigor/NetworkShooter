@@ -166,6 +166,7 @@ void ANSGameMode::CharacterKilled(APawn* WhoKilled)
 
 	if (bLimitByTeamKills)
 	{
+		//CharacterKilled(APawn* Killer, APawn* WhoKilled)
 		auto TeamIndex = WhoKilled->GetPlayerState<ANSPlayerState>()->GetGenericTeamId().GetId();
 		if (NSGameState && NSGameState -> GetTeamStatistic(TeamIndex).DeathCount >= LimitByTeamKills)
 		{

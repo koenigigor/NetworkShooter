@@ -74,15 +74,33 @@ void UNetShooterAttributeSet::PostGameplayEffectExecute(const FGameplayEffectMod
 	{
 		if (Data.EvaluatedData.Magnitude < 0.f)	//is damage
 		{
-			auto Causer = Data.EffectSpec.GetEffectContext().GetEffectCauser();
-			auto Instigator = Data.EffectSpec.GetEffectContext().GetInstigator();
-			auto Target = GetOwningActor();
-			auto Damage = Data.EvaluatedData.Magnitude;
+			const auto Causer = Data.EffectSpec.GetEffectContext().GetEffectCauser();
+			const auto Instigator = Data.EffectSpec.GetEffectContext().GetInstigator();
+			const auto Target = GetOwningActor();
+			const auto Damage = Data.EvaluatedData.Magnitude;
 			
 			ensure(Causer);
 			ensure(Instigator);
 			
 			UE_LOG(LogTemp, Display, TEXT("UNetShooterAttributeSet %s damaged from %s by %s on %f"), *Target->GetName(), *Instigator->GetName(), *Causer->GetName(), Damage)
+		
+			//GetWorld() -> GetGameState<ANSGameState>() -> ApplyDamageInfoFromActors(OwnerActor->GetInstigatorController(), DamagedActor, DamageCauser, Damage);
+
+			//is death
+			if (FMath::IsNearlyZero(GetHealth()))
+			{
+				
+			}
+			
+			/* Standard damage notify
+			const auto DamageTypeCDO = GetDefault<UDamageType>();
+			DamagedActor->ReceiveAnyDamage(Damage, DamageTypeCDO, OwnerActor->GetInstigatorController(), DamageCauser);
+		DamagedActor->OnTakeAnyDamage.Broadcast(DamagedActor, Damage, DamageTypeCDO, OwnerActor->GetInstigatorController(), DamageCauser);
+			if (OwnerActor->GetInstigatorController() != nullptr)
+			{
+				OwnerActor->GetInstigatorController()->InstigatedAnyDamage(Damage, DamageTypeCDO, DamagedActor, DamageCauser);
+			}
+			*/				
 		}
 		else    //is healing
 		{

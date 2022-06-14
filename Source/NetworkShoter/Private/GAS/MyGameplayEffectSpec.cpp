@@ -42,28 +42,3 @@ FGameplayEffectSpecHandle UMyGameplayEffectSpec::SetEffectCauser(const FGameplay
 
 	return SpecHandle;
 }
-
-void UMyGameplayEffectSpec::DamageNotify(const FGameplayEffectCustomExecutionParameters& ExecutionParams, float Damage)
-{
-	auto OwnerActor = ExecutionParams.GetSourceAbilitySystemComponent()->GetAvatarActor();
-	auto DamagedActor = ExecutionParams.GetTargetAbilitySystemComponent()->GetAvatarActor();
-	AActor* DamageCauser = ExecutionParams.GetOwningSpec().GetEffectContext().GetEffectCauser();
-	if (OwnerActor->GetWorld() && OwnerActor -> GetWorld() -> GetGameState<ANSGameState>())
-	{
-		OwnerActor->GetWorld() -> GetGameState<ANSGameState>() -> ApplyDamageInfoFromActors(OwnerActor->GetInstigatorController(), DamagedActor, DamageCauser, Damage);
-
-		//FIXME //find after make that ^
-		//implement this instead that ^
-		/* Standard Damage Notify */
-		
-		/*
-		const auto DamageTypeCDO = GetDefault<UDamageType>();
-		DamagedActor->ReceiveAnyDamage(Damage, DamageTypeCDO, OwnerActor->GetInstigatorController(), DamageCauser);
-		DamagedActor->OnTakeAnyDamage.Broadcast(DamagedActor, Damage, DamageTypeCDO, OwnerActor->GetInstigatorController(), DamageCauser);
-		if (OwnerActor->GetInstigatorController() != nullptr)
-		{
-			OwnerActor->GetInstigatorController()->InstigatedAnyDamage(Damage, DamageTypeCDO, DamagedActor, DamageCauser);
-		}
-		*/	
-	}
-}
