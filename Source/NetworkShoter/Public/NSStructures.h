@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "NSStructures.generated.h"
 
 /**
@@ -23,9 +24,7 @@ struct FPlayerStatistic
 	FPlayerStatistic& operator+=(const FPlayerStatistic& Other);
 };
 
-/**
- * Struct for keep info about last damage
- */
+/** Struct for keep info about damage */
 USTRUCT(BlueprintType)
 struct FDamageInfo
 {
@@ -49,4 +48,32 @@ struct FDamageInfo
 	/** Time when damage was been applied */
 	UPROPERTY(BlueprintReadOnly)
 	float Time = 0.f;
+};
+
+/** Damage indo who send to client (for chat and kill feed) */
+USTRUCT(BlueprintType)
+struct FDamageInfoChat
+{
+	GENERATED_BODY()
+	
+	UPROPERTY(BlueprintReadOnly)
+	FGameplayTag MessageTag; //Chat.System.Damage / Chat.System.Kill / Chat.System.Heal
+	
+	UPROPERTY(BlueprintReadOnly)
+	FString Instigator;
+	
+	UPROPERTY(BlueprintReadOnly)
+	FString DamageCauser;
+	
+	UPROPERTY(BlueprintReadOnly)
+	FString Target;
+	
+	UPROPERTY(BlueprintReadOnly)
+	float Damage = 0.f;
+
+	/** Time when damage was been applied */
+	UPROPERTY(BlueprintReadOnly)
+	float Time = 0.f;
+	
+	//todo weapon ref for get ui image, if is weapon
 };

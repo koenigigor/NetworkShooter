@@ -27,38 +27,26 @@ void UChatController::SendMessage_Player(const FString& Message, ANSPlayerState*
 
 void UChatController::SendDamageInfo(FDamageInfo DamageInfo)
 {
-	FString InstigatorName;
-	FString TargetName;
-	FString CauserName;
-	/*
-	//Prepare DamageInstigator name
-	if (DamageInstigator)
+	FString InstigatorName = "NoInstigator";
+	FString TargetName = "";
+	FString CauserName = "NoCauser";
+	
+	if (DamageInfo.Instigator)
 	{
-		if (DamageInstigator -> GetPlayerState<APlayerState>())
+		//intend instigator is controller
+		if (const auto DamageInstigator = Cast<AController>(DamageInfo.Instigator))
 		{
-			InstigatorName = DamageInstigator -> GetPlayerState<APlayerState>() -> GetPlayerName();
+			InstigatorName = DamageInstigator -> PlayerState -> GetPlayerName();
 		}
 		else
 		{
-			InstigatorName = DamageInstigator -> GetName();
+			InstigatorName = DamageInfo.Instigator -> GetName();
 		}
 	}
-
-	//Prepare DamageReceiver name
-	if (DamagedActor->GetInstigatorController())
+	
+	if (DamageInfo.Target)
 	{
-		if (DamagedActor->GetInstigatorController()->GetPlayerState<APlayerState>())
-		{
-			DamagedActorName = DamagedActor->GetInstigatorController()->GetPlayerState<APlayerState>()->GetPlayerName();
-		}
-		else
-		{
-			DamagedActorName = DamagedActor->GetInstigatorController()->GetName();
-		}
-	}
-	else
-	{
-		DamagedActorName = DamagedActor->GetName();
+		TargetName = DamageInfo.Target->GetInstigatorController()->PlayerState->GetPlayerName();
 	}
 	
 	if (DamageInfo.DamageCauser) //first spawned actor on equipped weapon
@@ -69,9 +57,16 @@ void UChatController::SendDamageInfo(FDamageInfo DamageInfo)
 	{
 		CauserName = "No DamageCauser Name";
 	}
-	*/
-	
 
+	FDamageInfoChat Message;
+	Message.MessageTag;
+	Message.Instigator;
+	Message.Target;
+	Message.DamageCauser;
+	Message.Damage;
+	Message.Time;
+
+	//ReceiveMessage(MESSAGE_DAMAGE, )
 }
 
 void UChatController::ReceiveMessage_Implementation(const FString& Message, ANSPlayerState* FromWho)
