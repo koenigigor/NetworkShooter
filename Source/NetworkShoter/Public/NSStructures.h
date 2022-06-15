@@ -22,3 +22,31 @@ struct FPlayerStatistic
 
 	FPlayerStatistic& operator+=(const FPlayerStatistic& Other);
 };
+
+/**
+ * Struct for keep info about last damage
+ */
+USTRUCT(BlueprintType)
+struct FDamageInfo
+{
+	GENERATED_BODY()
+
+	FDamageInfo(){};
+	FDamageInfo(AActor* InInstigator, AActor* InCauser, AActor* InTarget, float InDamage);
+	
+	UPROPERTY(BlueprintReadOnly)
+	AActor* Instigator = nullptr;
+	
+	UPROPERTY(BlueprintReadOnly)
+	AActor* DamageCauser = nullptr;
+	
+	UPROPERTY(BlueprintReadOnly)
+	AActor* Target = nullptr;
+	
+	UPROPERTY(BlueprintReadOnly)
+	float Damage = 0.f;
+
+	/** Time when damage was been applied */
+	UPROPERTY(BlueprintReadOnly)
+	float Time = 0.f;
+};

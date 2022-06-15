@@ -8,6 +8,7 @@
 
 class ANSPlayerStart;
 class ANSGameState;
+struct FDamageInfo;
 
 
 UENUM()
@@ -97,9 +98,7 @@ protected:
     virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
 	
 public:
-   	/** Player state call this function when player dead */
-   	UFUNCTION(BlueprintCallable, meta=(DefaultToSelf="WhoKilled"))
-  	virtual void CharacterKilled(APawn* WhoKilled);
+	virtual void OnCharacterDeath(FDamageInfo DamageInfo);
 
 	
 	//~==============================================================================================
@@ -137,7 +136,7 @@ protected:
 	
 	/** Death controllers to respawn */
 	UPROPERTY()
-	TArray<APlayerController*> DeathControllers;
+	TArray<AController*> DeathControllers;
 
 	UPROPERTY()
 	ANSGameState* NSGameState = nullptr;

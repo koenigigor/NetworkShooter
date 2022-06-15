@@ -151,12 +151,12 @@ void ANSGameMode::EndMatchHandle()
 //~==============================================================================================
 // Respawn player
 
-void ANSGameMode::CharacterKilled(APawn* WhoKilled)
+void ANSGameMode::OnCharacterDeath(FDamageInfo DamageInfo)
 {
-	if (WhoKilled->GetController()->IsPlayerController())
-		DeathControllers.Add(StaticCast<APlayerController*>(WhoKilled->GetController()));
+	if (auto Controller = DamageInfo.Target->GetInstigatorController<APlayerController>())
+		DeathControllers.Add(Controller);
 
-	GetGameState<ANSGameState>() -> CharacterKilled(WhoKilled);
+	GetGameState<ANSGameState>() -> OnCharacterDeath(DamageInfo);
 
 	if (bRespawnAfterDeath)
 	{
@@ -166,14 +166,15 @@ void ANSGameMode::CharacterKilled(APawn* WhoKilled)
 
 	if (bLimitByTeamKills)
 	{
-		//CharacterKilled(APawn* Killer, APawn* WhoKilled)
-		auto TeamIndex = WhoKilled->GetPlayerState<ANSPlayerState>()->GetGenericTeamId().GetId();
-		if (NSGameState && NSGameState -> GetTeamStatistic(TeamIndex).DeathCount >= LimitByTeamKills)
+		if (const auto TeamInterface = Cast<IGenericTeamAgentInterface>(DamageInfo.Target))
 		{
-			EndMatch();
+			const auto TeamIndex = TeamInterface->GetGenericTeamId().GetId();
+			if (NSGameState && NSGameState -> GetTeamStatistic(TeamIndex).DeathCount >= LimitByTeamKills)
+			{
+				EndMatch();
+			}
 		}
 	}
-		
 }
 
 void ANSGameMode::SpawnPlayer(AController* Controller)

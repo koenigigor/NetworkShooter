@@ -7,6 +7,7 @@
 #include "ChatController.generated.h"
 
 class ANSPlayerState;
+struct FDamageInfo;
 
 //todo not DYNAMIC_MULTICAST
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FMessageReceive, ANSPlayerState*, FromPlayer, FString, Message);
@@ -29,6 +30,9 @@ public:
 	/** [Multicast] Send message to clients */
 	UFUNCTION(NetMulticast, Unreliable)
 	void ReceiveMessage(const FString& Message, ANSPlayerState* FromWho);
+
+	/** GameState send info about damage (like system tagged messages) */
+	void SendDamageInfo(FDamageInfo DamageInfo);
 
 	UPROPERTY()
 	FMessageReceive MessageReceive;

@@ -6,6 +6,7 @@
 #include "Game/NSGameMode.h"
 #include "Game/NSPlayerState.h"
 #include "Game/PCNetShooter.h"
+#include "Game/Components/ChatController.h"
 #include "GameFramework/PlayerState.h"
 #include "Net/UnrealNetwork.h"
 
@@ -101,9 +102,9 @@ void ANSGameState::EndMatchHandle_Implementation()
 	MatchEndDelegate.Broadcast();
 }
 
-void ANSGameState::CharacterKilled(APawn* WhoKilled)
+void ANSGameState::OnCharacterDeath(FDamageInfo DamageInfo)
 {
-	AddStatisticWhenPawnKilled(WhoKilled);
+	AddStatisticWhenPawnKilled(DamageInfo.Target, DamageInfo.Instigator);
 }
 
 bool ANSGameState::HasMatchStarted() const
@@ -121,13 +122,10 @@ void ANSGameState::ApplyDamageInfo(FDamageInfo DamageInfo)
 
 	//add info in list
 	DamageInfoList.Add(DamageInfo);
-	
-	//temp prototype
-	auto PCNetShooter = Cast<APCNetShooter>(DamageInfo.DamagedActor->GetInstigatorController());
-	if (PCNetShooter)
-	{
-		PCNetShooter->NotifyReceiveDamage_Implementation(DamageInfo.Damage, FVector::ZeroVector, FName(DamageInfo.InstigatorName), DamageInfo.DamageCauser);
-	}
+
+	//send chat message structure tag:Chat.System.DamageInfo, instigator name, causer name ...
+	//
+
 }
 
 bool ANSGameState::CanDamage(AActor* DamagedActor, AActor* DamageCauser)
@@ -162,77 +160,17 @@ bool ANSGameState::CanDamage(AActor* DamagedActor, AActor* DamageCauser)
 	return true;
 }
 
-void ANSGameState::ApplyDamageInfoFromActors(AController* DamageInstigator, AActor* DamagedActor, AActor* DamageCauser, float Damage)
+void ANSGameState::ApplyDamageInfo(AActor* InInstigator, AActor* Causer, AActor* Target, float Damage)
 {
-	FDamageInfo DamageInfo;
-	FString InstigatorName;
-	FString DamagedActorName;
-	FString CauserName;
-	
-	//Prepare DamageInstigator name
-	if (DamageInstigator)
-	{
-		if (DamageInstigator -> GetPlayerState<APlayerState>())
-		{
-			InstigatorName = DamageInstigator -> GetPlayerState<APlayerState>() -> GetPlayerName();
-		}
-		else
-		{
-			InstigatorName = DamageInstigator -> GetName();
-		}
-	}
-
-	//Prepare DamageReceiver name
-	if (DamagedActor->GetInstigatorController())
-	{
-		if (DamagedActor->GetInstigatorController()->GetPlayerState<APlayerState>())
-		{
-			DamagedActorName = DamagedActor->GetInstigatorController()->GetPlayerState<APlayerState>()->GetPlayerName();
-		}
-		else
-		{
-			DamagedActorName = DamagedActor->GetInstigatorController()->GetName();
-		}
-	}
-	else
-	{
-		DamagedActorName = DamagedActor->GetName();
-	}
-
-	//Prepare CauserName
-	//DamageInstigator->FindComponentByClass<ANSEquipnent>() -> GetEquippedWeapon() -> WeaponData -> Name;
-	
-	if (DamageCauser)
-	{
-		CauserName = DamageCauser->GetName();
-	}
-	else
-	{
-		CauserName = "No WeaponName";
-	}
-	
-	DamageInfo.Damage = Damage;
-
-	DamageInfo.Instigator = DamageInstigator;
-	DamageInfo.InstigatorName = InstigatorName;
-
-	DamageInfo.DamagedActor = DamagedActor;
-	DamageInfo.DamagedActorName = DamagedActorName;
-	
-	DamageInfo.DamageCauser = DamageCauser;
-	DamageInfo.DamageCauserName = CauserName;
-	
-	DamageInfo.Time = GetWorld() -> GetTimeSeconds();
-	
-	ApplyDamageInfo(DamageInfo);
+	ApplyDamageInfo(FDamageInfo(InInstigator, Causer, Target, Damage));
 }
 
-TArray<AController*> ANSGameState::GetAssist(AActor* DamagedActor)
+TArray<AActor*> ANSGameState::GetAssist(const AActor* Target)
 {
-	TArray<AController*> Assists;
+	TArray<AActor*> Assists;
 	for (const auto& Info : DamageInfoList)
 	{
-		if (Info.DamagedActor && Info.DamagedActor == DamagedActor && Info.Instigator)
+		if (Info.Target == Target && Info.Instigator)
 		{
 			Assists.AddUnique(Info.Instigator);
 		}
@@ -245,7 +183,7 @@ FDamageInfo ANSGameState::GetKillInfo(APawn* WhoKilled)
 	FDamageInfo DamageInfo;
 	for (auto i = DamageInfoList.Num()-1; i>0; i--)
 	{
-		if (DamageInfoList[i].DamagedActor == WhoKilled)
+		if (DamageInfoList[i].Target == WhoKilled)
 		{
 			DamageInfo = DamageInfoList[i];
 			return DamageInfo;
@@ -254,10 +192,10 @@ FDamageInfo ANSGameState::GetKillInfo(APawn* WhoKilled)
 	return DamageInfo;
 }
 
-void ANSGameState::AddStatisticWhenPawnKilled(APawn* WhoKilled)
+void ANSGameState::AddStatisticWhenPawnKilled(AActor* Target, AActor* InInstigator)
 {
 	if (DamageInfoList.Num() == 0) { return; } 
-	
+	/*
 	//get last damage info for this pawn
 	FDamageInfo DamageInfo = GetKillInfo(WhoKilled);
 
@@ -298,7 +236,7 @@ void ANSGameState::AddStatisticWhenPawnKilled(APawn* WhoKilled)
 				Assistant->GetPlayerState<ANSPlayerState>() -> AddAssist();
 			}
         }
-    }			
+    }			*/
 }
 
 

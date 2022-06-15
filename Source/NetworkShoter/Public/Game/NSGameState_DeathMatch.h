@@ -16,7 +16,7 @@ class NETWORKSHOTER_API ANSGameState_DeathMatch : public ANSGameState
 public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	virtual void CharacterKilled(APawn* WhoKilled) override;
+	//virtual void CharacterKilled(APawn* WhoKilled) override;
 	
 	/** init by GameMode */
 	UPROPERTY(Replicated)

@@ -12,7 +12,7 @@ void ANSGameState_DeathMatch::GetLifetimeReplicatedProps(TArray<FLifetimePropert
 	DOREPLIFETIME(ANSGameState_DeathMatch, KillCountLimit);
 	DOREPLIFETIME(ANSGameState_DeathMatch, KillCount);
 }
-
+/*
 void ANSGameState_DeathMatch::CharacterKilled(APawn* WhoKilled)
 {
 	Super::CharacterKilled(WhoKilled);
@@ -26,4 +26,4 @@ void ANSGameState_DeathMatch::CharacterKilled(APawn* WhoKilled)
 			GM->EndMatch();
 		}
 	}
-}
+}*/

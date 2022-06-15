@@ -9,6 +9,7 @@
 #include "NSGameState.generated.h"
 
 class ANSPlayerState;
+struct FDamageInfo;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWaitingToStartMatchDelegate);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FMatchStartDelegate);
@@ -16,39 +17,6 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FMatchEndDelegate);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPlayerAddedDelegare, APlayerState*, PlayerState);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPlayerRemovedDelegare, APlayerState*, PlayerState);
 
-/**
- * Struct for keep info about last damage
- */
-USTRUCT(BlueprintType)
-struct FDamageInfo
-{
-	GENERATED_BODY()
-
-	UPROPERTY(BlueprintReadOnly)
-	FString InstigatorName = "None";
-
-	UPROPERTY(BlueprintReadOnly)
-	AController* Instigator = nullptr;
-
-	UPROPERTY(BlueprintReadOnly)
-	FString DamagedActorName = "None";
-
-	UPROPERTY(BlueprintReadOnly)
-	AActor* DamagedActor = nullptr;
-
-	UPROPERTY(BlueprintReadOnly)
-	FString DamageCauserName = "None";
-
-	UPROPERTY(BlueprintReadOnly)
-	AActor* DamageCauser = nullptr;
-	
-	UPROPERTY(BlueprintReadOnly)
-	float Damage;
-
-	/** Time when damage was been applied */
-	UPROPERTY(BlueprintReadOnly)
-	float Time = 0.f;
-};
 
 /**
  * Base GameState class for network shooter game:
@@ -93,7 +61,7 @@ public:
 
 	/** Character killed notification
 	 *	trigger by GameMode */
-	virtual void CharacterKilled(APawn* WhoKilled);
+	virtual void OnCharacterDeath(FDamageInfo DamageInfo);
 
 	UFUNCTION(BlueprintCallable)
 	EMatchState GetMatchState() { return MatchState; }
@@ -118,21 +86,21 @@ public:
 	bool CanDamage(AActor* DamagedActor, AActor* DamageCauser);
 	
 	/** Create damage info struct in and add it in struct array
-	 *  Called from damage execution calculation */
-	void ApplyDamageInfoFromActors(AController* DamageInstigator, AActor* DamagedActor, AActor* DamageCauser, float Damage);
+	 *  Called from UNetShooterAttributeSet on receive damage */
+	void ApplyDamageInfo(AActor* InInstigator, AActor* Causer, AActor* Target, float Damage);
 
 	/** Add damage info in list */
 	void ApplyDamageInfo(FDamageInfo DamageInfo);
 	
 	/** Return array instigators who damage this actor */
-	TArray<AController*> GetAssist(AActor* DamagedActor);
+	TArray<AActor*> GetAssist(const AActor* Target);
 
 	/** Return last damage info about this pawn */
 	FDamageInfo GetKillInfo(APawn* WhoKilled);
 	
 	//Called from GameMode when character killed
 	UFUNCTION()
-	void AddStatisticWhenPawnKilled(APawn* WhoKilled);
+	void AddStatisticWhenPawnKilled(AActor* Target, AActor* InInstigator);
 
 
 	//~==============================================================================================
