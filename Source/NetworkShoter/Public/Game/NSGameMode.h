@@ -4,8 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameMode.h"
+#include "GameFramework/GameplayMessageSubsystem.h"
 #include "NSGameMode.generated.h"
 
+struct FGameplayTag;
 class ANSPlayerStart;
 class ANSGameState;
 struct FDamageInfo;
@@ -97,8 +99,8 @@ protected:
     /** Support function for FindPlayerStart */
     virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
 	
-public:
-	virtual void OnCharacterDeath(FDamageInfo DamageInfo);
+protected:
+	virtual void OnCharacterDeath(FGameplayTag Tag, const FDamageInfo& DamageInfo);
 
 	
 	//~==============================================================================================
@@ -140,4 +142,6 @@ protected:
 
 	UPROPERTY()
 	ANSGameState* NSGameState = nullptr;
+
+	FGameplayMessageListenerHandle DeathListenerHandle;
 };

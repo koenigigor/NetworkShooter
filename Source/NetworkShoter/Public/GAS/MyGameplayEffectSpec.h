@@ -20,6 +20,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Ability|GameplayEffect")
 	static FGameplayEffectSpecHandle SetPeriod(FGameplayEffectSpecHandle SpecHandle, float Period);
 
+	UE_DEPRECATED(4.27, "use SetEffectInstigatorAndCauser")
 	UFUNCTION(BlueprintCallable, Category = "Ability|GameplayEffect")
 	static FGameplayEffectSpecHandle SetEffectCauser(const FGameplayEffectSpecHandle& SpecHandle, AActor* Causer);
+
+	UFUNCTION(BlueprintCallable, Category = "Ability|GameplayEffect")
+	static FGameplayEffectSpecHandle SetEffectInstigatorAndCauser(const FGameplayEffectSpecHandle& SpecHandle, AActor* Instigator, AActor* Causer);
 };

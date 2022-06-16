@@ -96,28 +96,19 @@ void UNetShooterAttributeSet::PostGameplayEffectExecute(const FGameplayEffectMod
 		UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(GetWorld());
 		
 		
-		if (Data.EvaluatedData.Magnitude < 0.f)	//is damage
+		if (Data.EvaluatedData.Magnitude < 0.f)
 		{		
-			GetWorld() -> GetGameState<ANSGameState>() -> ApplyDamageInfo(DamageInfo);
-
 			DamageInfo.Tag = NSTag::System::Damage();
 			MessageSystem.BroadcastMessage(DamageInfo.Tag, DamageInfo);
-
-			//is death
+			
 			if (FMath::IsNearlyZero(GetHealth()))
 			{
 				DamageInfo.Tag = NSTag::System::Death();
-				if (const auto GM = GetWorld()->GetAuthGameMode<ANSGameMode>())
-				{
-					GM->OnCharacterDeath(DamageInfo);
-				}
 				MessageSystem.BroadcastMessage(DamageInfo.Tag, DamageInfo);
 			}
 		}
-		else    //is healing
+		else
 		{
-			//UE_LOG(LogTemp, Display, TEXT("UNetShooterAttributeSet Im Healed on %f"), Data.EvaluatedData.Magnitude)
-
 			DamageInfo.Tag = NSTag::System::Heal();
 			MessageSystem.BroadcastMessage(DamageInfo.Tag, DamageInfo);
 		}

@@ -7,6 +7,7 @@
 #include "Game/NSPlayerState.h"
 #include "Game/PCNetShooter.h"
 #include "Game/Components/ChatController.h"
+#include "Game/Components/DamageHistoryComponent.h"
 #include "GameFramework/PlayerState.h"
 #include "Net/UnrealNetwork.h"
 
@@ -26,7 +27,6 @@ void ANSGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME(ANSGameState, bMatchTimeLimit);
 	DOREPLIFETIME(ANSGameState, bFriendlyFire);
 	DOREPLIFETIME(ANSGameState, MatchTime);
-	DOREPLIFETIME(ANSGameState, DamageInfoList);
 	DOREPLIFETIME_CONDITION(ANSGameState, WaitStartMatchTime, COND_InitialOnly);
 }
 
@@ -104,7 +104,7 @@ void ANSGameState::EndMatchHandle_Implementation()
 
 void ANSGameState::OnCharacterDeath(FDamageInfo DamageInfo)
 {
-	AddStatisticWhenPawnKilled(DamageInfo.Target, DamageInfo.InstigatorState);
+
 }
 
 bool ANSGameState::HasMatchStarted() const
@@ -116,118 +116,16 @@ bool ANSGameState::HasMatchStarted() const
 
 //~==============================================================================================
 // Match Statistic
-void ANSGameState::ApplyDamageInfo(FDamageInfo DamageInfo)
+
+bool ANSGameState::CanBeDamaged(const AActor* Target, const AActor* DamageInstigator) const 
 {
-	//add info in list
-	DamageInfoList.Add(DamageInfo);
-
-}
-
-bool ANSGameState::CanDamage(AActor* DamagedActor, AActor* DamageCauser)
-{
-	//TODO SetFriendlyFire function
-	//for set attitude
-	//	
+	const auto Attitude = FGenericTeamId::GetAttitude(Target, DamageInstigator);
 	
-
-	
-	if (bFriendlyFire)
+	if (bFriendlyFire && Attitude == ETeamAttitude::Friendly)
 	{
-		//todo get team id interface
-		if (DamagedActor->GetInstigator()->GetPlayerState<ANSPlayerState>())
-		{
-			if (DamageCauser->GetInstigator()->GetPlayerState<ANSPlayerState>())
-			{
-				auto TeamDamagedActor = DamagedActor->GetInstigator()->GetPlayerState<ANSPlayerState>()->GetGenericTeamId();
-				auto TeamDamageCauser = DamageCauser->GetInstigator()->GetPlayerState<ANSPlayerState>()->GetGenericTeamId();
-				if (TeamDamagedActor == TeamDamageCauser && TeamDamagedActor!=-1)
-				{
-					UE_LOG(LogTemp, Warning, TEXT("CanDamage: Cant damage your timmates"))
-					return false;
-				}
-				UE_LOG(LogTemp, Warning, TEXT("CanDamage: Team not equal, damage accept"))
-			}
-			UE_LOG(LogTemp, Warning, TEXT("CanDamage: DamageCauser player state not fount"))
-		}
-		UE_LOG(LogTemp, Warning, TEXT("CanDamage: DamagedActor player state not fount"))
+		return false;
 	}
-	UE_LOG(LogTemp, Warning, TEXT("CanDamage: Damage accept"))
 	return true;
-}
-
-
-TArray<APlayerState*> ANSGameState::GetAssist(const AActor* Target)
-{
-	TArray<APlayerState*> Assists;
-	for (const auto& Info : DamageInfoList)
-	{
-		if (Info.Target == Target && Info.InstigatorState)
-		{
-			Assists.AddUnique(Info.InstigatorState);
-		}
-	}
-	return Assists;
-}
-
-FDamageInfo ANSGameState::GetKillInfo(APawn* WhoKilled)
-{
-	FDamageInfo DamageInfo;
-	for (auto i = DamageInfoList.Num()-1; i>0; i--)
-	{
-		if (DamageInfoList[i].Target == WhoKilled)
-		{
-			DamageInfo = DamageInfoList[i];
-			return DamageInfo;
-		}
-	}
-	return DamageInfo;
-}
-
-void ANSGameState::AddStatisticWhenPawnKilled(AActor* Target, AActor* InInstigator)
-{
-	if (DamageInfoList.Num() == 0) { return; } 
-	/*
-	//get last damage info for this pawn
-	FDamageInfo DamageInfo = GetKillInfo(WhoKilled);
-
-	auto DeathActorTeam = WhoKilled->GetPlayerState<ANSPlayerState>()->GetGenericTeamId().GetId();
-	
-	//add kill count
-    if (DamageInfo.Instigator)
-    {
-		auto InstigatorTeam = DamageInfo.Instigator -> GetPlayerState<ANSPlayerState>() -> GetGenericTeamId().GetId();
-
-    	//if same team, decrease
-    	if (DeathActorTeam == 0 || DeathActorTeam != InstigatorTeam)
-    	{
-    		DamageInfo.Instigator -> GetPlayerState<ANSPlayerState>() -> AddKill();
-    	}
-        else
-        {
-        	DamageInfo.Instigator -> GetPlayerState<ANSPlayerState>() -> AddKill(-1);
-        }
-    }
-    
-    //add death count
-    if (DamageInfo.DamagedActor && DamageInfo.DamagedActor->GetInstigatorController())
-    {
-    	DamageInfo.DamagedActor->GetInstigatorController() -> GetPlayerState<ANSPlayerState>() -> AddDeath();
-    }
-        		
-	//add assist count
-    auto AssistList = GetAssist(DamageInfo.DamagedActor);
-    for (const auto& Assistant : AssistList)
-	{
-		if (Assistant != DamageInfo.Instigator)
-		{
-			auto AssistantTeam = Assistant -> GetPlayerState<ANSPlayerState>() -> GetGenericTeamId().GetId();
-
-			if (DeathActorTeam == 0 || DeathActorTeam != AssistantTeam)
-			{
-				Assistant->GetPlayerState<ANSPlayerState>() -> AddAssist();
-			}
-        }
-    }			*/
 }
 
 
@@ -246,11 +144,6 @@ TArray<ANSPlayerState*> ANSGameState::GetTeam(uint8 TeamIndex)
 	}
 
 	return Output;
-}
-
-int32 ANSGameState::GetTeamKills(int32 TeamId)
-{
-	return GetTeamStatistic(TeamId).KillCount;
 }
 
 FPlayerStatistic ANSGameState::GetTeamStatistic(uint8 TeamId)

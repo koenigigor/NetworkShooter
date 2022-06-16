@@ -83,30 +83,13 @@ public:
 
 	/** Can damage this actor (friendly fire, etc) */
 	UFUNCTION(BlueprintPure)
-	bool CanDamage(AActor* DamagedActor, AActor* DamageCauser);
-
-	/** Add damage info in list */
-	void ApplyDamageInfo(FDamageInfo DamageInfo);
+	bool CanBeDamaged(const AActor* Target, const AActor* DamageInstigator) const ;
 	
-	/** Return array instigators who damage this actor */
-	TArray<APlayerState*> GetAssist(const AActor* Target);
-
-	/** Return last damage info about this pawn */
-	FDamageInfo GetKillInfo(APawn* WhoKilled);
-	
-	//Called from GameMode when character killed
-	UFUNCTION()
-	void AddStatisticWhenPawnKilled(AActor* Target, AActor* InInstigator);
-
 
 	//~==============================================================================================
 	// Team List
 	
 	TArray<ANSPlayerState*> GetTeam(uint8 TeamIndex);
-
-	/** Get count kills by team id */
-	UFUNCTION(BlueprintPure)
-	int32 GetTeamKills(int32 TeamId);
 
 	/** Get team statistic by team id */
 	UFUNCTION(BlueprintPure)
@@ -132,7 +115,7 @@ public:
 	 *	if match in progress, return time from start match
 	 */
 	UFUNCTION(BlueprintPure)
-	float GetMatchTime(){ return MatchTime; };
+	float GetMatchTime() const { return MatchTime; };
 
 	/** if match hac EndByTime condition, return remaining time for match end */
 	UFUNCTION(BlueprintPure)
@@ -166,10 +149,6 @@ protected:
 
 
 private:
-	/** Keep all damage info for this match */
-	UPROPERTY(Replicated)
-	TArray<FDamageInfo> DamageInfoList;
-
 	/** Current match time, see GetMatchTime() */
 	UPROPERTY(Replicated, Transient)
 	float MatchTime = 0;

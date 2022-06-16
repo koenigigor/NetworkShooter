@@ -25,6 +25,9 @@ void ANSGameMode::StartPlay()
 	Super::StartPlay();
 
 	FGenericTeamId::SetAttitudeSolver(&UTeamAttitudeSettings::GetAttitude);
+
+	UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(this);
+	DeathListenerHandle = MessageSubsystem.RegisterListener(NSTag::System::Death(), this, &ThisClass::OnCharacterDeath);
 }
 
 void ANSGameMode::InitGameState()
@@ -151,9 +154,9 @@ void ANSGameMode::EndMatchHandle()
 //~==============================================================================================
 // Respawn player
 
-void ANSGameMode::OnCharacterDeath(FDamageInfo DamageInfo)
+void ANSGameMode::OnCharacterDeath(FGameplayTag Tag, const FDamageInfo& DamageInfo)
 {
-	if (auto Controller = DamageInfo.Target->GetInstigatorController<APlayerController>())
+	if (const auto Controller = DamageInfo.Target->GetInstigatorController())
 		DeathControllers.Add(Controller);
 
 	GetGameState<ANSGameState>() -> OnCharacterDeath(DamageInfo);

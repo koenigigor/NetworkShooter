@@ -37,7 +37,24 @@ FGameplayEffectSpecHandle UMyGameplayEffectSpec::SetEffectCauser(const FGameplay
 	}
 	else
 	{
-		ABILITY_LOG(Warning, TEXT("UUMyGameplayEffectSpec::SetPeriod called with invalid SpecHandle"));
+		ABILITY_LOG(Warning, TEXT("UUMyGameplayEffectSpec::SetEffectCauser called with invalid SpecHandle"));
+	}
+
+	return SpecHandle;
+}
+
+FGameplayEffectSpecHandle UMyGameplayEffectSpec::SetEffectInstigatorAndCauser(const FGameplayEffectSpecHandle& SpecHandle, AActor* Instigator, AActor* Causer)
+{
+	if (!Causer) return SpecHandle;
+	
+	FGameplayEffectSpec* Spec = SpecHandle.Data.Get();
+	if (Spec)
+	{
+		Spec->GetContext().AddInstigator(Instigator, Causer);
+	}
+	else
+	{
+		ABILITY_LOG(Warning, TEXT("SetEffectInstigatorAndCauser called with invalid SpecHandle"));
 	}
 
 	return SpecHandle;
