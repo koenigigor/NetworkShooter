@@ -84,16 +84,12 @@ public:
 	/** Can damage this actor (friendly fire, etc) */
 	UFUNCTION(BlueprintPure)
 	bool CanDamage(AActor* DamagedActor, AActor* DamageCauser);
-	
-	/** Create damage info struct in and add it in struct array
-	 *  Called from UNetShooterAttributeSet on receive damage */
-	void ApplyDamageInfo(AActor* InInstigator, AActor* Causer, AActor* Target, float Damage);
 
 	/** Add damage info in list */
 	void ApplyDamageInfo(FDamageInfo DamageInfo);
 	
 	/** Return array instigators who damage this actor */
-	TArray<AActor*> GetAssist(const AActor* Target);
+	TArray<APlayerState*> GetAssist(const AActor* Target);
 
 	/** Return last damage info about this pawn */
 	FDamageInfo GetKillInfo(APawn* WhoKilled);

@@ -4,7 +4,7 @@
 #include "Game/Components/ChatController.h"
 
 #include "Game/NSPlayerState.h"
-#include "NSStructures.h"
+#include "GameFramework/GameplayMessageSubsystem.h"
 
 
 UChatController::UChatController()
@@ -14,6 +14,38 @@ UChatController::UChatController()
 	SetIsReplicatedByDefault(true);
 }
 
+void UChatController::BeginPlay()
+{
+	Super::BeginPlay();
+	
+	UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(this);
+	ListenerHandle = MessageSubsystem.RegisterListener(NSTag::System::Damage(), this, &ThisClass::OnReceiveDamage);
+	ListenerHandle = MessageSubsystem.RegisterListener(NSTag::System::Death(), this, &ThisClass::OnReceiveDamage);
+	//ListenerHandle = MessageSubsystem.RegisterListener(NSTag::System::Heal(), this, &ThisClass::OnReceiveDamage);
+}
+
+void UChatController::OnReceiveDamage(FGameplayTag Tag, const FDamageInfo& DamageInfo)
+{
+	//replicate info to clients
+	BroadcastDamageInfo(DamageInfo);
+}
+
+void UChatController::BroadcastDamageInfo_Implementation(FDamageInfo DamageInfo)
+{	
+	UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(this);
+	
+	//send DamageInfo in chat
+	if (DamageInfo.Tag == NSTag::System::Damage())
+	{
+		
+	}
+
+	//send kill Info in KillFeed
+	if (DamageInfo.Tag == NSTag::System::Death())
+	{
+		MessageSubsystem.BroadcastMessage(NSTag::Chat::Damage(), DamageInfo);
+	}
+}
 
 void UChatController::SendMessage_Player(const FString& Message, ANSPlayerState* FromWho)
 {
@@ -23,50 +55,6 @@ void UChatController::SendMessage_Player(const FString& Message, ANSPlayerState*
 
 	//send message to clients
 	ReceiveMessage(Message, FromWho);
-}
-
-void UChatController::SendDamageInfo(FDamageInfo DamageInfo)
-{
-	FString InstigatorName = "NoInstigator";
-	FString TargetName = "";
-	FString CauserName = "NoCauser";
-	
-	if (DamageInfo.Instigator)
-	{
-		//intend instigator is controller
-		if (const auto DamageInstigator = Cast<AController>(DamageInfo.Instigator))
-		{
-			InstigatorName = DamageInstigator -> PlayerState -> GetPlayerName();
-		}
-		else
-		{
-			InstigatorName = DamageInfo.Instigator -> GetName();
-		}
-	}
-	
-	if (DamageInfo.Target)
-	{
-		TargetName = DamageInfo.Target->GetInstigatorController()->PlayerState->GetPlayerName();
-	}
-	
-	if (DamageInfo.DamageCauser) //first spawned actor on equipped weapon
-	{
-		CauserName = DamageInfo.DamageCauser->GetName();
-	}
-	else
-	{
-		CauserName = "No DamageCauser Name";
-	}
-
-	FDamageInfoChat Message;
-	Message.MessageTag;
-	Message.Instigator;
-	Message.Target;
-	Message.DamageCauser;
-	Message.Damage;
-	Message.Time;
-
-	//ReceiveMessage(MESSAGE_DAMAGE, )
 }
 
 void UChatController::ReceiveMessage_Implementation(const FString& Message, ANSPlayerState* FromWho)

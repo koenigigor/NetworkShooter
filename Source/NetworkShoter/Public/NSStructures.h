@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
+#include "Abilities/GameplayAbility.h"
 #include "NSStructures.generated.h"
 
 /**
@@ -31,10 +32,16 @@ struct FDamageInfo
 	GENERATED_BODY()
 
 	FDamageInfo(){};
-	FDamageInfo(AActor* InInstigator, AActor* InCauser, AActor* InTarget, float InDamage);
+	FDamageInfo(APlayerState* InInstigatorState, AActor* InCauser, AActor* InTarget, float InDamage, const UGameplayAbility* InSourceAbilityCDO = nullptr);
+
+	/** return message based this info, see IDamageDescriptionInterface */
+	FString GetMessage() const;
+
+	UPROPERTY(BlueprintReadOnly)
+	FGameplayTag Tag;
 	
 	UPROPERTY(BlueprintReadOnly)
-	AActor* Instigator = nullptr;
+	APlayerState* InstigatorState = nullptr;
 	
 	UPROPERTY(BlueprintReadOnly)
 	AActor* DamageCauser = nullptr;
@@ -45,35 +52,24 @@ struct FDamageInfo
 	UPROPERTY(BlueprintReadOnly)
 	float Damage = 0.f;
 
-	/** Time when damage was been applied */
-	UPROPERTY(BlueprintReadOnly)
-	float Time = 0.f;
+	UPROPERTY()
+	const UGameplayAbility* SourceAbilityCDO = nullptr;
 };
 
-/** Damage indo who send to client (for chat and kill feed) */
-USTRUCT(BlueprintType)
-struct FDamageInfoChat
+namespace NSTag
 {
-	GENERATED_BODY()
-	
-	UPROPERTY(BlueprintReadOnly)
-	FGameplayTag MessageTag; //Chat.System.Damage / Chat.System.Kill / Chat.System.Heal
-	
-	UPROPERTY(BlueprintReadOnly)
-	FString Instigator;
-	
-	UPROPERTY(BlueprintReadOnly)
-	FString DamageCauser;
-	
-	UPROPERTY(BlueprintReadOnly)
-	FString Target;
-	
-	UPROPERTY(BlueprintReadOnly)
-	float Damage = 0.f;
+	namespace System
+	{
+		inline FGameplayTag Damage() { return FGameplayTag::RequestGameplayTag("Message.System.Damage"); }
+		inline FGameplayTag Heal() { return FGameplayTag::RequestGameplayTag("Message.System.Heal"); }
+        inline FGameplayTag Death() { return FGameplayTag::RequestGameplayTag("Message.System.Death"); }
+	}
 
-	/** Time when damage was been applied */
-	UPROPERTY(BlueprintReadOnly)
-	float Time = 0.f;
+	namespace Chat
+	{
+		inline FGameplayTag Damage() { return FGameplayTag::RequestGameplayTag("Chat.System.Damage"); }
+		inline FGameplayTag Heal() { return FGameplayTag::RequestGameplayTag("Chat.System.Heal"); }
+		inline FGameplayTag Death() { return FGameplayTag::RequestGameplayTag("Chat.System.Death"); }
+	}
 	
-	//todo weapon ref for get ui image, if is weapon
-};
+}

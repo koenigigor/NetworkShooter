@@ -104,7 +104,7 @@ void ANSGameState::EndMatchHandle_Implementation()
 
 void ANSGameState::OnCharacterDeath(FDamageInfo DamageInfo)
 {
-	AddStatisticWhenPawnKilled(DamageInfo.Target, DamageInfo.Instigator);
+	AddStatisticWhenPawnKilled(DamageInfo.Target, DamageInfo.InstigatorState);
 }
 
 bool ANSGameState::HasMatchStarted() const
@@ -118,13 +118,8 @@ bool ANSGameState::HasMatchStarted() const
 // Match Statistic
 void ANSGameState::ApplyDamageInfo(FDamageInfo DamageInfo)
 {
-	//if (!DamageInfo.IsValid) { return; }
-
 	//add info in list
 	DamageInfoList.Add(DamageInfo);
-
-	//send chat message structure tag:Chat.System.DamageInfo, instigator name, causer name ...
-	//
 
 }
 
@@ -160,19 +155,15 @@ bool ANSGameState::CanDamage(AActor* DamagedActor, AActor* DamageCauser)
 	return true;
 }
 
-void ANSGameState::ApplyDamageInfo(AActor* InInstigator, AActor* Causer, AActor* Target, float Damage)
-{
-	ApplyDamageInfo(FDamageInfo(InInstigator, Causer, Target, Damage));
-}
 
-TArray<AActor*> ANSGameState::GetAssist(const AActor* Target)
+TArray<APlayerState*> ANSGameState::GetAssist(const AActor* Target)
 {
-	TArray<AActor*> Assists;
+	TArray<APlayerState*> Assists;
 	for (const auto& Info : DamageInfoList)
 	{
-		if (Info.Target == Target && Info.Instigator)
+		if (Info.Target == Target && Info.InstigatorState)
 		{
-			Assists.AddUnique(Info.Instigator);
+			Assists.AddUnique(Info.InstigatorState);
 		}
 	}
 	return Assists;

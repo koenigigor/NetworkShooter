@@ -7,6 +7,9 @@
 #include "NSStructures.h"
 #include "Game/NSGameMode.h"
 #include "Game/NSGameState.h"
+#include "Game/Components/ChatController.h"
+#include "GameFramework/GameplayMessageSubsystem.h"
+#include "GameFramework/PlayerState.h"
 #include "Net/UnrealNetwork.h"
 
 UNetShooterAttributeSet::UNetShooterAttributeSet()
@@ -73,36 +76,50 @@ void UNetShooterAttributeSet::PostGameplayEffectExecute(const FGameplayEffectMod
 //[Server]	
 	if (Data.EvaluatedData.Attribute == GetHealthAttribute())
 	{
-		if (Data.EvaluatedData.Magnitude < 0.f)	//is damage
-		{
-			const auto Causer = Data.EffectSpec.GetEffectContext().GetEffectCauser();
-			const auto Instigator = Data.EffectSpec.GetEffectContext().GetInstigator();
-			const auto Target = GetOwningActor();
-			const auto Damage = Data.EvaluatedData.Magnitude;
+		const auto Causer = Data.EffectSpec.GetEffectContext().GetEffectCauser();
+		const auto Instigator = Data.EffectSpec.GetEffectContext().GetInstigator();
+		const auto Target = GetOwningActor();
+		const auto Damage = Data.EvaluatedData.Magnitude;
+		const auto Ability = Data.EffectSpec.GetEffectContext().GetAbility();
 			
-			ensure(Causer);
-			ensure(Instigator);
-			
-			UE_LOG(LogTemp, Display, TEXT("UNetShooterAttributeSet %s damaged from %s by %s on %f"), *Target->GetName(), *Instigator->GetName(), *Causer->GetName(), Damage)
-			
-			//in lyra used health component and message subsystem //todo learn/make message subsystem
-			
-			const FDamageInfo DamageInfo(Instigator, Causer, Target, Damage);
+		ensure(Causer);
+		ensure(Instigator);
 
+		const auto InstigatorState = Cast<APlayerState>(Instigator);
+		if (!InstigatorState)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Intend instigator is PlayerState, in %s"), Ability ? *Ability->GetName() : *Causer->GetName())
+		}
+        			
+		FDamageInfo DamageInfo(InstigatorState, Causer, Target, Damage, Ability);
+
+		UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(GetWorld());
+		
+		
+		if (Data.EvaluatedData.Magnitude < 0.f)	//is damage
+		{		
 			GetWorld() -> GetGameState<ANSGameState>() -> ApplyDamageInfo(DamageInfo);
+
+			DamageInfo.Tag = NSTag::System::Damage();
+			MessageSystem.BroadcastMessage(DamageInfo.Tag, DamageInfo);
 
 			//is death
 			if (FMath::IsNearlyZero(GetHealth()))
-			{	
+			{
+				DamageInfo.Tag = NSTag::System::Death();
 				if (const auto GM = GetWorld()->GetAuthGameMode<ANSGameMode>())
 				{
 					GM->OnCharacterDeath(DamageInfo);
 				}
+				MessageSystem.BroadcastMessage(DamageInfo.Tag, DamageInfo);
 			}
 		}
 		else    //is healing
 		{
-			UE_LOG(LogTemp, Display, TEXT("UNetShooterAttributeSet Im Healed on %f"), Data.EvaluatedData.Magnitude)
+			//UE_LOG(LogTemp, Display, TEXT("UNetShooterAttributeSet Im Healed on %f"), Data.EvaluatedData.Magnitude)
+
+			DamageInfo.Tag = NSTag::System::Heal();
+			MessageSystem.BroadcastMessage(DamageInfo.Tag, DamageInfo);
 		}
 	}
 }
