@@ -9,6 +9,7 @@
 #include "NSGameState.generated.h"
 
 class ANSPlayerState;
+class UDamageHistoryComponent;
 struct FDamageInfo;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWaitingToStartMatchDelegate);
@@ -152,4 +153,7 @@ private:
 	/** Current match time, see GetMatchTime() */
 	UPROPERTY(Replicated, Transient)
 	float MatchTime = 0;
+
+	UPROPERTY()
+	UDamageHistoryComponent* DamageHistory;
 };

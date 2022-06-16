@@ -5,7 +5,6 @@
 
 #include "Game/NSGameMode.h"
 #include "Game/NSPlayerState.h"
-#include "Game/PCNetShooter.h"
 #include "Game/Components/ChatController.h"
 #include "Game/Components/DamageHistoryComponent.h"
 #include "GameFramework/PlayerState.h"
@@ -16,6 +15,8 @@ ANSGameState::ANSGameState()
 {
 	SetActorTickEnabled(true);
 	SetActorTickInterval(1.f);
+
+	DamageHistory = CreateDefaultSubobject<UDamageHistoryComponent>(TEXT("DamageHistory"));
 }
 
 void ANSGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

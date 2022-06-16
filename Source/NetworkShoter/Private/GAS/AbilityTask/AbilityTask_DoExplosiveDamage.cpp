@@ -4,6 +4,7 @@
 #include "GAS/AbilityTask/AbilityTask_DoExplosiveDamage.h"
 
 #include "AbilitySystemComponent.h"
+#include "GameFramework/PlayerState.h"
 #include "GAS/MyGameplayEffectSpec.h"
 
 
@@ -72,7 +73,8 @@ void UAbilityTask_DoExplosiveDamage::Activate()
 		if (auto Spec = SpecHandle.Data.Get())
 		{
 			Spec->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag("Magnitude.Damage"), DamageMap.Value);
-			UMyGameplayEffectSpec::SetEffectCauser(SpecHandle, Causer);
+			const auto Instigator = GetAvatarActor()->GetInstigator()->GetPlayerState();
+			Spec->GetContext().AddInstigator(Instigator, Causer);
 		}
 		
 		// Construct TargetData

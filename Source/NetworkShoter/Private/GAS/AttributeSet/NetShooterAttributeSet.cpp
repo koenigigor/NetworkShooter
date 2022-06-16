@@ -74,7 +74,7 @@ void UNetShooterAttributeSet::PostGameplayEffectExecute(const FGameplayEffectMod
 {
 	Super::PostGameplayEffectExecute(Data);
 //[Server]	
-	if (Data.EvaluatedData.Attribute == GetHealthAttribute())
+	if (Data.EvaluatedData.Attribute == GetHealthAttribute() && !FMath::IsNearlyZero(GetHealth()))
 	{
 		const auto Causer = Data.EffectSpec.GetEffectContext().GetEffectCauser();
 		const auto Instigator = Data.EffectSpec.GetEffectContext().GetInstigator();
@@ -101,7 +101,7 @@ void UNetShooterAttributeSet::PostGameplayEffectExecute(const FGameplayEffectMod
 			DamageInfo.Tag = NSTag::System::Damage();
 			MessageSystem.BroadcastMessage(DamageInfo.Tag, DamageInfo);
 			
-			if (FMath::IsNearlyZero(GetHealth()))
+			if (GetHealth() + Damage <= 0)
 			{
 				DamageInfo.Tag = NSTag::System::Death();
 				MessageSystem.BroadcastMessage(DamageInfo.Tag, DamageInfo);
