@@ -11,43 +11,22 @@ void UWTime::NativeConstruct()
 	Super::NativeConstruct();
 
 	GameState = GetWorld()->GetGameState<ANSGameState>();
+	ensure(GameState);
 }
 
-float UWTime::GetMatchTime()
+float UWTime::GetMatchTime() const
 {
-	if (GameState)
-	{
-		//float MatchTime = GetWorld()->TimeSeconds - GameState->MatchStartTime;
-		//return MatchTime;
-		return GameState->GetMatchTime();
-	}
-	return -1.f;
+	return GameState->GetMatchTime();
 }
 
 void UWTime::GetReadableMatchTime(int32& Minutes, int32& Seconds)
 {
-	float MatchTime = GetMatchTime();
+	const float MatchTime = GetMatchTime();
 	Seconds = FMath::RoundToInt(MatchTime) % 60;
 	Minutes = (FMath::RoundToInt(MatchTime) - Seconds) / 60;
 }
 
-float UWTime::GetMatchTimeProgress()
+float UWTime::GetMatchTimeProgress() const
 {
-	auto MatchState = GameState->MatchState;
-	if (MatchState == EMatchState::WaitingToStart)
-	{
-		return 0.f;
-	}
-	
-	if (MatchState == EMatchState::InProgress)
-	{
-		return GetMatchTime() / GameState->MatchTimeLimit.GetTotalSeconds();
-	}
-
-	if (MatchState == EMatchState::PostMatch)
-	{
-		return 1.f;
-	}
-	
-	return 0.f;
+	return GameState->GetMatchTimeAbsolute();
 }

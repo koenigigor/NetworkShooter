@@ -17,14 +17,14 @@ class NETWORKSHOTER_API UWTime : public UUserWidget
 	GENERATED_BODY()
 	virtual void NativeConstruct() override;
 
-	float GetMatchTime();
+	float GetMatchTime() const;
 
 	UFUNCTION(BlueprintCallable)
 	void GetReadableMatchTime(int32& Minutes, int32& Seconds);
 
 	/** if match in progress return time end percentage */
 	UFUNCTION(BlueprintPure)
-	float GetMatchTimeProgress();
+	float GetMatchTimeProgress() const;
 	
 	ANSGameState* GameState = nullptr;
 };

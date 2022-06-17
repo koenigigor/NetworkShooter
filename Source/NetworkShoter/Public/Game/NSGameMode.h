@@ -22,9 +22,7 @@ enum class EMatchState : uint8
 	PostMatch
 };
 
-/**
- * Base GameMode Class for network shooter
- */
+
 UCLASS()
 class NETWORKSHOTER_API ANSGameMode : public AGameModeBase
 {
@@ -37,9 +35,6 @@ public:
 	virtual void InitGameState() override;
 
 	virtual void PostLogin(APlayerController* NewPlayer) override;
-
-	//~==============================================================================================
-	// Teams
 
 
 
@@ -99,7 +94,6 @@ protected:
     /** Support function for FindPlayerStart */
     virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
 	
-protected:
 	virtual void OnCharacterDeath(FGameplayTag Tag, const FDamageInfo& DamageInfo);
 
 	

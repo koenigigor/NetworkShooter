@@ -10,19 +10,14 @@
 
 class ANSPlayerState;
 class UDamageHistoryComponent;
+class UTeamSetupManager;
 struct FDamageInfo;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FMatchStatusDelegate);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPlayerAddedDelegare, APlayerState*, PlayerState);
 
 
-/**
- * Base GameState class for network shooter game:
- * send start/end match broadcast
- * save info about incoming damage
- * save team lists
- * check match limits (time)
- */
+
 UCLASS()
 class NETWORKSHOTER_API ANSGameState : public AGameStateBase
 {
@@ -33,7 +28,8 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	virtual void BeginPlay() override;
-	void TickMatchTime();
+
+	UTeamSetupManager* GetTeamManager() const { return TeamManager; };
 	
 	virtual void AddPlayerState(APlayerState* PlayerState) override;
 	virtual void RemovePlayerState(APlayerState* PlayerState) override;
@@ -46,7 +42,7 @@ public:
 	//~==============================================================================================
 	// Match State
 	
-	/** called from Game mode */
+	/** called from Game mode when set match status */
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void WaitingToStartMatchHandle();
 	UFUNCTION(NetMulticast, Reliable)
@@ -59,69 +55,33 @@ public:
 	
 	virtual bool HasMatchStarted() const override;
 
-	
-public:
-	/** time when match was started */
-	float MatchStartTime = -1.f;
-
-	/** copy match state from game mode, for using in widgets */
-	UPROPERTY(Replicated)
-	EMatchState MatchState = EMatchState::WaitingConnection;
-
-	
-	//~==============================================================================================
-	// Match Statistic
 
 	/** Can damage this actor (friendly fire, etc) */
 	UFUNCTION(BlueprintPure)
 	bool CanBeDamaged(const AActor* Target, const AActor* DamageInstigator) const ;
 	
-
-	//~==============================================================================================
-	// Team List
-	
-	TArray<ANSPlayerState*> GetTeam(uint8 TeamIndex) const;
-
 	/** Get team statistic by team id */
 	UFUNCTION(BlueprintPure)
-	FPlayerStatistic GetTeamStatistic(uint8 TeamId);
-
-	/** Return next player in team
-	 *	@NextPlayerInTeam - if set nullptr return first player
-	 *	@bNext - return next or previous actor
-	 *	@bLifePlayer - player must be live
-	 */
-	void GetNextPlayerInTeam(uint8 TeamIndex, ANSPlayerState*& NextPlayerInTeam, bool bNext = true, bool bLifePlayer = true);
+	FPlayerStatistic GetTeamStatistic(uint8 TeamId) const;
 
 
 	//~==============================================================================================
 	// Match timer
-
-	/** Time when connected players wait start match, set by GameMode */
-	UPROPERTY(Transient, Replicated)
-	float WaitStartMatchTime = 999.f;
-
+protected:
+	void TickMatchTime();
+public:
 	/** return match timers based on match state
 	 *	if waiting start, return time before start
-	 *	if match in progress, return time from start match
-	 */
+	 *	if match in progress, return time from start match */
 	UFUNCTION(BlueprintPure)
 	float GetMatchTime() const { return MatchTime; };
 
+	/** see GetMatchTime() */
+	float GetMatchTimeAbsolute();
+
 	/** if match hac EndByTime condition, return remaining time for match end */
 	UFUNCTION(BlueprintPure)
-	float GetMatchTimerRemaining();
-	
-public:
-	UPROPERTY(Transient, BlueprintReadOnly, Category="Limits", Replicated, meta=(ScriptName="EnableMatchTimeLimit"))
-	bool bMatchTimeLimit = false;
-	
-	UPROPERTY(Transient, BlueprintReadOnly, Category="Limits", Replicated)
-	FTimespan MatchTimeLimit;
-	
-
-	UPROPERTY(Transient, Replicated)
-	bool bFriendlyFire = false;
+	float GetMatchTimerRemaining() const;
 
 	
 	//~==============================================================================================
@@ -141,13 +101,42 @@ protected:
 	void BP_MatchFinished();
 
 
+	//~==============================================================================================
+	// Init variables by NSGameMode
+protected:	
+	friend ANSGameMode;
+	
+	UPROPERTY(Transient, Replicated)
+    bool bFriendlyFire = false;
+
+	UPROPERTY(Transient, BlueprintReadOnly, Category="Limits", Replicated, meta=(ScriptName="EnableMatchTimeLimit"))
+	bool bMatchTimeLimit = false;
+	
+	UPROPERTY(Transient, BlueprintReadOnly, Category="Limits", Replicated)
+	FTimespan MatchTimeLimit;
+
+	/** copy match state from game mode, for using in widgets */
+	UPROPERTY(Replicated)
+	EMatchState MatchState = EMatchState::WaitingConnection;
+
+	/** Time when connected players wait start match, set by GameMode */
+	UPROPERTY(Transient, Replicated)
+	float WaitStartMatchTime = 999.f;
+
+	
 private:
 	/** Current match time, see GetMatchTime() */
 	UPROPERTY(Replicated, Transient)
 	float MatchTime = 0;
 
+	/** time when match was started */
+	float MatchStartTime = -1.f;
+
 	UPROPERTY()
 	UDamageHistoryComponent* DamageHistory;
+	
+	UPROPERTY(EditAnywhere)
+	UTeamSetupManager* TeamManager;
 
 	FTimerHandle MatchTimerHandle;
 };

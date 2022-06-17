@@ -7,6 +7,7 @@
 #include "Game/NSPlayerState.h"
 #include "Game/Components/ChatController.h"
 #include "Game/Components/DamageHistoryComponent.h"
+#include "Game/Components/TeamSetupManager.h"
 #include "GameFramework/PlayerState.h"
 #include "Net/UnrealNetwork.h"
 
@@ -16,6 +17,7 @@ ANSGameState::ANSGameState()
 	SetActorTickEnabled(false);
 
 	DamageHistory = CreateDefaultSubobject<UDamageHistoryComponent>(TEXT("DamageHistory"));
+	TeamManager = CreateDefaultSubobject<UTeamSetupManager>(TEXT("TeamManager"));
 }
 
 void ANSGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -126,38 +128,11 @@ bool ANSGameState::CanBeDamaged(const AActor* Target, const AActor* DamageInstig
 //~==============================================================================================
 // Team List
 
-TArray<ANSPlayerState*> ANSGameState::GetTeam(uint8 TeamIndex) const
-{
-	TArray<ANSPlayerState*> Output;
-
-	auto FilteredPlayers = PlayerArray.FilterByPredicate([&](const TObjectPtr<APlayerState>& Entry)
-	{
-		return FGenericTeamId::GetTeamIdentifier(Entry).GetId() == TeamIndex;
-	});
-
-	//todo check if here actual need ANSPlayer state, or just player state are good
-	for (const auto& Player : FilteredPlayers)
-	{
-		if (const auto NSPlayer = Cast<ANSPlayerState>(Player))
-			Output.Add(NSPlayer);
-	}
-	
-	/*
-	for (auto Player : PlayerArray)
-	{
-		auto NSPlayer = StaticCast<ANSPlayerState*>(Player);
-		if (NSPlayer->GetGenericTeamId().GetId() == TeamIndex)
-			Output.Add(NSPlayer);
-	}*/
-
-	return Output;
-}
-
-FPlayerStatistic ANSGameState::GetTeamStatistic(uint8 TeamId)
+FPlayerStatistic ANSGameState::GetTeamStatistic(uint8 TeamId) const
 {
 	FPlayerStatistic Statistic;
 
-	auto Team = GetTeam(TeamId);
+	auto Team = TeamManager->GetTeam(TeamId);
 	for (const auto& Player : Team)
 	{
 		Statistic += Player->GetPlayerStatistic();
@@ -166,46 +141,40 @@ FPlayerStatistic ANSGameState::GetTeamStatistic(uint8 TeamId)
 	return Statistic;
 }
 
-void ANSGameState::GetNextPlayerInTeam(uint8 TeamIndex, ANSPlayerState*& NextPlayerInTeam, bool bNext, bool bLifePlayer)
-{
-	auto Team = GetTeam(TeamIndex);
-	
-	if (Team.Num() == 0)
-	{
-		NextPlayerInTeam = nullptr;
-		return;
-	}
-
-	const int32 StartSearchIndex = NextPlayerInTeam ? Team.IndexOfByKey(NextPlayerInTeam) : INDEX_NONE;
-
-	int32 NextIndex = StartSearchIndex;
-	for (int32 IterateCount = 0; IterateCount < Team.Num(); ++IterateCount)
-	{
-		NextIndex = bNext ? NextIndex + 1 : NextIndex - 1;
-		NextIndex = FMath::Wrap(NextIndex, 0, Team.Num());
-
-		if (!bLifePlayer || Team[NextIndex]->IsLife())
-		{
-			NextPlayerInTeam = Team[NextIndex];
-			return;
-		}
-	}
-	
-	NextPlayerInTeam = nullptr;
-	return;
-}
-
-
-
-
 //~==============================================================================================
 // Match timer
 
-float ANSGameState::GetMatchTimerRemaining()
+float ANSGameState::GetMatchTimeAbsolute()
+{
+	switch (GetMatchState())
+	{
+	case EMatchState::WaitingToStart:
+		{
+			return 1 - GetMatchTime()/WaitStartMatchTime;
+			break;
+		}
+	case EMatchState::InProgress:
+		{
+			return GetMatchTime() / MatchTimeLimit.GetTotalSeconds();
+			break;
+		}
+	case EMatchState::PostMatch:
+		{
+			return 1;
+			break;
+		}
+	default:
+		{
+			return 0;
+		}	
+	}
+}
+
+float ANSGameState::GetMatchTimerRemaining() const
 {
 	if (MatchState==EMatchState::InProgress)
 	{
-		return MatchTimeLimit.GetTotalSeconds() - MatchTime;
+		return MatchTimeLimit.GetTotalSeconds() - GetMatchTime();
 	}
 	
 	return -1.f;
