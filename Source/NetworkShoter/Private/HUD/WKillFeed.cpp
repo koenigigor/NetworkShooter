@@ -4,37 +4,28 @@
 #include "HUD/WKillFeed.h"
 
 #include "Game/NSGameState.h"
-#include "Game/NSPlayerState.h"
 #include "HUD/WKillFeed_Row.h"
 
 void UWKillFeed::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	if (!bConstructed)
-	if (auto NSGameState = GetWorld()->GetGameState<ANSGameState>())
-	{
-		for (const auto& Player : NSGameState->PlayerArray)
-		{
-			if (auto NSPlayer = Cast<ANSPlayerState>(Player))
-			{
-				NSPlayer->CharacterDeadDelegate.AddDynamic(this, &UWKillFeed::OnSomebodyKilled);
-			}
-		}
-		//todo new player bind/unbind
-	}
-	bConstructed=true;
+	UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(this);
+	ListenerHandle = MessageSubsystem.RegisterListener(NSTag::Chat::Damage(), this, &ThisClass::OnKilled);
 }
 
-void UWKillFeed::OnSomebodyKilled(APawn* WhoKilled)
+void UWKillFeed::NativeDestruct()
 {
-	//get kill info
-	auto NSGameState = GetWorld()->GetGameState<ANSGameState>();
-	auto KillInfo = NSGameState->GetKillInfo(WhoKilled);
+	Super::NativeDestruct();
 
-	//spawn new row
+	UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(this);
+	MessageSubsystem.UnregisterListener(ListenerHandle);	
+}
+
+void UWKillFeed::OnKilled(FGameplayTag Tag, const FDamageInfo& DamageInfo)
+{	
 	auto Row = CreateWidget<UWKillFeed_Row>(this, RowClass);
-	Row->Init(KillInfo);
+	Row->Init(DamageInfo);
 	
 	//send new row into blueprint
 	BP_NewRowCreated(Row);

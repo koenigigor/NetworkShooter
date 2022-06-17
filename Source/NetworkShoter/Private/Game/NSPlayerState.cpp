@@ -37,12 +37,6 @@ void ANSPlayerState::OnCharacterDeath()
 {
 	CharacterDeadDelegate.Broadcast(GetPawn());
 	
-	//notify gamemode about death
-	if (HasAuthority())
-	{
-		if (auto GM = Cast<ANSGameMode>(GetWorld()->GetAuthGameMode()))
-			GM -> CharacterKilled(GetPawn());
-	}
 	bDeath = true;
 }
 

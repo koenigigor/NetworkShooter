@@ -4,10 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameMode.h"
+#include "GameFramework/GameplayMessageSubsystem.h"
 #include "NSGameMode.generated.h"
 
+struct FGameplayTag;
 class ANSPlayerStart;
 class ANSGameState;
+struct FDamageInfo;
 
 
 UENUM()
@@ -19,9 +22,7 @@ enum class EMatchState : uint8
 	PostMatch
 };
 
-/**
- * Base GameMode Class for network shooter
- */
+
 UCLASS()
 class NETWORKSHOTER_API ANSGameMode : public AGameModeBase
 {
@@ -35,9 +36,6 @@ public:
 
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 
-	//~==============================================================================================
-	// Teams
-
 
 
 	//~==============================================================================================
@@ -45,11 +43,11 @@ public:
 	
 	/** Call for start match */
 	UFUNCTION(BlueprintCallable)
-	virtual void StartMatch();
+	void StartMatch();
 
 	/** Call for end match */
 	UFUNCTION(BlueprintCallable)
-	virtual void EndMatch();
+	void EndMatch();
 
 	virtual bool HasMatchStarted() const override;
 
@@ -67,6 +65,9 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent)
 	void BP_MatchFinished();
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void BP_MatchInProgressLogin(APlayerController* NewPlayer);
+
 	EMatchState MatchState = EMatchState::WaitingConnection;
 
 	
@@ -77,6 +78,14 @@ protected:
     UFUNCTION(BlueprintCallable)
     void SpawnPlayer(AController* Controller);
 
+	/** Spawn all players (call on start match) */
+	UFUNCTION(BlueprintCallable)
+	void SpawnPlayers();
+	
+	/** Un possess all players (call on end match) */
+	UFUNCTION(BlueprintCallable)
+	void UnPossessPlayers();
+
 	/** respawn first death player*/
 	void RespawnDeathPlayer();
     	
@@ -85,10 +94,7 @@ protected:
     /** Support function for FindPlayerStart */
     virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
 	
-public:
-   	/** Player state call this function when player dead */
-   	UFUNCTION(BlueprintCallable, meta=(DefaultToSelf="WhoKilled"))
-  	virtual void CharacterKilled(APawn* WhoKilled);
+	virtual void OnCharacterDeath(FGameplayTag Tag, const FDamageInfo& DamageInfo);
 
 	
 	//~==============================================================================================
@@ -126,8 +132,10 @@ protected:
 	
 	/** Death controllers to respawn */
 	UPROPERTY()
-	TArray<APlayerController*> DeathControllers;
+	TArray<AController*> DeathControllers;
 
 	UPROPERTY()
 	ANSGameState* NSGameState = nullptr;
+
+	FGameplayMessageListenerHandle DeathListenerHandle;
 };

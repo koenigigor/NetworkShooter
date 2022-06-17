@@ -23,7 +23,8 @@ public class NetworkShoter : ModuleRules
 
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{
-			"NetCore"
+			"NetCore",
+			"GameplayMessageRuntime"
 		});
 
 		DynamicallyLoadedModuleNames.Add("OnlineSubsystemNull");

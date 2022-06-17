@@ -44,6 +44,13 @@ public:
 	UFUNCTION(BlueprintCallable)
 	TArray<ANSPlayerState*> GetTeam(uint8 TeamIndex);
 
+	/** Return next player in team
+	 *	@NextPlayerInTeam - if set nullptr return first player
+	 *	@bNext - return next or previous actor
+	 *	@bLifePlayer - player must be live
+	 */
+	void GetNextPlayerInTeam(uint8 TeamIndex, ANSPlayerState*& NextPlayerInTeam, bool bNext = true, bool bLifePlayer = true);
+
 	/** Return map who contain map of teams and count players joined in this team
 	 *	If @CheckIfAlreadyInTeam = false return empty map with created keys for using teams*/
 	void GetTeamAndCount(TMap<uint8, int32>& TeamCountMap, const bool CheckIfAlreadyInTeam = true);

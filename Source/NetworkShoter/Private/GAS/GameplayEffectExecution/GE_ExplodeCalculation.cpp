@@ -42,9 +42,6 @@ void UGE_ExplodeCalculation::Execute_Implementation(const FGameplayEffectCustomE
 	Damage *= -1.f;
 
 	OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(GetAttributeCapture().HealthProperty, EGameplayModOp::Additive, Damage));
-
-	
-	UMyGameplayEffectSpec::DamageNotify(ExecutionParams, Damage);
 }
 
 

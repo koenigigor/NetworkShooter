@@ -4,6 +4,9 @@
 #include "GAS/AttributeSet/NetShooterAttributeSet.h"
 
 #include "GameplayEffectExtension.h"
+#include "NSStructures.h"
+#include "GameFramework/GameplayMessageSubsystem.h"
+#include "GameFramework/PlayerState.h"
 #include "Net/UnrealNetwork.h"
 
 UNetShooterAttributeSet::UNetShooterAttributeSet()
@@ -67,26 +70,46 @@ void UNetShooterAttributeSet::PreAttributeChange(const FGameplayAttribute& Attri
 void UNetShooterAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
 {
 	Super::PostGameplayEffectExecute(Data);
-
-	//TODO TODO TODO damage notify there
-	
+//[Server]	
 	if (Data.EvaluatedData.Attribute == GetHealthAttribute())
 	{
-		if (Data.EvaluatedData.Magnitude < 0.f)	//is damage
+		const auto Causer = Data.EffectSpec.GetEffectContext().GetEffectCauser();
+		const auto Instigator = Data.EffectSpec.GetEffectContext().GetInstigator();
+		const auto Target = GetOwningActor();
+		const auto Damage = Data.EvaluatedData.Magnitude;
+		const auto Ability = Data.EffectSpec.GetEffectContext().GetAbility();
+			
+		ensure(Causer);
+		ensure(Instigator);
+
+		const auto InstigatorState = Cast<APlayerState>(Instigator);
+		if (!InstigatorState)
 		{
-			auto Causer = Data.EffectSpec.GetEffectContext().GetEffectCauser();
-			auto Instigator = Data.EffectSpec.GetEffectContext().GetInstigator();
-			auto Target = GetOwningActor();
-			auto Damage = Data.EvaluatedData.Magnitude;
-			
-			ensure(Causer);
-			ensure(Instigator);
-			
-			UE_LOG(LogTemp, Display, TEXT("UNetShooterAttributeSet %s damaged from %s by %s on %f"), *Target->GetName(), *Instigator->GetName(), *Causer->GetName(), Damage)
+			UE_LOG(LogTemp, Warning, TEXT("Intend instigator is PlayerState, in %s"), Ability ? *Ability->GetName() : *Causer->GetName())
 		}
-		else    //is healing
+        			
+		FDamageInfo DamageInfo(InstigatorState, Causer, Target, Damage, Ability);
+
+		UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(GetWorld());
+		
+		
+		if (Data.EvaluatedData.Magnitude < 0.f)
+		{		
+			DamageInfo.Tag = NSTag::System::Damage();
+			MessageSystem.BroadcastMessage(DamageInfo.Tag, DamageInfo);
+			
+			if (FMath::IsNearlyZero(GetHealth()) && !bOutOfHealth)
+			{
+				bOutOfHealth = true;
+				DamageInfo.Tag = NSTag::System::Death();
+				MessageSystem.BroadcastMessage(DamageInfo.Tag, DamageInfo);
+			}
+			bOutOfHealth = GetHealth() <= 0.f;
+		}
+		else
 		{
-			UE_LOG(LogTemp, Display, TEXT("UNetShooterAttributeSet Im Healed on %f"), Data.EvaluatedData.Magnitude)
+			DamageInfo.Tag = NSTag::System::Heal();
+			MessageSystem.BroadcastMessage(DamageInfo.Tag, DamageInfo);
 		}
 	}
 }

@@ -5,6 +5,7 @@
 
 #include "Game/NSGameState.h"
 #include "Game/NSPlayerState.h"
+#include "Game/Components/TeamSetupManager.h"
 
 
 ANSSpectator::ANSSpectator()
@@ -29,7 +30,7 @@ void ANSSpectator::GetNextPlayerToAttach(bool bNext)
 	if (!(NSGameState && NSPlayerState)){ return; }
 	
 	auto TeamIndex = NSPlayerState->GetGenericTeamId().GetId();
-	NSGameState -> GetNextPlayerInTeam(TeamIndex, CurrentAttachedPlayer);
+	NSGameState -> GetTeamManager() -> GetNextPlayerInTeam(TeamIndex, CurrentAttachedPlayer);
 }
 
 //~==============================================================================================

@@ -37,33 +37,25 @@ FGameplayEffectSpecHandle UMyGameplayEffectSpec::SetEffectCauser(const FGameplay
 	}
 	else
 	{
-		ABILITY_LOG(Warning, TEXT("UUMyGameplayEffectSpec::SetPeriod called with invalid SpecHandle"));
+		ABILITY_LOG(Warning, TEXT("UUMyGameplayEffectSpec::SetEffectCauser called with invalid SpecHandle"));
 	}
 
 	return SpecHandle;
 }
 
-void UMyGameplayEffectSpec::DamageNotify(const FGameplayEffectCustomExecutionParameters& ExecutionParams, float Damage)
+FGameplayEffectSpecHandle UMyGameplayEffectSpec::SetEffectInstigatorAndCauser(const FGameplayEffectSpecHandle& SpecHandle, AActor* Instigator, AActor* Causer)
 {
-	auto OwnerActor = ExecutionParams.GetSourceAbilitySystemComponent()->GetAvatarActor();
-	auto DamagedActor = ExecutionParams.GetTargetAbilitySystemComponent()->GetAvatarActor();
-	AActor* DamageCauser = ExecutionParams.GetOwningSpec().GetEffectContext().GetEffectCauser();
-	if (OwnerActor->GetWorld() && OwnerActor -> GetWorld() -> GetGameState<ANSGameState>())
+	if (!Causer) return SpecHandle;
+	
+	FGameplayEffectSpec* Spec = SpecHandle.Data.Get();
+	if (Spec)
 	{
-		OwnerActor->GetWorld() -> GetGameState<ANSGameState>() -> ApplyDamageInfoFromActors(OwnerActor->GetInstigatorController(), DamagedActor, DamageCauser, Damage);
-
-		//FIXME //find after make that ^
-		//implement this instead that ^
-		/* Standard Damage Notify */
-		
-		/*
-		const auto DamageTypeCDO = GetDefault<UDamageType>();
-		DamagedActor->ReceiveAnyDamage(Damage, DamageTypeCDO, OwnerActor->GetInstigatorController(), DamageCauser);
-		DamagedActor->OnTakeAnyDamage.Broadcast(DamagedActor, Damage, DamageTypeCDO, OwnerActor->GetInstigatorController(), DamageCauser);
-		if (OwnerActor->GetInstigatorController() != nullptr)
-		{
-			OwnerActor->GetInstigatorController()->InstigatedAnyDamage(Damage, DamageTypeCDO, DamagedActor, DamageCauser);
-		}
-		*/	
+		Spec->GetContext().AddInstigator(Instigator, Causer);
 	}
+	else
+	{
+		ABILITY_LOG(Warning, TEXT("SetEffectInstigatorAndCauser called with invalid SpecHandle"));
+	}
+
+	return SpecHandle;
 }

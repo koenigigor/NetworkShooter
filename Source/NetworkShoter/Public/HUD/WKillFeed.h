@@ -3,7 +3,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "NSStructures.h"
 #include "Blueprint/UserWidget.h"
+#include "GameFramework/GameplayMessageSubsystem.h"
 #include "WKillFeed.generated.h"
 
 class UWKillFeed_Row;
@@ -18,10 +20,10 @@ class NETWORKSHOTER_API UWKillFeed : public UUserWidget
 	GENERATED_BODY()
 protected:
 	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
 	
 	/** called when some pawn dead */
-	UFUNCTION()
-	void OnSomebodyKilled(APawn* WhoKilled);
+	void OnKilled(FGameplayTag Tag, const FDamageInfo& DamageInfo);
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void BP_NewRowCreated(UWKillFeed_Row* NewRow);
@@ -30,4 +32,6 @@ protected:
 	TSubclassOf<UWKillFeed_Row> RowClass = nullptr;
 
 	bool bConstructed = false;
+
+	FGameplayMessageListenerHandle ListenerHandle;
 };

@@ -5,15 +5,19 @@
 
 #include "Game/NSGameMode.h"
 #include "Game/NSPlayerState.h"
-#include "Game/PCNetShooter.h"
+#include "Game/Components/ChatController.h"
+#include "Game/Components/DamageHistoryComponent.h"
+#include "Game/Components/TeamSetupManager.h"
 #include "GameFramework/PlayerState.h"
 #include "Net/UnrealNetwork.h"
 
 
 ANSGameState::ANSGameState()
 {
-	SetActorTickEnabled(true);
-	SetActorTickInterval(1.f);
+	SetActorTickEnabled(false);
+
+	DamageHistory = CreateDefaultSubobject<UDamageHistoryComponent>(TEXT("DamageHistory"));
+	TeamManager = CreateDefaultSubobject<UTeamSetupManager>(TEXT("TeamManager"));
 }
 
 void ANSGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -25,7 +29,6 @@ void ANSGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME(ANSGameState, bMatchTimeLimit);
 	DOREPLIFETIME(ANSGameState, bFriendlyFire);
 	DOREPLIFETIME(ANSGameState, MatchTime);
-	DOREPLIFETIME(ANSGameState, DamageInfoList);
 	DOREPLIFETIME_CONDITION(ANSGameState, WaitStartMatchTime, COND_InitialOnly);
 }
 
@@ -35,13 +38,12 @@ void ANSGameState::BeginPlay()
 
 	if (GetMatchState() == EMatchState::WaitingConnection || GetMatchState() == EMatchState::WaitingToStart)
 		MatchTime = WaitStartMatchTime;
+
+	GetWorldTimerManager().SetTimer(MatchTimerHandle, this, &ThisClass::TickMatchTime, 1.f, true, 0.f);
 }
 
-void ANSGameState::Tick(float DeltaSeconds)
+void ANSGameState::TickMatchTime()
 {
-	Super::Tick(DeltaSeconds);
-
-	
 	if (MatchState == EMatchState::WaitingToStart)
 	{
 		MatchTime--;
@@ -50,8 +52,8 @@ void ANSGameState::Tick(float DeltaSeconds)
 		{
 			Cast<ANSGameMode>(GetWorld()->GetAuthGameMode())->StartMatch();
 		}
-	} else
-	if (MatchState == EMatchState::InProgress)
+	}
+	else if	(MatchState == EMatchState::InProgress)
 	{
 		MatchTime++;
 		
@@ -101,11 +103,6 @@ void ANSGameState::EndMatchHandle_Implementation()
 	MatchEndDelegate.Broadcast();
 }
 
-void ANSGameState::CharacterKilled(APawn* WhoKilled)
-{
-	AddStatisticWhenPawnKilled(WhoKilled);
-}
-
 bool ANSGameState::HasMatchStarted() const
 {
 	//return Super::HasMatchStarted();
@@ -115,220 +112,27 @@ bool ANSGameState::HasMatchStarted() const
 
 //~==============================================================================================
 // Match Statistic
-void ANSGameState::ApplyDamageInfo(FDamageInfo DamageInfo)
+
+bool ANSGameState::CanBeDamaged(const AActor* Target, const AActor* DamageInstigator) const 
 {
-	//if (!DamageInfo.IsValid) { return; }
-
-	//add info in list
-	DamageInfoList.Add(DamageInfo);
+	const auto Attitude = FGenericTeamId::GetAttitude(Target, DamageInstigator);
 	
-	//temp prototype
-	auto PCNetShooter = Cast<APCNetShooter>(DamageInfo.DamagedActor->GetInstigatorController());
-	if (PCNetShooter)
+	if (bFriendlyFire && Attitude == ETeamAttitude::Friendly)
 	{
-		PCNetShooter->NotifyReceiveDamage_Implementation(DamageInfo.Damage, FVector::ZeroVector, FName(DamageInfo.InstigatorName), DamageInfo.DamageCauser);
+		return false;
 	}
-}
-
-bool ANSGameState::CanDamage(AActor* DamagedActor, AActor* DamageCauser)
-{
-	//TODO SetFriendlyFire function
-	//for set attitude
-	//	
-	
-
-	
-	if (bFriendlyFire)
-	{
-		//todo get team id interface
-		if (DamagedActor->GetInstigator()->GetPlayerState<ANSPlayerState>())
-		{
-			if (DamageCauser->GetInstigator()->GetPlayerState<ANSPlayerState>())
-			{
-				auto TeamDamagedActor = DamagedActor->GetInstigator()->GetPlayerState<ANSPlayerState>()->GetGenericTeamId();
-				auto TeamDamageCauser = DamageCauser->GetInstigator()->GetPlayerState<ANSPlayerState>()->GetGenericTeamId();
-				if (TeamDamagedActor == TeamDamageCauser && TeamDamagedActor!=-1)
-				{
-					UE_LOG(LogTemp, Warning, TEXT("CanDamage: Cant damage your timmates"))
-					return false;
-				}
-				UE_LOG(LogTemp, Warning, TEXT("CanDamage: Team not equal, damage accept"))
-			}
-			UE_LOG(LogTemp, Warning, TEXT("CanDamage: DamageCauser player state not fount"))
-		}
-		UE_LOG(LogTemp, Warning, TEXT("CanDamage: DamagedActor player state not fount"))
-	}
-	UE_LOG(LogTemp, Warning, TEXT("CanDamage: Damage accept"))
 	return true;
-}
-
-void ANSGameState::ApplyDamageInfoFromActors(AController* DamageInstigator, AActor* DamagedActor, AActor* DamageCauser, float Damage)
-{
-	FDamageInfo DamageInfo;
-	FString InstigatorName;
-	FString DamagedActorName;
-	FString CauserName;
-	
-	//Prepare DamageInstigator name
-	if (DamageInstigator)
-	{
-		if (DamageInstigator -> GetPlayerState<APlayerState>())
-		{
-			InstigatorName = DamageInstigator -> GetPlayerState<APlayerState>() -> GetPlayerName();
-		}
-		else
-		{
-			InstigatorName = DamageInstigator -> GetName();
-		}
-	}
-
-	//Prepare DamageReceiver name
-	if (DamagedActor->GetInstigatorController())
-	{
-		if (DamagedActor->GetInstigatorController()->GetPlayerState<APlayerState>())
-		{
-			DamagedActorName = DamagedActor->GetInstigatorController()->GetPlayerState<APlayerState>()->GetPlayerName();
-		}
-		else
-		{
-			DamagedActorName = DamagedActor->GetInstigatorController()->GetName();
-		}
-	}
-	else
-	{
-		DamagedActorName = DamagedActor->GetName();
-	}
-
-	//Prepare CauserName
-	//DamageInstigator->FindComponentByClass<ANSEquipnent>() -> GetEquippedWeapon() -> WeaponData -> Name;
-	
-	if (DamageCauser)
-	{
-		CauserName = DamageCauser->GetName();
-	}
-	else
-	{
-		CauserName = "No WeaponName";
-	}
-	
-	DamageInfo.Damage = Damage;
-
-	DamageInfo.Instigator = DamageInstigator;
-	DamageInfo.InstigatorName = InstigatorName;
-
-	DamageInfo.DamagedActor = DamagedActor;
-	DamageInfo.DamagedActorName = DamagedActorName;
-	
-	DamageInfo.DamageCauser = DamageCauser;
-	DamageInfo.DamageCauserName = CauserName;
-	
-	DamageInfo.Time = GetWorld() -> GetTimeSeconds();
-	
-	ApplyDamageInfo(DamageInfo);
-}
-
-TArray<AController*> ANSGameState::GetAssist(AActor* DamagedActor)
-{
-	TArray<AController*> Assists;
-	for (const auto& Info : DamageInfoList)
-	{
-		if (Info.DamagedActor && Info.DamagedActor == DamagedActor && Info.Instigator)
-		{
-			Assists.AddUnique(Info.Instigator);
-		}
-	}
-	return Assists;
-}
-
-FDamageInfo ANSGameState::GetKillInfo(APawn* WhoKilled)
-{
-	FDamageInfo DamageInfo;
-	for (auto i = DamageInfoList.Num()-1; i>0; i--)
-	{
-		if (DamageInfoList[i].DamagedActor == WhoKilled)
-		{
-			DamageInfo = DamageInfoList[i];
-			return DamageInfo;
-		}
-	}
-	return DamageInfo;
-}
-
-void ANSGameState::AddStatisticWhenPawnKilled(APawn* WhoKilled)
-{
-	if (DamageInfoList.Num() == 0) { return; } 
-	
-	//get last damage info for this pawn
-	FDamageInfo DamageInfo = GetKillInfo(WhoKilled);
-
-	auto DeathActorTeam = WhoKilled->GetPlayerState<ANSPlayerState>()->GetGenericTeamId().GetId();
-	
-	//add kill count
-    if (DamageInfo.Instigator)
-    {
-		auto InstigatorTeam = DamageInfo.Instigator -> GetPlayerState<ANSPlayerState>() -> GetGenericTeamId().GetId();
-
-    	//if same team, decrease
-    	if (DeathActorTeam == 0 || DeathActorTeam != InstigatorTeam)
-    	{
-    		DamageInfo.Instigator -> GetPlayerState<ANSPlayerState>() -> AddKill();
-    	}
-        else
-        {
-        	DamageInfo.Instigator -> GetPlayerState<ANSPlayerState>() -> AddKill(-1);
-        }
-    }
-    
-    //add death count
-    if (DamageInfo.DamagedActor && DamageInfo.DamagedActor->GetInstigatorController())
-    {
-    	DamageInfo.DamagedActor->GetInstigatorController() -> GetPlayerState<ANSPlayerState>() -> AddDeath();
-    }
-        		
-	//add assist count
-    auto AssistList = GetAssist(DamageInfo.DamagedActor);
-    for (const auto& Assistant : AssistList)
-	{
-		if (Assistant != DamageInfo.Instigator)
-		{
-			auto AssistantTeam = Assistant -> GetPlayerState<ANSPlayerState>() -> GetGenericTeamId().GetId();
-
-			if (DeathActorTeam == 0 || DeathActorTeam != AssistantTeam)
-			{
-				Assistant->GetPlayerState<ANSPlayerState>() -> AddAssist();
-			}
-        }
-    }			
 }
 
 
 //~==============================================================================================
 // Team List
 
-TArray<ANSPlayerState*> ANSGameState::GetTeam(uint8 TeamIndex)
-{
-	TArray<ANSPlayerState*> Output;
-	
-	for (auto Player : PlayerArray)
-	{
-		auto NSPlayer = StaticCast<ANSPlayerState*>(Player);
-		if (NSPlayer->GetGenericTeamId().GetId() == TeamIndex)
-			Output.Add(NSPlayer);
-	}
-
-	return Output;
-}
-
-int32 ANSGameState::GetTeamKills(int32 TeamId)
-{
-	return GetTeamStatistic(TeamId).KillCount;
-}
-
-FPlayerStatistic ANSGameState::GetTeamStatistic(uint8 TeamId)
+FPlayerStatistic ANSGameState::GetTeamStatistic(uint8 TeamId) const
 {
 	FPlayerStatistic Statistic;
 
-	auto Team = GetTeam(TeamId);
+	auto Team = TeamManager->GetTeam(TeamId);
 	for (const auto& Player : Team)
 	{
 		Statistic += Player->GetPlayerStatistic();
@@ -337,115 +141,40 @@ FPlayerStatistic ANSGameState::GetTeamStatistic(uint8 TeamId)
 	return Statistic;
 }
 
-void ANSGameState::GetNextPlayerInTeam(uint8 TeamIndex, ANSPlayerState*& NextPlayerInTeam, bool bNext, bool bLifePlayer)
-{
-	auto Team = GetTeam(TeamIndex);
-
-	//if Empty return failed result
-	if (Team.Num() <= 0)
-	{
-		NextPlayerInTeam = nullptr;
-		return;
-	}
-
-	//if Previous actor not set
-	if (!NextPlayerInTeam)
-	{
-		//get first actor in team, or first life actor if need
-		for (const auto& Player : Team)
-		{
-			if (!bLifePlayer || Player->IsLife())
-			{
-				NextPlayerInTeam = Player;
-				return;
-			}
-		}
-		NextPlayerInTeam = nullptr;
-		return;
-	}
-	
-	
-	auto PreviousPlayerInTeam = NextPlayerInTeam;
-	//Get his index in array
-	int32 PreviousActorIndex = -1;
-	if (PreviousPlayerInTeam)
-	{
-		for (int32 i = 0; i < Team.Num(); i++)
-		{	
-			if (Team[i] == PreviousPlayerInTeam)
-			{
-				PreviousActorIndex = i;
-				break;
-			}
-		}
-	}
-
-	//if previous actor not found
-	if (PreviousActorIndex == -1)
-	{
-		//get first actor in team, or first life actor if need
-		for (const auto& Player : Team)
-		{
-			if (!bLifePlayer || Player->IsLife())
-			{
-				NextPlayerInTeam = Player;
-				return;
-			}
-		}
-		NextPlayerInTeam = nullptr;
-		return;
-	}
-
-	
-	//if index successfully founded founded
-	
-	//return next or previous element, life if need
-	if (bNext)
-	{
-		int32 NextIndex = (PreviousActorIndex+1 < Team.Num()) ? PreviousActorIndex+1 : 0;
-		while (NextIndex != PreviousActorIndex)
-		{
-			if (!bLifePlayer || Team[NextIndex]->IsLife())
-			{
-				NextPlayerInTeam = Team[NextIndex];
-				return;
-			}
-			NextIndex = (NextIndex+1 < Team.Num()) ? NextIndex+1 : 0;
-		}
-
-		NextPlayerInTeam = nullptr;
-		return;
-	}
-	else
-	{
-		int32 PreviousIndex = (PreviousActorIndex-1 >= 0) ? PreviousActorIndex-1 : Team.Num()-1;
-		
-		while (PreviousIndex != PreviousActorIndex)
-		{
-			if (!bLifePlayer || Team[PreviousIndex]->IsLife())
-			{
-				NextPlayerInTeam = Team[PreviousIndex];
-				return;
-			}
-			PreviousIndex = (PreviousIndex-1 >= 0) ? PreviousIndex-1 : Team.Num()-1;
-		}
-
-		NextPlayerInTeam = nullptr;
-		return;
-	}
-}
-
-
-
-
 //~==============================================================================================
 // Match timer
 
-float ANSGameState::GetMatchTimerRemaining()
+float ANSGameState::GetMatchTimeAbsolute()
+{
+	switch (GetMatchState())
+	{
+	case EMatchState::WaitingToStart:
+		{
+			return 1 - GetMatchTime()/WaitStartMatchTime;
+			break;
+		}
+	case EMatchState::InProgress:
+		{
+			return GetMatchTime() / MatchTimeLimit.GetTotalSeconds();
+			break;
+		}
+	case EMatchState::PostMatch:
+		{
+			return 1;
+			break;
+		}
+	default:
+		{
+			return 0;
+		}	
+	}
+}
+
+float ANSGameState::GetMatchTimerRemaining() const
 {
 	if (MatchState==EMatchState::InProgress)
 	{
-		return MatchTimeLimit.GetTotalSeconds() - MatchTime;
+		return MatchTimeLimit.GetTotalSeconds() - GetMatchTime();
 	}
 	
 	return -1.f;

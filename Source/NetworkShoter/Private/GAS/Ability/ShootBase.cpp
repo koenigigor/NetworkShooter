@@ -6,6 +6,7 @@
 #include "DrawDebugHelpers.h"
 #include "NSFunctionLibrary.h"
 #include "Equipment/NSEquipmentInstance.h"
+#include "GameFramework/PlayerState.h"
 #include "GAS/AttributeSet/WeaponAttributeSet.h"
 
 FVector UShootBase::GetMuzzleLocation() const
@@ -94,7 +95,7 @@ float UShootBase::GetShootDelay() const
 
 FGameplayEffectSpecHandle UShootBase::MakeDamageEffectSpec() const
 {
-	const auto Instigator = GetAvatarActorFromActorInfo();
+	const auto Instigator = GetAvatarActorFromActorInfo()->GetInstigator()->GetPlayerState();
 	ensure(GetAssociatedEquipment()->SpawnedActors.IsValidIndex(0));
 	const auto Causer = GetAssociatedEquipment()->SpawnedActors[0]; //mb remove array and make single spawned actor
 

@@ -11,7 +11,7 @@
 
 UTeamSetupManager::UTeamSetupManager()
 {
-	PrimaryComponentTick.bCanEverTick = false; //timers need tick ???
+	PrimaryComponentTick.bCanEverTick = false;
 	
 }
 
@@ -44,7 +44,7 @@ void UTeamSetupManager::ShuffleTeam(bool AddAlreadyInTeam)
 	GetTeamAndCount(TeamCountMap, AddAlreadyInTeam);
 
 	//shuffle teams
-	for (auto Player : PlayersToShuffle) 
+	for (const auto Player : PlayersToShuffle) 
 	{
 		//GetRandom team id, if no search again
 		uint8 TeamToAdd = uint8(Teams[FMath::RandRange(0, Teams.Num()-1)]);
@@ -188,6 +188,36 @@ TArray<ANSPlayerState*> UTeamSetupManager::GetTeam(uint8 TeamIndex)
 	}
 
 	return Output;
+}
+
+void UTeamSetupManager::GetNextPlayerInTeam(uint8 TeamIndex, ANSPlayerState*& NextPlayerInTeam, bool bNext, bool bLifePlayer)
+{
+	auto Team = GetTeam(TeamIndex);
+	
+	if (Team.Num() == 0)
+	{
+		NextPlayerInTeam = nullptr;
+		return;
+	}
+
+	const int32 StartSearchIndex = NextPlayerInTeam ? Team.IndexOfByKey(NextPlayerInTeam) : INDEX_NONE;
+
+	int32 NextIndex = StartSearchIndex;
+	for (int32 IterateCount = 0; IterateCount < Team.Num(); ++IterateCount)
+	{
+		NextIndex = bNext ? NextIndex + 1 : NextIndex - 1;
+		if (NextIndex > Team.Num()-1) { NextIndex = 0; }	//no FMath::Wrap because INDEX_NONE - 1  = -2 
+		if (NextIndex < 0) { NextIndex = Team.Num()-1; }
+
+		if (!bLifePlayer || Team[NextIndex]->IsLife())
+		{
+			NextPlayerInTeam = Team[NextIndex];
+			return;
+		}
+	}
+	
+	NextPlayerInTeam = nullptr;
+	return;
 }
 
 void UTeamSetupManager::GetTeamAndCount(TMap<uint8, int32>& TeamCountMap, const bool CheckIfAlreadyInTeam)

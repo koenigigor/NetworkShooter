@@ -25,6 +25,9 @@ void ANSGameMode::StartPlay()
 	Super::StartPlay();
 
 	FGenericTeamId::SetAttitudeSolver(&UTeamAttitudeSettings::GetAttitude);
+
+	UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(this);
+	DeathListenerHandle = MessageSubsystem.RegisterListener(NSTag::System::Death(), this, &ThisClass::OnCharacterDeath);
 }
 
 void ANSGameMode::InitGameState()
@@ -50,6 +53,11 @@ void ANSGameMode::PostLogin(APlayerController* NewPlayer)
 	{
 		SetMatchState(EMatchState::WaitingToStart);
 	}
+
+	if (HasMatchStarted())
+	{
+		BP_MatchInProgressLogin(NewPlayer);
+	}
 }
 
 //~==============================================================================================
@@ -57,11 +65,7 @@ void ANSGameMode::PostLogin(APlayerController* NewPlayer)
 
 void ANSGameMode::StartMatch()
 {
-	if (HasMatchStarted())
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Match already started"))
-		return;
-	}
+	if (HasMatchStarted()) return;
 
 	//Let the game session override the StartMatch function, in case it wants to wait for arbitration
 	if (GameSession -> HandleStartMatchRequest()) { return; }
@@ -71,11 +75,7 @@ void ANSGameMode::StartMatch()
 
 void ANSGameMode::EndMatch()
 {
-	if (!HasMatchStarted())
-	{
-		UE_LOG(LogTemp, Error, TEXT("Cant end not started match"))
-		return;
-	}
+	if (!HasMatchStarted())	return;
 	
 	SetMatchState(EMatchState::PostMatch);
 }
@@ -97,6 +97,33 @@ void ANSGameMode::SetMatchState(EMatchState NewMatchState)
 		NSGameState->MatchState = MatchState;
 	}
 
+	switch (MatchState)
+	{
+		case EMatchState::WaitingToStart:
+			{
+				WaitingToStartMatchHandle();
+				break;
+			}
+
+		case EMatchState::InProgress:
+			{
+				StartMatchHandle();
+				break;
+			}
+
+		case EMatchState::PostMatch:
+			{
+				EndMatchHandle();
+				break;
+			}
+		
+		default:
+			{
+					
+			}
+	}
+
+	/*
 	if (MatchState == EMatchState::WaitingToStart)
     {
 		WaitingToStartMatchHandle();
@@ -114,10 +141,13 @@ void ANSGameMode::SetMatchState(EMatchState NewMatchState)
 		EndMatchHandle();
 		return;
 	}
+	*/
 }
 
 void ANSGameMode::WaitingToStartMatchHandle()
 {
+	UE_LOG(LogTemp, Display, TEXT(" ----- Waiting Start match -----"))
+	
 	if (NSGameState)
 	{
 		NSGameState->WaitingToStartMatchHandle();
@@ -126,7 +156,7 @@ void ANSGameMode::WaitingToStartMatchHandle()
 
 void ANSGameMode::StartMatchHandle()
 {
-	UE_LOG(LogTemp, Display, TEXT("Start match"))
+	UE_LOG(LogTemp, Display, TEXT(" ----- Start match -----"))
 	
 	BP_MatchStarted();
 	if (NSGameState)
@@ -137,7 +167,7 @@ void ANSGameMode::StartMatchHandle()
 
 void ANSGameMode::EndMatchHandle()
 {
-	UE_LOG(LogTemp, Display, TEXT("End match"))
+	UE_LOG(LogTemp, Display, TEXT(" ----- End match -----"))
 	
 	BP_MatchFinished();
 	if (NSGameState)
@@ -150,12 +180,10 @@ void ANSGameMode::EndMatchHandle()
 //~==============================================================================================
 // Respawn player
 
-void ANSGameMode::CharacterKilled(APawn* WhoKilled)
+void ANSGameMode::OnCharacterDeath(FGameplayTag Tag, const FDamageInfo& DamageInfo)
 {
-	if (WhoKilled->GetController()->IsPlayerController())
-		DeathControllers.Add(StaticCast<APlayerController*>(WhoKilled->GetController()));
-
-	GetGameState<ANSGameState>() -> CharacterKilled(WhoKilled);
+	if (const auto Controller = DamageInfo.Target->GetInstigatorController())
+		DeathControllers.Add(Controller);
 
 	if (bRespawnAfterDeath)
 	{
@@ -165,13 +193,13 @@ void ANSGameMode::CharacterKilled(APawn* WhoKilled)
 
 	if (bLimitByTeamKills)
 	{
-		auto TeamIndex = WhoKilled->GetPlayerState<ANSPlayerState>()->GetGenericTeamId().GetId();
+		const auto TeamIndex = FGenericTeamId::GetTeamIdentifier(DamageInfo.Target).GetId();
+
 		if (NSGameState && NSGameState -> GetTeamStatistic(TeamIndex).DeathCount >= LimitByTeamKills)
 		{
 			EndMatch();
 		}
 	}
-		
 }
 
 void ANSGameMode::SpawnPlayer(AController* Controller)
@@ -186,6 +214,22 @@ void ANSGameMode::SpawnPlayer(AController* Controller)
 	{
 		NSPlayerState -> RespawnHandle();
 	}
+}
+
+void ANSGameMode::SpawnPlayers()
+{
+	for (const auto& PlayerState : GameState->PlayerArray)
+	{
+		SpawnPlayer(PlayerState->GetOwningController());
+	} 
+}
+
+void ANSGameMode::UnPossessPlayers()
+{
+	for (const auto& PlayerState : GameState->PlayerArray)
+	{
+		PlayerState->GetOwningController()->UnPossess();
+	} 
 }
 
 void ANSGameMode::RespawnDeathPlayer()

@@ -11,18 +11,6 @@ void UShootTrace::MakeShoot()
 
 	FHitResult Hit;
 	MakeHit(Hit);
-
-	
-	//can damage
-	bool bCanDamage = true;
-	if (const auto NSGameState = GetWorld()->GetGameState<ANSGameState>())
-	{
-		bCanDamage = NSGameState->CanDamage(Hit.GetActor(), GetAvatarActorFromActorInfo());
-	}
-
-	if (!bCanDamage)
-		return;
-
 	
 	const auto EffectSpec = MakeDamageEffectSpec();
 
