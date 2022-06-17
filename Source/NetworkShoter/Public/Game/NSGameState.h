@@ -12,11 +12,8 @@ class ANSPlayerState;
 class UDamageHistoryComponent;
 struct FDamageInfo;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWaitingToStartMatchDelegate);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FMatchStartDelegate);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FMatchEndDelegate);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FMatchStatusDelegate);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPlayerAddedDelegare, APlayerState*, PlayerState);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPlayerRemovedDelegare, APlayerState*, PlayerState);
 
 
 /**
@@ -36,18 +33,15 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	virtual void BeginPlay() override;
-
-	virtual void Tick(float DeltaSeconds) override;
+	void TickMatchTime();
 	
 	virtual void AddPlayerState(APlayerState* PlayerState) override;
 	virtual void RemovePlayerState(APlayerState* PlayerState) override;
 
 	UPROPERTY(BlueprintAssignable)
-	FWaitingToStartMatchDelegate WaitingToStartMatch;
-	UPROPERTY(BlueprintAssignable)
 	FPlayerAddedDelegare PlayerAddedDelegate;
 	UPROPERTY(BlueprintAssignable)
-	FPlayerRemovedDelegare PlayerRemovedDelegate;
+	FPlayerAddedDelegare PlayerRemovedDelegate;
 
 	//~==============================================================================================
 	// Match State
@@ -59,10 +53,6 @@ public:
 	virtual void StartMatchHandle();
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void EndMatchHandle();
-
-	/** Character killed notification
-	 *	trigger by GameMode */
-	virtual void OnCharacterDeath(FDamageInfo DamageInfo);
 
 	UFUNCTION(BlueprintCallable)
 	EMatchState GetMatchState() { return MatchState; }
@@ -90,7 +80,7 @@ public:
 	//~==============================================================================================
 	// Team List
 	
-	TArray<ANSPlayerState*> GetTeam(uint8 TeamIndex);
+	TArray<ANSPlayerState*> GetTeam(uint8 TeamIndex) const;
 
 	/** Get team statistic by team id */
 	UFUNCTION(BlueprintPure)
@@ -136,11 +126,13 @@ public:
 	
 	//~==============================================================================================
 	// Match Delegates	
-public:	
+public:
 	UPROPERTY(BlueprintAssignable)
-	FMatchStartDelegate MatchStartDelegate;
+	FMatchStatusDelegate WaitingToStartMatch;
 	UPROPERTY(BlueprintAssignable)
-	FMatchEndDelegate MatchEndDelegate;
+	FMatchStatusDelegate MatchStartDelegate;
+	UPROPERTY(BlueprintAssignable)
+	FMatchStatusDelegate MatchEndDelegate;
 
 protected:
 	UFUNCTION(BlueprintImplementableEvent)
@@ -156,4 +148,6 @@ private:
 
 	UPROPERTY()
 	UDamageHistoryComponent* DamageHistory;
+
+	FTimerHandle MatchTimerHandle;
 };

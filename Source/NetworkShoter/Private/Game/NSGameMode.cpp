@@ -75,11 +75,7 @@ void ANSGameMode::StartMatch()
 
 void ANSGameMode::EndMatch()
 {
-	if (!HasMatchStarted())
-	{
-		UE_LOG(LogTemp, Error, TEXT("Cant end not started match"))
-		return;
-	}
+	if (!HasMatchStarted())	return;
 	
 	SetMatchState(EMatchState::PostMatch);
 }
@@ -101,6 +97,33 @@ void ANSGameMode::SetMatchState(EMatchState NewMatchState)
 		NSGameState->MatchState = MatchState;
 	}
 
+	switch (MatchState)
+	{
+		case EMatchState::WaitingToStart:
+			{
+				WaitingToStartMatchHandle();
+				break;
+			}
+
+		case EMatchState::InProgress:
+			{
+				StartMatchHandle();
+				break;
+			}
+
+		case EMatchState::PostMatch:
+			{
+				EndMatchHandle();
+				break;
+			}
+		
+		default:
+			{
+					
+			}
+	}
+
+	/*
 	if (MatchState == EMatchState::WaitingToStart)
     {
 		WaitingToStartMatchHandle();
@@ -118,10 +141,13 @@ void ANSGameMode::SetMatchState(EMatchState NewMatchState)
 		EndMatchHandle();
 		return;
 	}
+	*/
 }
 
 void ANSGameMode::WaitingToStartMatchHandle()
 {
+	UE_LOG(LogTemp, Display, TEXT(" ----- Waiting Start match -----"))
+	
 	if (NSGameState)
 	{
 		NSGameState->WaitingToStartMatchHandle();
@@ -130,7 +156,7 @@ void ANSGameMode::WaitingToStartMatchHandle()
 
 void ANSGameMode::StartMatchHandle()
 {
-	UE_LOG(LogTemp, Display, TEXT("Start match"))
+	UE_LOG(LogTemp, Display, TEXT(" ----- Start match -----"))
 	
 	BP_MatchStarted();
 	if (NSGameState)
@@ -141,7 +167,7 @@ void ANSGameMode::StartMatchHandle()
 
 void ANSGameMode::EndMatchHandle()
 {
-	UE_LOG(LogTemp, Display, TEXT("End match"))
+	UE_LOG(LogTemp, Display, TEXT(" ----- End match -----"))
 	
 	BP_MatchFinished();
 	if (NSGameState)
@@ -159,8 +185,6 @@ void ANSGameMode::OnCharacterDeath(FGameplayTag Tag, const FDamageInfo& DamageIn
 	if (const auto Controller = DamageInfo.Target->GetInstigatorController())
 		DeathControllers.Add(Controller);
 
-	GetGameState<ANSGameState>() -> OnCharacterDeath(DamageInfo);
-
 	if (bRespawnAfterDeath)
 	{
 		FTimerHandle TimerHandle;
@@ -169,13 +193,11 @@ void ANSGameMode::OnCharacterDeath(FGameplayTag Tag, const FDamageInfo& DamageIn
 
 	if (bLimitByTeamKills)
 	{
-		if (const auto TeamInterface = Cast<IGenericTeamAgentInterface>(DamageInfo.Target))
+		const auto TeamIndex = FGenericTeamId::GetTeamIdentifier(DamageInfo.Target).GetId();
+
+		if (NSGameState && NSGameState -> GetTeamStatistic(TeamIndex).DeathCount >= LimitByTeamKills)
 		{
-			const auto TeamIndex = TeamInterface->GetGenericTeamId().GetId();
-			if (NSGameState && NSGameState -> GetTeamStatistic(TeamIndex).DeathCount >= LimitByTeamKills)
-			{
-				EndMatch();
-			}
+			EndMatch();
 		}
 	}
 }

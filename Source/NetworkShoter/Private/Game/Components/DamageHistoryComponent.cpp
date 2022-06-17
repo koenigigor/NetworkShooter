@@ -33,8 +33,17 @@ void UDamageHistoryComponent::BeginPlay()
 	Super::BeginPlay();
 
 	auto& MessageSubsystem = UGameplayMessageSubsystem::Get(this);
-	MessageSubsystem.RegisterListener(NSTag::System::Damage(), this, &ThisClass::OnDamage);
-	MessageSubsystem.RegisterListener(NSTag::System::Death(), this, &ThisClass::OnDeath);
+	DamageListener = MessageSubsystem.RegisterListener(NSTag::System::Damage(), this, &ThisClass::OnDamage);
+	DeathListener = MessageSubsystem.RegisterListener(NSTag::System::Death(), this, &ThisClass::OnDeath);
+}
+
+void UDamageHistoryComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+
+	auto& MessageSubsystem = UGameplayMessageSubsystem::Get(this);
+	MessageSubsystem.UnregisterListener(DamageListener);
+	MessageSubsystem.UnregisterListener(DeathListener);
 }
 
 void UDamageHistoryComponent::OnDamage(FGameplayTag Tag, const FDamageInfo& DamageInfo)
@@ -55,7 +64,7 @@ void UDamageHistoryComponent::OnDeath(FGameplayTag Tag, const FDamageInfo& Damag
 		const auto NSPlayerState = Cast<ANSPlayerState>(DamageInfo.InstigatorState);
 		ensure(NSPlayerState);
 
-		if (Attitude == ETeamAttitude::Friendly)
+		if (Attitude != ETeamAttitude::Friendly)
 		{
 			NSPlayerState->AddKill();
 		}

@@ -27,6 +27,7 @@ public:
 	
 protected:
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	void OnDamage(FGameplayTag Tag, const FDamageInfo& DamageInfo);
 
@@ -35,4 +36,7 @@ protected:
 
 	//Target and damage info
 	TMap<TObjectPtr<AActor>, TArray<FDamageInfo>> DamageHistory;
+
+	FGameplayMessageListenerHandle DamageListener;
+	FGameplayMessageListenerHandle DeathListener;
 };

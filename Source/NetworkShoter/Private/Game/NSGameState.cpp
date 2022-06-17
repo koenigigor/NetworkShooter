@@ -13,8 +13,7 @@
 
 ANSGameState::ANSGameState()
 {
-	SetActorTickEnabled(true);
-	SetActorTickInterval(1.f);
+	SetActorTickEnabled(false);
 
 	DamageHistory = CreateDefaultSubobject<UDamageHistoryComponent>(TEXT("DamageHistory"));
 }
@@ -37,13 +36,12 @@ void ANSGameState::BeginPlay()
 
 	if (GetMatchState() == EMatchState::WaitingConnection || GetMatchState() == EMatchState::WaitingToStart)
 		MatchTime = WaitStartMatchTime;
+
+	GetWorldTimerManager().SetTimer(MatchTimerHandle, this, &ThisClass::TickMatchTime, 1.f, true, 0.f);
 }
 
-void ANSGameState::Tick(float DeltaSeconds)
+void ANSGameState::TickMatchTime()
 {
-	Super::Tick(DeltaSeconds);
-
-	
 	if (MatchState == EMatchState::WaitingToStart)
 	{
 		MatchTime--;
@@ -52,8 +50,8 @@ void ANSGameState::Tick(float DeltaSeconds)
 		{
 			Cast<ANSGameMode>(GetWorld()->GetAuthGameMode())->StartMatch();
 		}
-	} else
-	if (MatchState == EMatchState::InProgress)
+	}
+	else if	(MatchState == EMatchState::InProgress)
 	{
 		MatchTime++;
 		
@@ -103,11 +101,6 @@ void ANSGameState::EndMatchHandle_Implementation()
 	MatchEndDelegate.Broadcast();
 }
 
-void ANSGameState::OnCharacterDeath(FDamageInfo DamageInfo)
-{
-
-}
-
 bool ANSGameState::HasMatchStarted() const
 {
 	//return Super::HasMatchStarted();
@@ -133,16 +126,29 @@ bool ANSGameState::CanBeDamaged(const AActor* Target, const AActor* DamageInstig
 //~==============================================================================================
 // Team List
 
-TArray<ANSPlayerState*> ANSGameState::GetTeam(uint8 TeamIndex)
+TArray<ANSPlayerState*> ANSGameState::GetTeam(uint8 TeamIndex) const
 {
 	TArray<ANSPlayerState*> Output;
+
+	auto FilteredPlayers = PlayerArray.FilterByPredicate([&](const TObjectPtr<APlayerState>& Entry)
+	{
+		return FGenericTeamId::GetTeamIdentifier(Entry).GetId() == TeamIndex;
+	});
+
+	//todo check if here actual need ANSPlayer state, or just player state are good
+	for (const auto& Player : FilteredPlayers)
+	{
+		if (const auto NSPlayer = Cast<ANSPlayerState>(Player))
+			Output.Add(NSPlayer);
+	}
 	
+	/*
 	for (auto Player : PlayerArray)
 	{
 		auto NSPlayer = StaticCast<ANSPlayerState*>(Player);
 		if (NSPlayer->GetGenericTeamId().GetId() == TeamIndex)
 			Output.Add(NSPlayer);
-	}
+	}*/
 
 	return Output;
 }
@@ -163,99 +169,30 @@ FPlayerStatistic ANSGameState::GetTeamStatistic(uint8 TeamId)
 void ANSGameState::GetNextPlayerInTeam(uint8 TeamIndex, ANSPlayerState*& NextPlayerInTeam, bool bNext, bool bLifePlayer)
 {
 	auto Team = GetTeam(TeamIndex);
-
-	//if Empty return failed result
-	if (Team.Num() <= 0)
+	
+	if (Team.Num() == 0)
 	{
 		NextPlayerInTeam = nullptr;
 		return;
 	}
 
-	//if Previous actor not set
-	if (!NextPlayerInTeam)
+	const int32 StartSearchIndex = NextPlayerInTeam ? Team.IndexOfByKey(NextPlayerInTeam) : INDEX_NONE;
+
+	int32 NextIndex = StartSearchIndex;
+	for (int32 IterateCount = 0; IterateCount < Team.Num(); ++IterateCount)
 	{
-		//get first actor in team, or first life actor if need
-		for (const auto& Player : Team)
+		NextIndex = bNext ? NextIndex + 1 : NextIndex - 1;
+		NextIndex = FMath::Wrap(NextIndex, 0, Team.Num());
+
+		if (!bLifePlayer || Team[NextIndex]->IsLife())
 		{
-			if (!bLifePlayer || Player->IsLife())
-			{
-				NextPlayerInTeam = Player;
-				return;
-			}
+			NextPlayerInTeam = Team[NextIndex];
+			return;
 		}
-		NextPlayerInTeam = nullptr;
-		return;
 	}
 	
-	
-	auto PreviousPlayerInTeam = NextPlayerInTeam;
-	//Get his index in array
-	int32 PreviousActorIndex = -1;
-	if (PreviousPlayerInTeam)
-	{
-		for (int32 i = 0; i < Team.Num(); i++)
-		{	
-			if (Team[i] == PreviousPlayerInTeam)
-			{
-				PreviousActorIndex = i;
-				break;
-			}
-		}
-	}
-
-	//if previous actor not found
-	if (PreviousActorIndex == -1)
-	{
-		//get first actor in team, or first life actor if need
-		for (const auto& Player : Team)
-		{
-			if (!bLifePlayer || Player->IsLife())
-			{
-				NextPlayerInTeam = Player;
-				return;
-			}
-		}
-		NextPlayerInTeam = nullptr;
-		return;
-	}
-
-	
-	//if index successfully founded founded
-	
-	//return next or previous element, life if need
-	if (bNext)
-	{
-		int32 NextIndex = (PreviousActorIndex+1 < Team.Num()) ? PreviousActorIndex+1 : 0;
-		while (NextIndex != PreviousActorIndex)
-		{
-			if (!bLifePlayer || Team[NextIndex]->IsLife())
-			{
-				NextPlayerInTeam = Team[NextIndex];
-				return;
-			}
-			NextIndex = (NextIndex+1 < Team.Num()) ? NextIndex+1 : 0;
-		}
-
-		NextPlayerInTeam = nullptr;
-		return;
-	}
-	else
-	{
-		int32 PreviousIndex = (PreviousActorIndex-1 >= 0) ? PreviousActorIndex-1 : Team.Num()-1;
-		
-		while (PreviousIndex != PreviousActorIndex)
-		{
-			if (!bLifePlayer || Team[PreviousIndex]->IsLife())
-			{
-				NextPlayerInTeam = Team[PreviousIndex];
-				return;
-			}
-			PreviousIndex = (PreviousIndex-1 >= 0) ? PreviousIndex-1 : Team.Num()-1;
-		}
-
-		NextPlayerInTeam = nullptr;
-		return;
-	}
+	NextPlayerInTeam = nullptr;
+	return;
 }
 
 

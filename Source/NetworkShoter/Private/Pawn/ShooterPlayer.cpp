@@ -100,6 +100,11 @@ void AShooterPlayer::Death_Implementation()
 	{
 		NSPlayerState->OnCharacterDeath();
 	}
+
+	if (HasAuthority())
+	{
+		AbilitySystem->ClearAllAbilities();
+	}
 	
 	BP_CharacterDead();
 }
