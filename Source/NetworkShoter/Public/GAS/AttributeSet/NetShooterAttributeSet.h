@@ -98,4 +98,6 @@ protected:
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
 
 	void ClampAttribute(const FGameplayAttribute& Attribute, float& NewValue);
+
+	bool bOutOfHealth = false;
 };

@@ -5,9 +5,6 @@
 
 #include "GameplayEffectExtension.h"
 #include "NSStructures.h"
-#include "Game/NSGameMode.h"
-#include "Game/NSGameState.h"
-#include "Game/Components/ChatController.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
 #include "GameFramework/PlayerState.h"
 #include "Net/UnrealNetwork.h"
@@ -74,7 +71,7 @@ void UNetShooterAttributeSet::PostGameplayEffectExecute(const FGameplayEffectMod
 {
 	Super::PostGameplayEffectExecute(Data);
 //[Server]	
-	if (Data.EvaluatedData.Attribute == GetHealthAttribute() && !FMath::IsNearlyZero(GetHealth()))
+	if (Data.EvaluatedData.Attribute == GetHealthAttribute())
 	{
 		const auto Causer = Data.EffectSpec.GetEffectContext().GetEffectCauser();
 		const auto Instigator = Data.EffectSpec.GetEffectContext().GetInstigator();
@@ -101,11 +98,13 @@ void UNetShooterAttributeSet::PostGameplayEffectExecute(const FGameplayEffectMod
 			DamageInfo.Tag = NSTag::System::Damage();
 			MessageSystem.BroadcastMessage(DamageInfo.Tag, DamageInfo);
 			
-			if (GetHealth() + Damage <= 0)
+			if (FMath::IsNearlyZero(GetHealth()) && !bOutOfHealth)
 			{
+				bOutOfHealth = true;
 				DamageInfo.Tag = NSTag::System::Death();
 				MessageSystem.BroadcastMessage(DamageInfo.Tag, DamageInfo);
 			}
+			bOutOfHealth = GetHealth() <= 0.f;
 		}
 		else
 		{
