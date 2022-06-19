@@ -28,20 +28,32 @@ FString FDamageInfo::GetMessage() const
 	
 	if (SourceAbilityCDO)
 	{
+		if (SourceAbilityCDO->Implements<UDamageDescriptionInterface>())
+		{
+			return IDamageDescriptionInterface::Execute_GetDamageDescription(SourceAbilityCDO, *this);
+		}
+		/*
 		if (const auto DescriptionInterface = Cast<IDamageDescriptionInterface>(SourceAbilityCDO))
 		{
 			return DescriptionInterface->GetDamageDescription(*this);
 		}
+		*/
 	}
 
 	UE_LOG(LogTemp, Display, TEXT("FDamageInfo::GetMessage Search in causeer"))
 
 	if (DamageCauser)
 	{
+		if (DamageCauser->Implements<UDamageDescriptionInterface>())
+		{
+			return IDamageDescriptionInterface::Execute_GetDamageDescription(DamageCauser, *this);
+		}
+		/*
 		if (const auto DescriptionInterface = Cast<IDamageDescriptionInterface>(DamageCauser))
 		{
 			return DescriptionInterface->GetDamageDescription(*this);
 		}
+		*/
 	}
 
 	UE_LOG(LogTemp, Display, TEXT("FDamageInfo::GetMessage Generate default message"))
@@ -57,7 +69,7 @@ FString FDamageInfo::GetMessage() const
 	
 	if (Target)
 	{
-		TargetName = Target->GetInstigatorController()->PlayerState->GetPlayerName();
+		TargetName = Target->GetInstigator()->GetPlayerState()->GetPlayerName();
 	}
 	
 	if (DamageCauser) //first spawned actor on equipped weapon

@@ -80,7 +80,6 @@ void UNetShooterAttributeSet::PostGameplayEffectExecute(const FGameplayEffectMod
 		const auto Ability = Data.EffectSpec.GetEffectContext().GetAbility();
 			
 		ensure(Causer);
-		ensure(Instigator);
 
 		const auto InstigatorState = Cast<APlayerState>(Instigator);
 		if (!InstigatorState)
