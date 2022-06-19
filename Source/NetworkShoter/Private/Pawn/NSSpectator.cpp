@@ -3,9 +3,11 @@
 
 #include "Pawn/NSSpectator.h"
 
+#include "Components/SphereComponent.h"
 #include "Game/NSGameState.h"
 #include "Game/NSPlayerState.h"
 #include "Game/Components/TeamSetupManager.h"
+#include "GameFramework/PawnMovementComponent.h"
 
 
 ANSSpectator::ANSSpectator()
@@ -14,123 +16,141 @@ ANSSpectator::ANSSpectator()
 	bReplicates = false;
 }
 
-void ANSSpectator::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-}
-
-
-void ANSSpectator::GetNextPlayerToAttach(bool bNext)
-{
-	auto NSGameState = GetWorld() -> GetGameState<ANSGameState>();
-	
-	auto NSPlayerState = GetInstigatorController()->GetPlayerState<ANSPlayerState>();
-	
-	if (!(NSGameState && NSPlayerState)){ return; }
-	
-	auto TeamIndex = NSPlayerState->GetGenericTeamId().GetId();
-	NSGameState -> GetTeamManager() -> GetNextPlayerInTeam(TeamIndex, CurrentAttachedPlayer);
-}
-
-//~==============================================================================================
-// Control Spectating
-
-void ANSSpectator::ChangeAttachedActor(bool bNext)
+void ANSSpectator::ChangeAttachedActor(bool bNext, bool bOnlyLive)
 {
 	if (SpectatorMode == ESpectatorMode::Free) { return; }
 	
-	GetNextPlayerToAttach(bNext);
+	GetNextPlayerToAttach(bNext, bOnlyLive);
 	
 	SetSpectatorMode(SpectatorMode);
 }
 
 void ANSSpectator::SetSpectatorMode(ESpectatorMode Mode)
 {
-	//exit from current mode
-	if (SpectatorMode == ESpectatorMode::AttachToActor)
+	switch (SpectatorMode)
 	{
-		ExitModeAttachToActor();
-	}
-	if (SpectatorMode == ESpectatorMode::AroundActor)
-	{
-		ExitModeAroundActor();
+	case ESpectatorMode::AttachToActor:
+		{
+			EndModeAttachToActor();
+			break;
+		}
+	case ESpectatorMode::AroundActor:
+		{
+			EndModeAroundActor();
+			break;
+		}
+	case ESpectatorMode::Free:
+		{
+			EndModeFree();
+			break;
+		}
+	default:
+		{
+
+		}	
 	}
 	
 	SpectatorMode = Mode;
 
-	//enter to mew mode
-	if (Mode == ESpectatorMode::AttachToActor)
+	switch (Mode)
 	{
-		SetModeAttachToActor();
-	}
-	if (Mode == ESpectatorMode::AroundActor)
-	{
-		SetModeAroundActor();
+	case ESpectatorMode::AttachToActor:
+		{
+			SetModeAttachToActor();
+			break;
+		}
+	case ESpectatorMode::AroundActor:
+		{
+			SetModeAroundActor();
+			break;
+		}
+	case ESpectatorMode::Free:
+		{
+			SetModeFree();
+			break;
+		}
+	default:
+		{
+
+		}	
 	}
 }
 
 
-//~==============================================================================================
-// spectator modes Begin/End
+void ANSSpectator::SetModeFree()
+{
+
+}
+
+void ANSSpectator::EndModeFree()
+{
+	
+}
 
 void ANSSpectator::SetModeAttachToActor()
-{
-	//get next actor to attach
-	if (!CurrentAttachedPlayer)
-		GetNextPlayerToAttach();
-
-	if (!CurrentAttachedPlayer)
-		return;
-	
-	AActor* ActorToAttach = CurrentAttachedPlayer->GetPawn();
-	
-	if (!ActorToAttach)
-		return;
+{	
+	AActor* AttachTo = GetPawnToAttach();
+	if (!AttachTo) return;
 	
 	//Set actor camera view
-	if (GetController())
+	if (const auto PC = GetController<APlayerController>())
 	{
-		if (auto PlayerController = Cast<APlayerController>(GetController()))
-		{
-			PlayerController -> SetViewTarget(ActorToAttach);
-		}
+		PC -> SetViewTarget(AttachTo);
+		
+		GetMovementComponent()->SetActive(false);
+	}
+}
+
+void ANSSpectator::EndModeAttachToActor()
+{
+	GetMovementComponent()->SetActive(true);
+	
+	//return camera to self
+	if (const auto PC = GetController<APlayerController>())
+	{
+		PC -> SetViewTarget(this);
 	}
 }
 
 void ANSSpectator::SetModeAroundActor()
 {
-	//get next actor to attach
-	if (!CurrentAttachedPlayer)
-		GetNextPlayerToAttach();
+	const auto AttachTo = GetPawnToAttach();
+	if (!AttachTo) return;
+
+	GetCollisionComponent()->SetSimulatePhysics(false);
+	GetCollisionComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	
-	if (!CurrentAttachedPlayer)
-		return;
-
-	AActor* ActorToAttach = CurrentAttachedPlayer->GetPawn();
+	SetActorLocation(AttachTo->GetPawnViewLocation());
+	AttachToActor(AttachTo, FAttachmentTransformRules::KeepWorldTransform);
 	
-	if (!ActorToAttach)
-		return;
-
-	//Attach SpectatorPawn to Actor
-	this->AttachToActor(ActorToAttach, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
-
-	//set movement
+	GetMovementComponent()->SetActive(false);
 }
 
-void ANSSpectator::ExitModeAttachToActor()
+void ANSSpectator::EndModeAroundActor()
 {
-	//return camera to self
-	if (GetController())
+	GetCollisionComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	GetCollisionComponent()->SetSimulatePhysics(true);
+	
+	GetRootComponent()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+	GetMovementComponent()->SetActive(true);
+}
+
+void ANSSpectator::GetNextPlayerToAttach(bool bNext, bool bOnlyLive)
+{
+	if (const auto TeamManager = GetWorld()->GetGameState()->FindComponentByClass<UTeamSetupManager>())
 	{
-		if (auto PlayerController = Cast<APlayerController>(GetController()))
-		{
-			PlayerController -> SetViewTarget(this);
-		}
+			//GetPlayerState() nullptr because we enter spectator mode incorrectly
+		const auto TeamIndex = FGenericTeamId::GetTeamIdentifier(GetInstigatorController()->PlayerState).GetId();
+		TeamManager -> GetNextPlayerInTeam(TeamIndex, CurrentAttachedPlayer, bNext, bOnlyLive);
 	}
 }
 
-void ANSSpectator::ExitModeAroundActor()
+APawn* ANSSpectator::GetPawnToAttach()
 {
+	//get next actor to attach
+	if (!CurrentAttachedPlayer)
+		GetNextPlayerToAttach();
+	if (!CurrentAttachedPlayer)	return nullptr;
 	
+	return  CurrentAttachedPlayer->GetPawn();
 }

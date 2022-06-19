@@ -14,17 +14,13 @@ UCLASS()
 class NETWORKSHOTER_API APCNetShooter : public APlayerController
 {
 	GENERATED_BODY()
-
-	/** Notify player about incoming damage for cosmetic (Ui notify, kill feed etc) */
-	UFUNCTION(Client, Unreliable, BlueprintCosmetic)
-	void NotifyReceiveDamage(float Damage, FVector FromDirection, FName InstigatorName, AActor* DamageCauser);
-
+public:	
 	/** Enter spectator mode */
 	UFUNCTION(BlueprintCosmetic, BlueprintCallable)
 	APawn* SpawnSpectator();
 
 	UFUNCTION(BlueprintPure)
-	ANSHUD* GetNSHUD();
+	ANSHUD* GetNSHUD() const;
 
 public:
 	virtual void PostProcessInput(const float DeltaTime, const bool bGamePaused) override;
@@ -48,6 +44,8 @@ public:
 protected:
 	//TODO check Spectator be garbage collected on Possess to character
 
+	//virtual bool ShouldKeepCurrentPawnUponSpectating() const override { return true; };
+	
 private:
 	UPROPERTY()
 	ANSHUD* NSHUD = nullptr;

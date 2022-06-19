@@ -7,6 +7,7 @@
 #include "Camera/CameraComponent.h"
 #include "GAS/AttributeSet/NetShooterAttributeSet.h"
 #include "Game/NSPlayerState.h"
+#include "Game/PCNetShooter.h"
 #include "GAS/AttributeSet/WeaponAttributeSet.h"
 
 
@@ -104,6 +105,12 @@ void AShooterPlayer::Death_Implementation()
 	if (HasAuthority())
 	{
 		AbilitySystem->ClearAllAbilities();
+	}
+
+	if (const auto PC = GetController<APCNetShooter>())
+	{
+		PC->SpawnSpectator();
+		//Controller->ChangeState(NAME_Spectating);
 	}
 	
 	BP_CharacterDead();

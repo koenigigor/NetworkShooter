@@ -13,14 +13,11 @@
 #include "Pawn/ShooterPlayer.h"
 
 
-void APCNetShooter::NotifyReceiveDamage_Implementation(float Damage, FVector FromDirection, FName InstigatorName,
-	AActor* DamageCauser)
-{
-	UE_LOG(LogTemp, Warning, TEXT("PC: client receive damage %f, from %s"), Damage, *InstigatorName.ToString())
-}
 
 APawn* APCNetShooter::SpawnSpectator()
 {
+	if (HasAuthority()) return nullptr;
+	
 	//spawn spectator pawn
 	APawn* SpawnedSpectator = nullptr;
 	FActorSpawnParameters SpawnParams;
@@ -46,15 +43,11 @@ APawn* APCNetShooter::SpawnSpectator()
 	return SpawnedSpectator;
 }
 
-ANSHUD* APCNetShooter::GetNSHUD()
+ANSHUD* APCNetShooter::GetNSHUD() const
 {
-	if (!NSHUD) 
-	{
-		NSHUD = Cast<ANSHUD>(GetHUD());
-	}
-	
-	return NSHUD;
+	return GetHUD<ANSHUD>();
 }
+
 
 void APCNetShooter::PostProcessInput(const float DeltaTime, const bool bGamePaused)
 {

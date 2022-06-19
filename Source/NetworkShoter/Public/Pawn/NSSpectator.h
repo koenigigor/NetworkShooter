@@ -11,6 +11,7 @@ class ANSPlayerState;
 UENUM()
 enum class ESpectatorMode : uint8
 {
+	None,
 	Free,
 	AttachToActor,
 	AroundActor
@@ -27,56 +28,47 @@ class NETWORKSHOTER_API ANSSpectator : public ASpectatorPawn
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this pawn's properties
 	ANSSpectator();
-
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-	
-	//~==============================================================================================
-	// Control Spectating
 	
 	/* if mode Attached, swap actor to next */
 	UFUNCTION(BlueprintCallable)
-	void ChangeAttachedActor(bool bNext=true);
+	void ChangeAttachedActor(bool bNext=true, bool bOnlyLive=true);
 
 	/* Set spectator mode */
     UFUNCTION(BlueprintCallable)
     void SetSpectatorMode(ESpectatorMode Mode);
+
+	UFUNCTION(BlueprintPure)
+	ANSPlayerState* GetAttachedPlayer() const { return CurrentAttachedPlayer; };
+
+	UFUNCTION(BlueprintPure)
+	ESpectatorMode GetSpectatorMode() const { return SpectatorMode; };
+
 	
 protected:
-	//Update CurrentAttachedPlayer reference
-	void GetNextPlayerToAttach(bool bNext=true);
-
-	
-	//~==============================================================================================
-	// spectator modes Begin/End
-
-	/** can fly arround all map */
+	/** can fly freely */
 	void SetModeFree();
-	
+	void EndModeFree();
+    	
 	/** View from other actor camera */
 	void SetModeAttachToActor();
-
+	void EndModeAttachToActor();
+    
 	/** Attach to other actor, can rotate camera */
 	void SetModeAroundActor();
+	void EndModeAroundActor();
 	
-	void ExitModeAttachToActor();
-	void ExitModeAroundActor();
+protected:
+	/** Update CurrentAttachedPlayer */
+	void GetNextPlayerToAttach(bool bNext=true, bool bOnlyLive=true);
 
+	APawn* GetPawnToAttach(); 
 
 private:
 	UPROPERTY(VisibleAnywhere)
 	ESpectatorMode SpectatorMode = ESpectatorMode::Free;
 	
-	/** Player who we attach (in AttachTo mode) */	
+	/** Player who we attach (in AttachTo mode) */
+	UPROPERTY()
 	ANSPlayerState* CurrentAttachedPlayer = nullptr;
-
-public:
-	UFUNCTION(BlueprintPure)
-	ANSPlayerState* GetAttachedActor() const { return CurrentAttachedPlayer; };
-
-	UFUNCTION(BlueprintPure)
-	ESpectatorMode GetSpectatorMode() const { return SpectatorMode; };
 };
