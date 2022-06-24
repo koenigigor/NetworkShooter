@@ -12,7 +12,8 @@ UENUM()
 enum class EActivationPolicy : uint8
 {
 	InputPress,
-	InputHold
+	InputHold,
+	ActivateOnGrant
 };
 
 /**
@@ -26,8 +27,11 @@ class NETWORKSHOTER_API UNSGameplayAbility : public UGameplayAbility
 public:
 	EActivationPolicy GetActivationPolicy() const { return ActivationPolicy; }
 
-virtual bool CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const override;
-virtual void ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
+	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
+	void TryActivateOnSpawn(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) const;
+
+	virtual bool CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const override;
+	virtual void ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
 
 protected:
 	/** Additional Inventory item cost */

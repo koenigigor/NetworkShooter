@@ -28,15 +28,7 @@ void AShooterPlayer::BeginPlay()
 
 	BindAttributeDelegates();
 
-	//Give Startup abilities
-	if (HasAuthority())
-	{
-		//cant bind key in network
-		for (const auto& Ability : StartupAbilities)
-		{
-			GetAbilitySystemComponent()->GiveAbility(FGameplayAbilitySpec(Ability));
-		}
-	}
+	GiveStartupAbilities();
 }
 
 void AShooterPlayer::PossessedBy(AController* NewController)
@@ -60,14 +52,14 @@ UAbilitySystemComponent* AShooterPlayer::GetAbilitySystemComponent() const
 	return AbilitySystem;
 }
 
-void AShooterPlayer::AddAbility(TSubclassOf<UGameplayAbility> Ability)
+void AShooterPlayer::GiveStartupAbilities()
 {
-	if (!HasAuthority())
-	{
-		UE_LOG(LogTemp, Warning, TEXT("NoAuthority"));
-	}
+	if (!HasAuthority()) return;
 	
-	GetAbilitySystemComponent()->GiveAbility(FGameplayAbilitySpec(Ability, 1, INDEX_NONE));
+	for (const auto& Ability : StartupAbilities)
+	{
+		GetAbilitySystemComponent()->GiveAbility(FGameplayAbilitySpec(Ability));
+	}
 }
 
 void AShooterPlayer::BindAttributeDelegates()
@@ -116,19 +108,9 @@ void AShooterPlayer::Death_Implementation()
 	BP_CharacterDead();
 }
 
-ETeamAttitude::Type AShooterPlayer::Test_GetTeamAttitudeTowards(const AActor* Other)
-{
-	return GetTeamAttitudeTowards(*Other);
-}
-
 FGenericTeamId AShooterPlayer::GetGenericTeamId() const
 {
-	if ( auto TeamPlayerState = Cast<IGenericTeamAgentInterface>(GetPlayerState()))
-	{
-		return TeamPlayerState->GetGenericTeamId();
-	}
-	
-	return IGenericTeamAgentInterface::GetGenericTeamId();
+	return FGenericTeamId::GetTeamIdentifier(GetPlayerState());
 }
 
 FVector AShooterPlayer::GetPawnViewLocation() const
@@ -146,7 +128,7 @@ FRotator AShooterPlayer::GetViewRotation() const
 {
 	//return Super::GetViewRotation();
 
-	if (Controller != nullptr)
+	if (Controller)
 	{
 		return Controller->GetControlRotation();
 	}

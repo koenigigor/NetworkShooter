@@ -15,19 +15,20 @@ void UObserveAttributeThreshold::Activate()
 	const float CurrentValue = ASC->GetNumericAttribute(Attribute);
 
 	// Broadcast OnChange immediately with current value
+	const float MaxValue = UpThreshold; //or pass max attribute?
 	if (ShouldBroadcastAbilityTaskDelegates())
 	{
 		if (CurrentValue < UpThreshold && CurrentValue > DownThreshold)
 		{
-			AttributeChangeInRange.Broadcast(CurrentValue, CurrentValue);
+			AttributeChangeInRange.Broadcast(MaxValue, CurrentValue);
 		}
 		if (CurrentValue >= UpThreshold)
 		{
-			UpThresholdReach.Broadcast(CurrentValue, CurrentValue);
+			UpThresholdReach.Broadcast(MaxValue, CurrentValue);
 		}
 		else if (CurrentValue <= DownThreshold)
 		{
-			DownThresholdReach.Broadcast(CurrentValue, CurrentValue);
+			DownThresholdReach.Broadcast(MaxValue, CurrentValue);
 		}
 	}
 

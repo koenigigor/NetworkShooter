@@ -32,8 +32,8 @@ protected:
 public:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
-	UFUNCTION(BlueprintCallable)
-	void AddAbility(TSubclassOf<UGameplayAbility> Ability);
+protected:
+	void GiveStartupAbilities();
 
 	// Attribute delegates
 protected:
@@ -60,10 +60,6 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void BP_CharacterDead();
 
-
-	UFUNCTION(BlueprintPure)
-	ETeamAttitude::Type Test_GetTeamAttitudeTowards(const AActor* Other);
-
 	virtual FGenericTeamId GetGenericTeamId() const override;
 	
 	virtual FVector GetPawnViewLocation() const override;
@@ -83,6 +79,6 @@ protected:
 	UWeaponAttributeSet* WeaponAttributeSet;
 
 	/** Abilities register on begin play and binds with input actions */
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "Setup")
 	TArray<TSubclassOf<UGameplayAbility>> StartupAbilities;
 };

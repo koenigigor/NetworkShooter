@@ -11,17 +11,20 @@
 #include "NSTestUtils.h"
 #include "EngineUtils.h"
 #include "Items/NSItemContainer.h"
-
+#include "Inventory/NSItemSlider.h"
 
 namespace
 {
-	void SpawnItemContainerAndInteract(UWorld* World, APawn* Pawn, FString ContainerName)
+	FString WeaponContainerBP_1 = "Blueprint'/Game/NetworkShoter/Tests/Test_SwordContainer.Test_SwordContainer'";
+	FString WeaponContainerBP_2 = "Blueprint'/Game/NetworkShoter/Tests/Test_RiffleContainer.Test_RiffleContainer'";
+	
+	bool SpawnItemContainerAndInteract(UWorld* World, APawn* Pawn, FString ContainerName)
 	{
 		const FTransform InitialTransform{FVector{1200.f}};	//or spawn prams always spawn
-		auto Container = NSTestUtils::SpawnBPActor<ANSItemContainer>(World, FString(ContainerName), InitialTransform);
-	
-		//interact with item to add it in inventory
-		Cast<IInteractInterface>(Container)->Execute_InteractWithPawn(Container, Pawn);
+		const auto Container = NSTestUtils::SpawnBPActor<ANSItemContainer>(World, ContainerName, InitialTransform);
+		if (!Container) return false;
+		
+		return Container->Execute_InteractWithPawn(Container, Pawn);
 	}
 }
 
@@ -31,47 +34,48 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FEquipmentReEquipTest, "NetworkShooter.Equipmen
 
 bool FEquipmentReEquipTest::RunTest(const FString& Parameters)
 {
-	NSTestUtils::RunLevel("/Game/NetworkShoter/Tests/EmptyTestLevel");
+	const auto Level = NSTestUtils::RunLevel("/Game/NetworkShoter/Tests/EmptyTestLevel");
 	
 	UWorld* World = NSTestUtils::GetTestWorld();
-	TestNotNull("World exist", World);
+	if (!TestNotNull("World exist", World)) return false;
 	
-	auto Pawn = NSTestUtils::SpawnBPActor<APawn>(World, "Blueprint'/Game/NetworkShoter/Character/ShoterPlayer_BP.ShoterPlayer_BP'");
-	TestNotNull("Pawn exist", Pawn);
-	
-	auto Inventory = Pawn->FindComponentByClass<UNSInventoryComponent>();
-	auto Equipment = Pawn->FindComponentByClass<UNSEquipmentComponent>();
-	TestNotNull("Inventory exist", Inventory);
-	TestNotNull("EquipmentExist", Equipment);
+	const auto Pawn = UGameplayStatics::GetPlayerPawn(World, 0);
+	if (!TestNotNull("Pawn exist", Pawn)) return false;
 
-	FString WeaponContainerBP_1 = "Blueprint'/Game/NetworkShoter/Tests/Test_SwordContainer.Test_SwordContainer'";
-	FString WeaponContainerBP_2 = "Blueprint'/Game/NetworkShoter/Tests/Test_RiffleContainer.Test_RiffleContainer'";
-	
-	SpawnItemContainerAndInteract(World, Pawn, WeaponContainerBP_1);
+	const auto Inventory = Pawn->FindComponentByClass<UNSInventoryComponent>();
+	const auto Equipment = Pawn->FindComponentByClass<UNSEquipmentComponent>();
+	if (!TestNotNull("Inventory exist", Inventory)) return false;
+	if (!TestNotNull("EquipmentExist", Equipment)) return false;
 
-	TestTrueExpr(Inventory->GetInventory().Num() == 1);
-	auto FirstWeaponItem = Inventory->GetInventory()[0].Item;
-	TArray<FInventoryEntry> RemovedItems;
-	Inventory->RemoveItem(FirstWeaponItem, RemovedItems);
+	while (const auto Slider = Pawn->FindComponentByClass<UNSItemSlider>())	//slider can equip first item automatic disable it
+	{
+		Slider->DestroyComponent();
+	}
+	
+	//Add first weapon
+	if (!SpawnItemContainerAndInteract(World, Pawn, WeaponContainerBP_1)) { return false; }
+	if (!TestTrue("Item Added", Inventory->GetInventory().Num() == 1)) return false;
+	const auto FirstWeaponItem = Inventory->GetInventory()[0].Item;
+	
 	Equipment->EquipItem(FirstWeaponItem);
-	auto FirstWeapon = Equipment->GetEquipmentBySlot(EEquipmentSlot::Weapon).EquipmentInstance;
-	TestNotNull("Weapon exist", FirstWeapon);
+	const auto FirstWeapon = Equipment->GetEquipmentBySlot(EEquipmentSlot::Weapon).EquipmentInstance;
+	if (!TestNotNull("Weapon exist", FirstWeapon)) return false;
+	if (!TestTrue("Inventory empty", Inventory->GetInventory().Num() == 0)) return false;
 
-	TestTrue("Inventory must be empty", Inventory->GetInventory().Num() == 0);
-
-	SpawnItemContainerAndInteract(World, Pawn, WeaponContainerBP_2); //Add second weapon
 	
-	auto SecondWeaponItem = Inventory->GetInventory()[0].Item;
-	Inventory->RemoveItem(SecondWeaponItem, RemovedItems);
-	Equipment->EquipItem(FirstWeaponItem);
-	auto SecondWeapon = Equipment->GetEquipmentBySlot(EEquipmentSlot::Weapon).EquipmentInstance;
+	//Add second weapon
+	SpawnItemContainerAndInteract(World, Pawn, WeaponContainerBP_2);
+	if (!TestTrueExpr(Inventory->GetInventory().Num() == 1)) return false;
+	const auto SecondWeaponItem = Inventory->GetInventory()[0].Item;
+	
+	Equipment->EquipItem(SecondWeaponItem);
+	const auto SecondWeapon = Equipment->GetEquipmentBySlot(EEquipmentSlot::Weapon).EquipmentInstance;
 
-	TestTrue("Weapon switched", FirstWeapon != SecondWeapon);
-	TestTrue("First weapon returned in Inventory", Inventory->GetInventory()[0].Item == FirstWeaponItem);
+	if (!TestTrue("Weapon switched", FirstWeapon != SecondWeapon)) return false;;
+	if (!TestTrue("First weapon returned in Inventory", Inventory->GetInventory()[0].Item == FirstWeaponItem)) return false;
 	
 	return true;
 }
-//todo if item in inventory, on equip remove it	(make property owned inventory in item instance)
 
 
 #endif

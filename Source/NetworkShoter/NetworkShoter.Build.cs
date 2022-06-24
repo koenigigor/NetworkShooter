@@ -18,7 +18,9 @@ public class NetworkShoter : ModuleRules
 			"DeveloperSettings", 
 			"AIModule",
 			"OnlineSubsystem", 
-			"OnlineSubsystemUtils"
+			"OnlineSubsystemUtils",
+			"Json",
+			"JsonUtilities"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[]

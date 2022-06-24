@@ -354,6 +354,8 @@ int32 UNSInventoryComponent::GetTotalCount(TSubclassOf<UNSItemDefinition> Defini
 TArray<FInventoryEntry> UNSInventoryComponent::GetInventory()
 {
 	TArray<FInventoryEntry> Results;
+	if (InventoryList.Entries.Num() == 0) return Results;
+	
 	Results.Reserve(InventoryList.Entries.Num());
 	for (const auto& Entry : InventoryList.Entries)
 	{

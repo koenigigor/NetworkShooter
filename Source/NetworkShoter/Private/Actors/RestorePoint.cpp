@@ -12,7 +12,7 @@
 ARestorePoint::ARestorePoint()
 {
 	PrimaryActorTick.bCanEverTick = false;
-	SetReplicates(true);
+	bReplicates=true;
 }
 
 void ARestorePoint::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

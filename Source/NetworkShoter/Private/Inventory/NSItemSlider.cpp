@@ -123,7 +123,7 @@ void UNSItemSlider::OnItemUpdate(FInventoryEntry Entry)
 		Items[Index] = FItemOnSlider(Definition, Entry.Item, Entry.StackCount);
 
 		//if current slot not valid, select first added
-		if (!Items.IsValidIndex(ActiveSlot) || !Items[ActiveSlot].IsValid()) Next();
+		if (bChangeActiveSlotOnInvalidate && (!Items.IsValidIndex(ActiveSlot) || !Items[ActiveSlot].IsValid())) Next();
 		
 		SliderUpdateDelegate.Broadcast();
 	}
