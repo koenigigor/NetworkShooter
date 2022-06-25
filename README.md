@@ -12,12 +12,12 @@ work with graphics still minimal
 Team separating based on IGenericTeamAgentInterface with comfortable editing attitudes
 via game settings.
 
-![TestsExample](U:\Projects\NetworkShooter\Images\Attitude.png)
+![TestsExample](https://raw.githubusercontent.com/koenigigor/NetworkShooter/main/Images/Attitude.png)
 
 
 ### 2. Vote for next map
 
-![TestsExample](U:\Projects\NetworkShooter\Images\Vote.png)
+![TestsExample](https://raw.githubusercontent.com/koenigigor/NetworkShooter/main/Images/Vote.png)
 
 
 ### 3. Inventory and equipment based on Lyra sample
@@ -25,21 +25,21 @@ via game settings.
 Inventory and equipment based on Lyra sample, 
 where Item has a definition who store fragments of specific information.
 
-![TestsExample](U:\Projects\NetworkShooter\Images\ItemDef.png)
-![TestsExample](U:\Projects\NetworkShooter\Images\EquipmentDef.png)
+![TestsExample](https://raw.githubusercontent.com/koenigigor/NetworkShooter/main/Images/ItemDef.png)
+![TestsExample](https://raw.githubusercontent.com/koenigigor/NetworkShooter/main/Images/EquipmentDef.png)
 
 
 ### 4. Placing items
 
 Grub and place special items, like turret or landmine
-![TestsExample](U:\Projects\NetworkShooter\Images\Landmine_2.png)
-![TestsExample](U:\Projects\NetworkShooter\Images\Landmine_1.png)
+![TestsExample](https://raw.githubusercontent.com/koenigigor/NetworkShooter/main/Images/Landmine_2.png)
+![TestsExample](https://raw.githubusercontent.com/koenigigor/NetworkShooter/main/Images/Landmine_1.png)
 
 
 ### 5. Unit Tests
 
 Tests for inventory and equipment
-![TestsExample](U:\Projects\NetworkShooter\Images\Tests.png)
+![TestsExample](https://raw.githubusercontent.com/koenigigor/NetworkShooter/main/Images/Tests.png)
 
 
 ##### 6. And other things...
