@@ -26,19 +26,23 @@ Inventory and equipment based on Lyra sample,
 where Item has a definition who store fragments of specific information.
 
 ![TestsExample](https://raw.githubusercontent.com/koenigigor/NetworkShooter/main/Images/ItemDef.png)
+
 ![TestsExample](https://raw.githubusercontent.com/koenigigor/NetworkShooter/main/Images/EquipmentDef.png)
 
 
 ### 4. Placing items
 
 Grub and place special items, like turret or landmine
+
 ![TestsExample](https://raw.githubusercontent.com/koenigigor/NetworkShooter/main/Images/Landmine_2.png)
+
 ![TestsExample](https://raw.githubusercontent.com/koenigigor/NetworkShooter/main/Images/Landmine_1.png)
 
 
 ### 5. Unit Tests
 
 Tests for inventory and equipment
+
 ![TestsExample](https://raw.githubusercontent.com/koenigigor/NetworkShooter/main/Images/Tests.png)
 
 
