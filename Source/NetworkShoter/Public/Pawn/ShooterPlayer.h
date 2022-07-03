@@ -8,11 +8,53 @@
 #include "GameFramework/Character.h"
 #include "AbilitySystemInterface.h"
 #include "GenericTeamAgentInterface.h"
+#include "Input/NSInputAction.h"
 #include "ShooterPlayer.generated.h"
 
 class UNSAbilitySystemComponent;
 class UNetShooterAttributeSet;
 class UWeaponAttributeSet;
+
+USTRUCT()
+struct FInputActions
+{
+	GENERATED_BODY()
+	
+	UPROPERTY(EditDefaultsOnly)
+	UInputAction* IA_Jump = nullptr;
+
+	UPROPERTY(EditDefaultsOnly)
+	UInputAction* IA_Crouch = nullptr;
+	
+	UPROPERTY(EditDefaultsOnly)
+	UInputAction* IA_Move = nullptr;
+	
+	UPROPERTY(EditDefaultsOnly)
+	UInputAction* IA_Rotation = nullptr;
+
+	// confirm ability
+	UPROPERTY(EditDefaultsOnly)
+	UInputAction* IA_Confirm = nullptr;
+
+	// cancel ability 
+	UPROPERTY(EditDefaultsOnly)
+	UInputAction* IA_Cancel = nullptr;
+};
+
+USTRUCT()
+struct FInputMapping
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere)
+	UInputMappingContext* InputMappingContext = nullptr;
+	
+	UPROPERTY(EditAnywhere)
+	FInputActions InputActions;
+
+	UPROPERTY(EditDefaultsOnly)
+	TArray<UNSInputAction*> AbilityInputs;
+};
 
 UCLASS()
 class NETWORKSHOTER_API AShooterPlayer : public ACharacter, public IAbilitySystemInterface, public IGenericTeamAgentInterface
@@ -26,6 +68,8 @@ protected:
 	virtual void BeginPlay() override;
 
 	virtual void PossessedBy(AController* NewController) override;
+
+	virtual void PawnClientRestart() override;
 	
 	//~==============================================================================================
 	// Ability System
@@ -68,6 +112,12 @@ public:
 	
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	void InputTagPress(FGameplayTag Tag);
+	void InputTagRelease(FGameplayTag Tag);
+
+	void MovementInput(const FInputActionValue& InputActionValue);
+	void InputRotation(const FInputActionValue& InputActionValue);
+
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	UNSAbilitySystemComponent* AbilitySystem;
@@ -81,4 +131,7 @@ protected:
 	/** Abilities register on begin play and binds with input actions */
 	UPROPERTY(EditDefaultsOnly, Category = "Setup")
 	TArray<TSubclassOf<UGameplayAbility>> StartupAbilities;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Setup")
+	FInputMapping InputMapping;
 };

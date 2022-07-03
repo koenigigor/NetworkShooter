@@ -3,6 +3,8 @@
 
 #include "Tests/InputRecordingComponent.h"
 
+#include "EnhancedInputComponent.h"
+#include "EnhancedPlayerInput.h"
 #include "Utils/JsonUtils.h"
 
 
@@ -23,6 +25,9 @@ void UInputRecordingComponent::BeginPlay()
 
 	PlayerInput = PC->PlayerInput;
 	InputComponent = GetOwner()->InputComponent;
+
+	EnhancedPlayerInput = Cast<UEnhancedPlayerInput>(PlayerInput);
+	EnhancedInputComponent = Cast<UEnhancedInputComponent>(InputComponent);
 
 	ensure(PlayerInput);
 	ensure(InputComponent);
@@ -50,12 +55,13 @@ void UInputRecordingComponent::AppendBindings()
 	auto& BindingData = InputData.BindingsData.AddDefaulted_GetRef();
 	BindingData.Time = GetWorld()->GetTimeSeconds();
 
-	
+	//axis bindings
 	for (const auto& AxisBinding : InputComponent->AxisBindings)
 	{
 		BindingData.AxisData.Add(FAxisData(AxisBinding.AxisName, AxisBinding.AxisValue));
 	}
 
+	//action bindings
 	const auto NumActions = InputComponent->GetNumActionBindings();
 	for (int32 Index = 0; Index < NumActions; ++Index)
 	{
@@ -68,13 +74,7 @@ void UInputRecordingComponent::AppendBindings()
 		{
 			return PlayerInput->IsPressed(Key.Key);
 		});
-
-		/*
-		const bool State = (Pressed && Action.KeyEvent == IE_Pressed) ||
-							(!Pressed && Action.KeyEvent == IE_Released); //todo i dont like that
 		
-		BindingData.ActionsData.Add(FActionsData(Action.GetActionName(), ActionKey.Key, State));*/
-
 		//make 1 record for action name, determine press/release by previous state
 		const bool AlreadyContain = BindingData.ActionsData.ContainsByPredicate([=](const FActionsData& ActionsData){ return ActionsData.Key == ActionKey.Key; });
 		if (!AlreadyContain)
@@ -82,7 +82,21 @@ void UInputRecordingComponent::AppendBindings()
 			BindingData.ActionsData.Add(FActionsData(Action.GetActionName(), ActionKey.Key, Pressed));
 		} 
 	}
-	
+
+	//enhanced actions
+	for (const auto& ActionBinding : EnhancedInputComponent->GetActionEventBindings())
+	{
+		const auto Action = ActionBinding->GetAction();
+		const auto ActionName = Action->GetName();
+
+		const auto ActionValue = EnhancedPlayerInput->GetActionValue(Action);
+		const auto Value = ActionValue.Get<FVector>();
+		
+		if (!BindingData.EnhancedActionsData.Contains(ActionName))
+		{
+			BindingData.EnhancedActionsData.Add(FEnhancedActionData(ActionName, Value));
+		}
+	}
 }
 
 FString UInputRecordingComponent::GenerateFilename() const

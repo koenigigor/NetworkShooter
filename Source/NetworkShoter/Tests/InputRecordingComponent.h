@@ -36,7 +36,13 @@ protected:
 
 	UPROPERTY()
 	UInputComponent* InputComponent = nullptr;
+	
+	UPROPERTY()
+	UEnhancedInputComponent* EnhancedInputComponent = nullptr;
 
 	UPROPERTY()
 	UPlayerInput* PlayerInput = nullptr;
+
+	UPROPERTY()
+	UEnhancedPlayerInput* EnhancedPlayerInput = nullptr;
 };

@@ -40,6 +40,30 @@ struct FActionsData
 };
 
 USTRUCT()
+struct FEnhancedActionData
+{
+	GENERATED_BODY()
+
+	FEnhancedActionData(){};
+	FEnhancedActionData(FString InName, FVector InValue) : ActionName(InName), Value(InValue){}
+	
+	UPROPERTY()
+	FString ActionName;
+
+	UPROPERTY()
+	FVector Value;
+
+	bool operator==(const FEnhancedActionData& Other) const
+	{
+		return Other.ActionName == ActionName;
+	}
+	bool operator==(const FString& Other) const
+	{
+		return Other == ActionName;
+	}
+};
+
+USTRUCT()
 struct FBindingsData
 {
 	GENERATED_BODY()
@@ -52,6 +76,9 @@ struct FBindingsData
 
 	UPROPERTY()
 	TArray<FActionsData> ActionsData;
+
+	UPROPERTY()
+	TArray<FEnhancedActionData> EnhancedActionsData;
 };
 
 USTRUCT()

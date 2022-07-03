@@ -5,6 +5,7 @@
 #include "TestProxyActor.h"
 #include "Tests/AutomationCommon.h"
 
+class UInputAction;
 class UInputComponent;
 
 namespace NSTestUtils
@@ -33,6 +34,8 @@ namespace NSTestUtils
 	
 	int32 GetActionMappingIndex(const UInputComponent* InputComponent, const FString& ActionName, EInputEvent InputEvent);
 	int32 GetAxisMappingIndex(const UInputComponent* InputComponent, const FString& ActionName);
+	// *Blueprint input add on next tick
+	const UInputAction* FindEnhancedInputAction(const UEnhancedInputComponent* EnhancedInput, const FString& Name);
 
 	/** update void function timeout seconds */
 	class FNSUntilLatentCommand : public IAutomationLatentCommand

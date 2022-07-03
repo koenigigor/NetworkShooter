@@ -25,16 +25,16 @@ bool FCharacterCanBeDamaged::RunTest(const FString& Parameters)
 	const auto Level = NSTestUtils::RunLevel("/Game/NetworkShoter/Tests/EmptyTestLevel");
 
 	UWorld* World = NSTestUtils::GetTestWorld();
-	TestNotNull("World exist", World);
+	if (!TestNotNull("World exist", World)) return false;
 
 	const auto Pawn = UGameplayStatics::GetPlayerPawn(World, 0);
-	TestNotNull("Pawn exist", Pawn);
+	if (!TestNotNull("Pawn exist", Pawn)) return false;
 	
 	const auto ASC = Pawn->FindComponentByClass<UAbilitySystemComponent>();
-	TestNotNull("ASC valid", ASC);
+	if (!TestNotNull("ASC valid", ASC)) return false;
 
 	const auto Proxy = NSTestUtils::SpawnTestProxyActor(World);
-	TestNotNull("Proxy actor is valid", Proxy);
+	if (!TestNotNull("Proxy actor is valid", Proxy)) return false;
 	
 	const auto BeginHealth = ASC->GetNumericAttribute(UNetShooterAttributeSet::GetHealthAttribute());
 

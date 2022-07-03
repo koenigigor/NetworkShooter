@@ -3,12 +3,16 @@
 
 #include "Pawn/ShooterPlayer.h"
 #include "AbilitySystemComponent.h"
+#include "EnhancedInputComponent.h"
+#include "EnhancedInputSubsystems.h"
 #include "GAS/NSAbilitySystemComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GAS/AttributeSet/NetShooterAttributeSet.h"
 #include "Game/NSPlayerState.h"
 #include "Game/PCNetShooter.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "GAS/AttributeSet/WeaponAttributeSet.h"
+#include "Kismet/KismetMathLibrary.h"
 
 
 AShooterPlayer::AShooterPlayer()
@@ -42,6 +46,20 @@ void AShooterPlayer::PossessedBy(AController* NewController)
 
 	// ASC MixedMode replication requires that the ASC Owner's Owner be the Controller.
 	SetOwner(NewController);
+}
+
+void AShooterPlayer::PawnClientRestart()
+{
+	Super::PawnClientRestart();
+
+	if (const auto PC = GetController<APlayerController>())
+	{
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
+		{
+			Subsystem->ClearAllMappings();
+			Subsystem->AddMappingContext(InputMapping.InputMappingContext, 0);
+		}
+	}
 }
 
 //~==============================================================================================
@@ -81,6 +99,8 @@ void AShooterPlayer::OnArmorChange(const FOnAttributeChangeData& Data)
 
 void AShooterPlayer::OnWalkSpeedChange(const FOnAttributeChangeData& Data)
 {
+	GetCharacterMovement() -> MaxWalkSpeed = Data.NewValue;
+
 	WalkSpeedChanged(Data.OldValue);
 }
 
@@ -161,6 +181,84 @@ FRotator AShooterPlayer::GetViewRotation() const
 void AShooterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
+	if (const auto EnhancedInput = Cast<UEnhancedInputComponent>(PlayerInputComponent))
+	{
+		if (InputMapping.InputActions.IA_Jump)
+		{
+			EnhancedInput->BindAction(InputMapping.InputActions.IA_Jump, ETriggerEvent::Started, this, &ACharacter::Jump);
+			EnhancedInput->BindAction(InputMapping.InputActions.IA_Jump, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
+		}
+		if (InputMapping.InputActions.IA_Crouch)
+		{
+			EnhancedInput->BindAction(InputMapping.InputActions.IA_Crouch, ETriggerEvent::Started, this, &ACharacter::Crouch, false);
+			EnhancedInput->BindAction(InputMapping.InputActions.IA_Crouch, ETriggerEvent::Completed, this, &ACharacter::UnCrouch, false);
+		}
+		if (InputMapping.InputActions.IA_Move)
+		{
+			EnhancedInput->BindAction(InputMapping.InputActions.IA_Move, ETriggerEvent::Triggered, this, &ThisClass::MovementInput);
+		}
+		if (InputMapping.InputActions.IA_Rotation)
+		{
+			EnhancedInput->BindAction(InputMapping.InputActions.IA_Rotation, ETriggerEvent::Triggered, this, &ThisClass::InputRotation);
+		}
+
+		//wanna find input action by name and bind in ASC input directly
+		if (InputMapping.InputActions.IA_Confirm && AbilitySystem)
+		{
+			EnhancedInput->BindAction(InputMapping.InputActions.IA_Confirm, ETriggerEvent::Started, AbilitySystem, &UNSAbilitySystemComponent::InputConfirm);
+		}
+		
+		if (InputMapping.InputActions.IA_Cancel && AbilitySystem)
+		{
+			EnhancedInput->BindAction(InputMapping.InputActions.IA_Cancel, ETriggerEvent::Started, AbilitySystem, &UNSAbilitySystemComponent::InputCancel);
+		}
+
+		for (const auto& AbilityInput : InputMapping.AbilityInputs)
+		{
+			EnhancedInput->BindAction(AbilityInput, ETriggerEvent::Started, this, &ThisClass::InputTagPress, AbilityInput->InputTag);
+			EnhancedInput->BindAction(AbilityInput, ETriggerEvent::Completed, this, &ThisClass::InputTagRelease, AbilityInput->InputTag);
+		}
+	}
+}
+
+void AShooterPlayer::MovementInput(const FInputActionValue& InputActionValue)
+{
+	const FVector2D Value = InputActionValue.Get<FVector2D>();
+
+	const FRotator Rotator = FRotator(0.f, GetControlRotation().Yaw, 0.f); 
 	
+	if (!FMath::IsNearlyZero(Value.X))
+	{
+		AddMovementInput(Rotator.Vector(), Value.X);
+	}
+	if (!FMath::IsNearlyZero(Value.Y))
+	{
+		AddMovementInput(UKismetMathLibrary::GetRightVector(Rotator), Value.Y);
+	}
+}
+
+void AShooterPlayer::InputRotation(const FInputActionValue& InputActionValue)
+{
+	const FVector2D Value = InputActionValue.Get<FVector2D>();
+
+	AddControllerYawInput(Value.X);
+	AddControllerPitchInput(Value.Y);
+}
+
+void AShooterPlayer::InputTagPress(FGameplayTag Tag)
+{
+	if (AbilitySystem)
+	{
+		AbilitySystem->InputTagPressed(Tag);
+	}
+}
+
+void AShooterPlayer::InputTagRelease(FGameplayTag Tag)
+{
+	if (AbilitySystem)
+	{
+		AbilitySystem->InputTagReleased(Tag);
+	}
 }
 

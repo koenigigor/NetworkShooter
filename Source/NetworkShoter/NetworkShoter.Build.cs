@@ -20,7 +20,8 @@ public class NetworkShoter : ModuleRules
 			"OnlineSubsystem", 
 			"OnlineSubsystemUtils",
 			"Json",
-			"JsonUtilities"
+			"JsonUtilities",
+			"EnhancedInput"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[]

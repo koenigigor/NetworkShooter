@@ -1,6 +1,8 @@
 ﻿#if WITH_AUTOMATION_TESTS
 
 #include "NSTestUtils.h"
+#include "EnhancedInputComponent.h"
+
 
 UWorld* NSTestUtils::GetTestWorld()
 {
@@ -49,6 +51,18 @@ int32 NSTestUtils::GetAxisMappingIndex(const UInputComponent* InputComponent, co
 	{
 		return Binding.AxisName.ToString().Equals(ActionName);
 	});
+}
+
+const UInputAction* NSTestUtils::FindEnhancedInputAction(const UEnhancedInputComponent* EnhancedInput, const FString& Name)
+{
+	const int32 ActionIndex = EnhancedInput->GetActionEventBindings().IndexOfByPredicate([=](const TUniquePtr<FEnhancedInputActionEventBinding>& ActionBinding)
+	{
+		return ActionBinding->GetAction()->GetName().Equals(Name);
+	});
+
+	if (ActionIndex == INDEX_NONE) return nullptr;
+	
+	return EnhancedInput->GetActionEventBindings()[ActionIndex].Get()->GetAction();		
 }
 
 bool NSTestUtils::FNSUntilLatentCommand::Update()

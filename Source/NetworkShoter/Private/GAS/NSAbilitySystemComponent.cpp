@@ -25,29 +25,18 @@ namespace
 int32 UNSAbilitySystemComponent::HandleGameplayEvent(FGameplayTag EventTag, const FGameplayEventData* Payload)
 {
 	if (GetRootTag(EventTag).ToString() == "Input")
-	{
-		//UE_LOG(LogTemp, Display, TEXT("Input signal detect %s"), *EventTag.ToString())
-		
-		//cut Input/Release endings	//todo if setup advanced input delete endings cut
+	{	//todo deprecated
 		if (EventTag.ToString().Contains("Press"))
 		{
-			InputTagPressed(EventTag); // cut inside after get handle
+			InputTagPressed(EventTag.RequestDirectParent());
 		}
 		else if (EventTag.ToString().Contains("Release"))
 		{
-			//UE_LOG(LogTemp, Warning, TEXT("Release tag detected %s"), *EventTag.ToString())
 			InputTagReleased(EventTag.RequestDirectParent());
 		}
 		else
 		{
-			//input tag without Press/Release tags, temporary cam delete after move to advanced input and call  InputTagPressed/Released direct from there
-			if (GameplayEventTriggeredAbilities.Contains(EventTag))
-			{
-				for (const auto& AbilityHandle : GameplayEventTriggeredAbilities[EventTag])
-				{
-					TryActivateAbility(AbilityHandle);
-				}
-			}
+			InputTagPressed(EventTag);
 		}
 
 		if (const FGameplayEventMulticastDelegate* Delegate = GenericGameplayEventCallbacks.Find(EventTag))
@@ -64,10 +53,8 @@ int32 UNSAbilitySystemComponent::HandleGameplayEvent(FGameplayTag EventTag, cons
 void UNSAbilitySystemComponent::InputTagPressed(const FGameplayTag& Tag)
 {
 	//iterate abilities
-	//if input hold ability add to try activate array
+	//if input hold ability add in active abilities list
 	//if input press ability activate immediately
-
-	//UE_LOG(LogTemp, Display, TEXT("Tag pressed"))
 	
 	if (GameplayEventTriggeredAbilities.Contains(Tag))
 	{
@@ -75,18 +62,20 @@ void UNSAbilitySystemComponent::InputTagPressed(const FGameplayTag& Tag)
 
 		for (const FGameplayAbilitySpecHandle& AbilityHandle : TriggeredAbilityHandles)
 		{
-			//on server we cant ProcessInputHold so just activate once it
-			if (GetNetMode() == NM_DedicatedServer)
+			//InputPressedEvent		based on UAbilitySystemComponent::AbilityLocalInputPressed
+			if (const auto SpecPtr = FindAbilitySpecFromHandle(AbilityHandle))
 			{
-				//UE_LOG(LogTemp, Display, TEXT("ability %s called on server, no look hold buttom, just activate once"), *Tag.ToString())
-				TryActivateAbility(AbilityHandle);
-				continue;
+				auto& Spec = *SpecPtr;
+				AbilitySpecInputPressed(Spec);
+
+				// Invoke the InputPressed event. This is not replicated here. If someone is listening, they may replicate the InputPressed event to the server.
+				InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputPressed, Spec.Handle, Spec.ActivationInfo.GetActivationPredictionKey());					
 			}
-			
-			if (IsInputHoldAbility(AbilityHandle))
+
+			//activate ability
+			if (GetNetMode() != NM_DedicatedServer && IsInputHoldAbility(AbilityHandle))
 			{
-				//UE_LOG(LogTemp, Display, TEXT("add in AbilitiesWhoWaitInputRelease"))
-				AbilitiesWhoWaitInputRelease.FindOrAdd(Tag.RequestDirectParent(), AbilityHandle);
+				AbilitiesWhoWaitInputRelease.FindOrAdd(Tag, AbilityHandle);
 			}
 			else
 			{
@@ -98,8 +87,34 @@ void UNSAbilitySystemComponent::InputTagPressed(const FGameplayTag& Tag)
 
 void UNSAbilitySystemComponent::InputTagReleased(const FGameplayTag& Tag)
 {
-	//UE_LOG(LogTemp, Display, TEXT("%s try remove tag from map"), *Tag.ToString())
 	AbilitiesWhoWaitInputRelease.Remove(Tag);
+
+	//input release event, (copy from UAbilitySystemComponent::AbilityLocalInputReleased)
+	if (GameplayEventTriggeredAbilities.Contains(Tag))
+	{
+		TArray<FGameplayAbilitySpecHandle> TriggeredAbilityHandles = GameplayEventTriggeredAbilities[Tag];
+
+		for (const FGameplayAbilitySpecHandle& AbilityHandle : TriggeredAbilityHandles)
+		{
+			if (const auto SpecPtr = FindAbilitySpecFromHandle(AbilityHandle))
+			{
+				auto& Spec = *SpecPtr;
+				
+				Spec.InputPressed = false;
+				if (Spec.Ability && Spec.IsActive())
+				{
+					if (Spec.Ability->bReplicateInputDirectly && IsOwnerActorAuthoritative() == false)
+					{
+						ServerSetInputReleased(Spec.Handle);
+					}
+
+					AbilitySpecInputReleased(Spec);
+				
+					InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputReleased, Spec.Handle, Spec.ActivationInfo.GetActivationPredictionKey());
+				}
+			}
+		}
+	}
 }
 
 void UNSAbilitySystemComponent::ServerReplicateGameplayEvent_Implementation(const FGameplayTag& Tag)
