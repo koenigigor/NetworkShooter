@@ -21,7 +21,9 @@ public class NetworkShoter : ModuleRules
 			"OnlineSubsystemUtils",
 			"Json",
 			"JsonUtilities",
-			"EnhancedInput"
+			"EnhancedInput",
+			"Niagara",
+			"PhysicsCore"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[]

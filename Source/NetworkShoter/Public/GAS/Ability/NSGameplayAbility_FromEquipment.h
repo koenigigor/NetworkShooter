@@ -23,25 +23,20 @@ public:
 	
 	UFUNCTION(BlueprintPure)
 	UNSEquipmentInstance* GetAssociatedEquipment() const;
+	AActor* GetAssociatedEquipmentActor() const;
+	AActor* GetAssociatedEquipmentActor_Ensured() const;
 
 	virtual bool CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const override;
 	virtual void ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
 
+	bool IsForceCancel() const { return bForceCancel; };
 protected:
-	
-	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
-	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
-	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
-	virtual void OnRemoveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
-	
 	/** Force cancel ability on unequip item */
 	UPROPERTY(EditDefaultsOnly, Category = "Setup")
 	bool bForceCancel = false;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Costs", meta=(Categories="ItemAttribute"))
 	TMap<FGameplayTag, float> ItemAttributeCost;
-
-	UFUNCTION()
-	void OnUnequip(UNSEquipmentInstance* Item);
+	
 	bool ItemStillEquipped();
 };

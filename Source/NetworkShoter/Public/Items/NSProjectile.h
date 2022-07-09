@@ -17,13 +17,25 @@ class NETWORKSHOTER_API ANSProjectile : public AActor
 	
 public:	
 	ANSProjectile();
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 protected:
 	virtual void BeginPlay() override;
 
+	virtual void NotifyHit(UPrimitiveComponent* MyComp, AActor* Other, UPrimitiveComponent* OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult& Hit) override;
+
 public:
 	UPROPERTY(BlueprintReadOnly, meta=(ExposeOnSpawn))
-	FGameplayEffectSpecHandle DamageEffectHandle;	
+	FGameplayEffectSpecHandle DamageEffectHandle;
+	
+	UPROPERTY(BlueprintReadOnly, Replicated, meta=(ExposeOnSpawn), meta=(Categories="GameplayCue"))
+	FGameplayTag ImpactCue;
+
+	UPROPERTY(BlueprintReadOnly, Replicated, meta=(ExposeOnSpawn))
+	FVector Velocity;
+
+	UPROPERTY(BlueprintReadOnly, meta=(ExposeOnSpawn))
+	UAbilitySystemComponent* SourceASC = nullptr;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UProjectileMovementComponent* ProjectileMovement = nullptr;

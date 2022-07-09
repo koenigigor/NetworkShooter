@@ -3,11 +3,13 @@
 
 #include "GAS/Ability/ShootTrace.h"
 
-#include "Game/NSGameState.h"
+#include "AbilitySystemComponent.h"
+#include "GameplayCueFunctionLibrary.h"
+#include "Equipment/NSEquipmentInstance.h"		// ReSharper disable once CppUnusedIncludeDirective
 
-void UShootTrace::MakeShoot()
+void UShootTrace::MakeSingleShoot()
 {
-	Super::MakeShoot();
+	Super::MakeSingleShoot();
 
 	FHitResult Hit;
 	MakeHit(Hit);
@@ -24,6 +26,16 @@ void UShootTrace::MakeShoot()
 									GetCurrentAbilitySpecHandle(),
 									GetCurrentActorInfo(),
 									GetCurrentActivationInfo(),
-	                                EffectSpec, TargetDataHandle);
+									EffectSpec, TargetDataHandle);
+
 	
+	if (ImpactCue.IsValid())
+	{
+		auto Parameters = UGameplayCueFunctionLibrary::MakeGameplayCueParametersFromHitResult(Hit);
+		Parameters.EffectCauser = GetAssociatedEquipmentActor_Ensured();
+		Parameters.SourceObject = GetAssociatedEquipment();
+		Parameters.TargetAttachComponent = Parameters.EffectCauser->GetRootComponent();		
+		GetAbilitySystemComponentFromActorInfo_Checked() -> ExecuteGameplayCue(ImpactCue, Parameters);
+	}
+	///todo maybe better performance is send rpc with array vectors, and trigger local instead send big Parameters structure?
 }

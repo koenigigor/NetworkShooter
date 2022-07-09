@@ -14,5 +14,5 @@ class NETWORKSHOTER_API UShootTrace : public UShootBase
 {
 	GENERATED_BODY()
 protected:
-	virtual void MakeShoot() override;
+	virtual void MakeSingleShoot() override;
 };

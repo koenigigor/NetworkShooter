@@ -14,6 +14,10 @@ UCLASS(Abstract)
 class NETWORKSHOTER_API UShootBase : public UNSGameplayAbility_FromEquipment
 {
 	GENERATED_BODY()
+public:
+	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
+	
 protected:
 	FVector GetMuzzleLocation() const;
 	
@@ -25,9 +29,12 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void MakeHit(FHitResult& OutHit);
 
-	/** Preform one shoot */
 	UFUNCTION(BlueprintCallable)
-	virtual void MakeShoot() { };
+	void MakeShoot();
+	
+	/** Preform single shoot */
+	UFUNCTION(BlueprintCallable)
+	virtual void MakeSingleShoot();
 
 	/** return trace channel for hit traces */
 	virtual ECollisionChannel GetTraceChannel();
@@ -40,24 +47,46 @@ protected:
 	UFUNCTION(BlueprintPure)
 	FGameplayEffectSpecHandle MakeDamageEffectSpec() const;
 
-	/** Min spread half angle, lerp on WeaponAttribute.SpreadPercent (0..1) */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Setup")
-	float SpreadMin = 5.f;
+	//todo maybe remove see "bAddShootCue"
+	enum class EQueStage
+	{
+		ActivateAbility,
+		MakeShoot,
+		EndAbility
+	};
+	//todo maybe remove see "bAddShootCue"
+	void ProcessShootQue(EQueStage Stage) const;
 
-	/** Max spread half angle, lerp on WeaponAttribute.SpreadPercent (0..1) */
+	/** How mush bullets fly per shoot (for shotgun, etc.) */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Setup")
-	float SpreadMax = 10.f;
+	int32 BulletsPerShoot = 1;
+
+	/** Spread half angle, lerp on WeaponAttribute.SpreadPercent (0..1) */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Setup | Spread")
+	FVector2D Spread = {5.0, 10.0};
 	
 	/** larger exponent will cluster points more tightly around the center */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Setup")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Setup | Spread")
 	float SpreadExponent = 50.f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Setup")
 	float ShootDistance = 1000.f;
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Setup")
-	FGameplayTag ShootCueTag;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Setup")
-	TSubclassOf<UGameplayEffect> DamageEffectClass = nullptr;
+    TSubclassOf<UGameplayEffect> DamageEffectClass = nullptr;	
+
+	/**	if true Add cue on ability activate and remove on end
+	 *	if false, Execute cue once on shoot
+	 *
+	 *	UNSUPPORTED before want add/remove cue on start and end fire, with ability "wait input release"
+	 *		but in GASShooter and Lyra Cue execute every shoot
+	 */
+	//UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Setup | Cue")
+	bool bAddShootCue = false;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Setup | Cue", meta=(Categories="GameplayCue"))
+	FGameplayTag ShootCueTag;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Setup | Cue", meta=(Categories="GameplayCue"))
+	FGameplayTag ImpactCue;
 };

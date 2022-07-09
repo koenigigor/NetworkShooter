@@ -67,16 +67,17 @@ void UNetShooterAttributeSet::PreAttributeChange(const FGameplayAttribute& Attri
 }
 
 //void ULyraHealthSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
-void UNetShooterAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
+//move in pre change, for keep raw damage value (if use EGameplayModOp::Override, cant detect previous value and calculate damage)
+bool UNetShooterAttributeSet::PreGameplayEffectExecute(FGameplayEffectModCallbackData& Data) 
 {
-	Super::PostGameplayEffectExecute(Data);
+	Super::PreGameplayEffectExecute(Data);
 //[Server]	
 	if (Data.EvaluatedData.Attribute == GetHealthAttribute())
 	{
 		const auto Causer = Data.EffectSpec.GetEffectContext().GetEffectCauser();
 		const auto Instigator = Data.EffectSpec.GetEffectContext().GetInstigator();
 		const auto Target = GetOwningActor();
-		const auto Damage = Data.EvaluatedData.Magnitude;
+		const auto Damage = Data.EvaluatedData.ModifierOp == EGameplayModOp::Override ? Data.EvaluatedData.Magnitude - GetHealth() : Data.EvaluatedData.Magnitude;
 		const auto Ability = Data.EffectSpec.GetEffectContext().GetAbility();
 			
 		ensure(Causer);
@@ -90,26 +91,55 @@ void UNetShooterAttributeSet::PostGameplayEffectExecute(const FGameplayEffectMod
 		FDamageInfo DamageInfo(InstigatorState, Causer, Target, Damage, Ability);
 
 		UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(GetWorld());
+
 		
-		
-		if (Data.EvaluatedData.Magnitude < 0.f)
-		{		
+		if (Damage < 0.f)
+		{			
 			DamageInfo.Tag = NSTag::System::Damage();
 			MessageSystem.BroadcastMessage(DamageInfo.Tag, DamageInfo);
 			
-			if (FMath::IsNearlyZero(GetHealth()) && !bOutOfHealth)
+			if (GetHealth() + Damage <= 0 && !bOutOfHealth)
 			{
 				bOutOfHealth = true;
 				DamageInfo.Tag = NSTag::System::Death();
 				MessageSystem.BroadcastMessage(DamageInfo.Tag, DamageInfo);
 			}
-			bOutOfHealth = GetHealth() <= 0.f;
+			
+			//GC_HitReaction
+			{
+				FGameplayCueParameters CueParameters = FGameplayCueParameters(Data.EffectSpec.GetEffectContext());
+				CueParameters.RawMagnitude = Damage; //damage magnitude
+				CueParameters.Normal = Target && Instigator ? (Target->GetActorLocation() - Instigator->GetActorLocation()).GetSafeNormal() : FVector::ZeroVector; //enemy direction
+			
+				if (const auto HitPtr = Data.EffectSpec.GetEffectContext().GetHitResult())
+				{
+					CueParameters.PhysicalMaterial = HitPtr->PhysMaterial;
+				}
+				else
+				{
+					UE_LOG(LogTemp, Display, TEXT("UNetShooterAttributeSet::PostGameplayEffectExecute, Data.EffectSpec.GetEffectContext().GetHitResult() is null"))
+				}
+
+				GetOwningAbilitySystemComponent()->ExecuteGameplayCue(FGameplayTag::RequestGameplayTag("GameplayCue.HitReaction"), CueParameters);
+			}
 		}
 		else
 		{
 			DamageInfo.Tag = NSTag::System::Heal();
 			MessageSystem.BroadcastMessage(DamageInfo.Tag, DamageInfo);
 		}
+	}
+
+	return Super::PreGameplayEffectExecute(Data);
+}
+
+void UNetShooterAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
+{
+	Super::PostGameplayEffectExecute(Data);
+
+	if (Data.EvaluatedData.Attribute == GetHealthAttribute())
+	{
+		bOutOfHealth = GetHealth() <= 0.f;
 	}
 }
 

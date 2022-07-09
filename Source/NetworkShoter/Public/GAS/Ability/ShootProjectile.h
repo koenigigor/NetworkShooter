@@ -22,7 +22,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Setup")
 	TSubclassOf<ANSProjectile> ProjectileClass = nullptr;
 	
-	virtual void MakeShoot() override;
+	virtual void MakeSingleShoot() override;
 	
 	UFUNCTION(BlueprintCallable)
 	FVector SuggestProjectileVelocity();

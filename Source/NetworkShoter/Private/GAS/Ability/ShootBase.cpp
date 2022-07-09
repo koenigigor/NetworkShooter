@@ -9,9 +9,25 @@
 #include "GameFramework/PlayerState.h"
 #include "GAS/AttributeSet/WeaponAttributeSet.h"
 
+void UShootBase::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+	const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
+{
+	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+
+	//ProcessShootQue(EQueStage::ActivateAbility); //see bAddShootCue
+}
+
+void UShootBase::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
+{
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+
+	//ProcessShootQue(EQueStage::EndAbility); //see bAddShootCue
+}
+
 FVector UShootBase::GetMuzzleLocation() const
 {
-	const auto WeaponActor = GetAssociatedEquipment()->SpawnedActors[0];
+	const auto WeaponActor = GetAssociatedEquipmentActor_Ensured();
 	const auto AttachedTo = WeaponActor->GetRootComponent()->GetAttachParent();
 	const auto WeaponOwner = Cast<APawn>(AttachedTo->GetOwner());
 	const auto MuzzleLocation = WeaponActor->GetRootComponent()->GetSocketLocation("Muzzle"); //intend weapon mesh is root
@@ -43,11 +59,11 @@ void UShootBase::GetShootStartAndDirection(FVector& Start, FVector& Direction, f
 	
 	FVector ViewEnd = UNSFunctionLibrary::GetActorViewPoint_NS(GetAvatarActorFromActorInfo(), Length, GetTraceChannel());
 
-	
+	/*
 	DrawDebugLine(GetWorld(), Start, ViewEnd, FColor::Red, false, 5.f, 0, 2);
 	DrawDebugPoint(GetWorld(), Start, 3.f, FColor::Red, false, 5.f);
 	DrawDebugPoint(GetWorld(), ViewEnd, 3.f, FColor::Yellow, false, 5.f);
-	
+	*/
 	
 	Direction = (ViewEnd - Start).GetSafeNormal();
 
@@ -61,7 +77,7 @@ void UShootBase::GetShootStartAndDirectionWithSpread(FVector& Start, FVector& Di
 	const float SpreadPercent = 
 		GetAbilitySystemComponentFromActorInfo()->GetNumericAttribute(UWeaponAttributeSet::GetSpreadPercentAttribute());
 
-	const float SpreadHalfAngle = FMath::GetRangeValue(FVector2f(SpreadMin, SpreadMax), SpreadPercent);
+	const float SpreadHalfAngle = FMath::GetRangeValue(FVector2f(Spread.X, Spread.Y), SpreadPercent);
 
 	Direction = UNSFunctionLibrary::GetRandConeNormalDistribution(Direction, SpreadHalfAngle, SpreadExponent);
 }
@@ -76,8 +92,24 @@ void UShootBase::MakeHit(FHitResult& OutHit)
 
 	FCollisionQueryParams CollisionParams;
 	CollisionParams.AddIgnoredActor(GetAvatarActorFromActorInfo());
+	CollisionParams.bReturnPhysicalMaterial = true;
 	
 	GetWorld()->LineTraceSingleByChannel(OutHit, Start, End, GetTraceChannel(), CollisionParams);
+}
+
+void UShootBase::MakeShoot()
+{
+	ProcessShootQue(EQueStage::MakeShoot);
+
+	for (int32 i = 0; i != BulletsPerShoot; ++i)
+	{
+		MakeSingleShoot();
+	}
+}
+
+void UShootBase::MakeSingleShoot()
+{
+	
 }
 
 ECollisionChannel UShootBase::GetTraceChannel()
@@ -109,4 +141,30 @@ FGameplayEffectSpecHandle UShootBase::MakeDamageEffectSpec() const
 	EffectSpec.Data.Get()->GetContext().AddInstigator(Instigator, Causer);
 
 	return EffectSpec;
+}
+
+void UShootBase::ProcessShootQue(EQueStage Stage) const
+{
+	if (Stage == EQueStage::EndAbility && bAddShootCue)
+	{
+		GetAbilitySystemComponentFromActorInfo_Checked() -> RemoveGameplayCue(ShootCueTag);
+		return;
+	}
+	
+	FGameplayCueParameters Parameters;
+	Parameters.EffectCauser = GetAssociatedEquipmentActor();
+	Parameters.SourceObject = GetAssociatedEquipment();
+	Parameters.RawMagnitude = GetShootDelay();
+	
+	if (Stage == EQueStage::ActivateAbility && bAddShootCue)
+	{
+		GetAbilitySystemComponentFromActorInfo_Checked() -> AddGameplayCue(ShootCueTag, Parameters);
+		return;
+	}
+
+	if (Stage == EQueStage::MakeShoot && !bAddShootCue)
+	{
+		GetAbilitySystemComponentFromActorInfo_Checked() -> ExecuteGameplayCue(ShootCueTag, Parameters);
+		return;
+	}
 }

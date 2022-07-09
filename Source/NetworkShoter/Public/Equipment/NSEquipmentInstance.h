@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameplayEffectTypes.h"
+#include "GameplayAbilitySpec.h"
 #include "NSEquipmentInstance.generated.h"
 
 class UNSItemInstance;
@@ -34,6 +35,8 @@ public:
 	/** Array spawned actors, if we spawn actors on equip */
 	UPROPERTY(Replicated)
 	TArray<AActor*> SpawnedActors;
+
+	TArray<FGameplayAbilitySpecHandle> GrantedAbilities;
 
 	UPROPERTY(ReplicatedUsing="OnRep_Instigator")
 	AActor* Instigator = nullptr;

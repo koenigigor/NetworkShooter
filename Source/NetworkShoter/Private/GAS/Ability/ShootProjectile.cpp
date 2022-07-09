@@ -7,9 +7,9 @@
 #include "Kismet/GameplayStatics.h"
 #include "Items/NSProjectile.h"
 
-void UShootProjectile::MakeShoot()
+void UShootProjectile::MakeSingleShoot()
 {
-	Super::MakeShoot();
+	Super::MakeSingleShoot();
 
 	const auto Velocity = SuggestProjectileVelocity();
 	SpawnProjectile(Velocity);
@@ -46,10 +46,12 @@ void UShootProjectile::SpawnProjectile(FVector Velocity)
 {
 	auto SpawnedActor = UGameplayStatics::BeginDeferredActorSpawnFromClass(GetWorld(), ProjectileClass, FTransform::Identity, ESpawnActorCollisionHandlingMethod::AlwaysSpawn, GetAvatarActorFromActorInfo());
 
-	auto Projectile = StaticCast<ANSProjectile*>(SpawnedActor);
+	const auto Projectile = StaticCast<ANSProjectile*>(SpawnedActor);
 	Projectile->DamageEffectHandle = MakeDamageEffectSpec();
+	Projectile->ImpactCue = ImpactCue;
 	Projectile->SetInstigator(Cast<APawn>(GetAvatarActorFromActorInfo()));
-	Projectile->ProjectileMovement->Velocity = Velocity;
+	Projectile->Velocity = Velocity;
+	Projectile->SourceASC = GetAbilitySystemComponentFromActorInfo();
 	
 	UGameplayStatics::FinishSpawningActor(SpawnedActor, FTransform(GetMuzzleLocation()));
 }

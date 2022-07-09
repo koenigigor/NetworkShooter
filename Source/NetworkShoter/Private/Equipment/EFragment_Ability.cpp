@@ -23,13 +23,40 @@ void UEFragment_Ability::OnEquip(UNSEquipmentInstance* Instance)
 		//add ability
 		auto AbilitySpec = FGameplayAbilitySpec(Ability);
 		AbilitySpec.SourceObject = Instance;
-		ASC->GiveAbility(AbilitySpec);
+		Instance->GrantedAbilities.Add(ASC->GiveAbility(AbilitySpec));
 	}
 }
 
 void UEFragment_Ability::OnUnequip(UNSEquipmentInstance* Instance)
 {
 	Super::OnUnequip(Instance);
+
+	const auto Owner = Instance->GetInstigator();
+	ensure(Owner);
+	
+	UAbilitySystemComponent* ASC = GetOwnerASC(Owner);
+	if (!ASC) return;
+
+	for (const auto& AbilitySpecHandle : Instance->GrantedAbilities)
+	{
+		bool bForceCancelAbility = false;
+		if (const auto Spec = ASC->FindAbilitySpecFromHandle(AbilitySpecHandle))
+		{
+			if (const auto Ability = Cast<UNSGameplayAbility_FromEquipment>(Spec->Ability))
+			{
+				bForceCancelAbility = Ability->IsForceCancel();
+			}
+		}
+		
+		if (bForceCancelAbility)
+		{
+			ASC->ClearAbility(AbilitySpecHandle);
+		}
+		else
+		{
+			ASC->SetRemoveAbilityOnEnd(AbilitySpecHandle);
+		}
+	} 
 }
 
 UAbilitySystemComponent* UEFragment_Ability::GetOwnerASC(AActor* Owner) const

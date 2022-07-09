@@ -155,8 +155,6 @@ void UNSAbilitySystemComponent::ProcessInputHoldAbilities()
 	{
 		AbilitiesWhoWaitInputRelease.Remove(InvalidTag);
 	}
-
-	//todo OnGiveAbility(), check if input for this ability already pressed
 }
 
 bool UNSAbilitySystemComponent::IsInputHoldAbility(const FGameplayAbilitySpecHandle& Handle)
