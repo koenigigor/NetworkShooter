@@ -23,7 +23,8 @@ public class NetworkShoter : ModuleRules
 			"JsonUtilities",
 			"EnhancedInput",
 			"Niagara",
-			"PhysicsCore"
+			"PhysicsCore",
+			"SlateCore"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[]

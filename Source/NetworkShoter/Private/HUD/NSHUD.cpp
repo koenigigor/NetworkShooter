@@ -5,6 +5,7 @@
 
 #include "Blueprint/UserWidget.h"
 #include "Game/NSGameState.h"
+#include "Game/PCNetShooter.h"
 #include "HUD/TabMenu.h"
 #include "HUD/HUDWidget.h"
 #include "Pawn/NSSpectator.h"
@@ -30,6 +31,9 @@ void ANSHUD::BeginPlay()
 	if (IsValid(PostMatchWidgetClass))
 		PostMatchWidget = CreateWidget<UUserWidget>(GetOwningPlayerController(), PostMatchWidgetClass);
 
+	if (IsValid(PauseMenuClass))
+		PauseMenu = CreateWidget<UUserWidget>(GetOwningPlayerController(), PauseMenuClass);
+
 	if (IsValid(SharedHUDClass))
 	{
 		SharedHUD = CreateWidget<UUserWidget>(GetOwningPlayerController(), SharedHUDClass);
@@ -47,6 +51,11 @@ void ANSHUD::BeginPlay()
 		{
 			PreMatchWidget->AddToViewport();
 		}
+	}
+
+	if (const auto PC = Cast<APCNetShooter>(PlayerOwner.Get()))
+	{
+		PC->OnLocalPause.AddDynamic(this, &ThisClass::TogglePauseMenu);
 	}
 }
 
@@ -105,5 +114,19 @@ void ANSHUD::ShowTabMenu(const bool bShow)
 	else
 	{
 		TabMenu->RemoveFromParent();
+	}
+}
+
+void ANSHUD::TogglePauseMenu(bool OnPause)
+{
+	if (!PauseMenu) return;
+	
+	if (OnPause)
+	{
+		PauseMenu->AddToViewport(10);
+	}
+	else
+	{
+		PauseMenu->RemoveFromViewport();
 	}
 }

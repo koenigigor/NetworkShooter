@@ -36,6 +36,9 @@ class NETWORKSHOTER_API ANSHUD : public AHUD
 
 	UPROPERTY(EditDefaultsOnly, Category="Settings")
 	TSubclassOf<UUserWidget> PostMatchWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, Category="Settings")
+	TSubclassOf<UUserWidget> PauseMenuClass;
 	
 
 	virtual void BeginPlay() override;
@@ -53,6 +56,9 @@ public:
 public:
 	UFUNCTION(BlueprintCallable)
 	void ShowTabMenu(const bool bShow = true);
+	
+	UFUNCTION(BlueprintCallable)
+	void TogglePauseMenu(bool OnPause);
 
 	
 private:
@@ -76,4 +82,7 @@ private:
 	
 	UPROPERTY()
 	UUserWidget* PostMatchWidget = nullptr;
+
+	UPROPERTY()
+	UUserWidget* PauseMenu = nullptr;
 };

@@ -6,6 +6,8 @@
 #include "GameFramework/PlayerController.h"
 #include "PCNetShooter.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FLocalPauseDeledate, bool, bOnPause);
+
 class ANSHUD;
 /**
  * 
@@ -30,6 +32,22 @@ public:
 
 	virtual void AcknowledgePossession(APawn* P) override;
 
+	/* Show or hide mouse, has count of sources
+	 * so if we show 2 times and hide 1 time, mouse still be shoved*/
+	UFUNCTION(BlueprintCallable)
+	void ShowMouse(bool bShow);
+
+	/* hide mouse and reset counter */
+	UFUNCTION(BlueprintCallable)
+	void ResetShowMouse();
+
+	/**	client version of pause, disable input and show main menu */
+	UFUNCTION(BlueprintCallable)
+	void ToggleLocalPause();
+	
+	UPROPERTY(BlueprintAssignable)
+	FLocalPauseDeledate OnLocalPause;
+	
 	//~==============================================================================================
 	// Proxy functions
 	
@@ -49,4 +67,8 @@ protected:
 private:
 	UPROPERTY()
 	ANSHUD* NSHUD = nullptr;
+	
+	int8 bMouseIsShoved = 0;
+
+	bool bOnPause = false;
 };

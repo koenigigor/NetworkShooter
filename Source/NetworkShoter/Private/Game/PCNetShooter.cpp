@@ -81,6 +81,50 @@ void APCNetShooter::AcknowledgePossession(APawn* P)
 	}
 }
 
+void APCNetShooter::ShowMouse(bool bShow)
+{
+	//we can want show mouse from different sources
+	const auto bPrevState = bMouseIsShoved;
+	bMouseIsShoved = FMath::Max<int8>(bMouseIsShoved + (bShow ? +1 : -1), 0);
+
+	if (bMouseIsShoved && bPrevState) return;
+
+	bShowMouseCursor = bMouseIsShoved;
+	if (bShowMouseCursor)
+	{
+		int32 ViewportX, ViewportY;
+		GetViewportSize(ViewportX, ViewportY);
+		SetMouseLocation(ViewportX/2, ViewportY/2);
+
+		FInputModeGameAndUI InputMode;
+		InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+		InputMode.SetHideCursorDuringCapture(false);
+		SetInputMode(InputMode);
+	}
+	else
+	{
+		SetInputMode(FInputModeGameOnly());
+	}
+}
+
+void APCNetShooter::ResetShowMouse()
+{
+	bShowMouseCursor = false;
+	SetInputMode(FInputModeGameOnly());
+}
+
+void APCNetShooter::ToggleLocalPause()
+{
+	bOnPause = !bOnPause;
+	ShowMouse(bOnPause);
+	SetPause(bOnPause);
+	if (GetPawnOrSpectator())
+	{
+		bOnPause ? GetPawnOrSpectator()->DisableInput(this) : GetPawnOrSpectator()->EnableInput(this);
+	}
+	OnLocalPause.Broadcast(bOnPause);
+}
+
 
 void APCNetShooter::SendChatMessage_Implementation(const FString& Message)
 {
