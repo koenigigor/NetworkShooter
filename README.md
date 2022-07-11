@@ -57,11 +57,10 @@ Input Actions with GameplayTag for send input events in GAS
 
 ### 7. Base Video settings
 
-Setting UI Description, like as Display mode, TipTool text...
-
 ![TestsExample](https://raw.githubusercontent.com/koenigigor/NetworkShooter/main/Images/SettingsWidget.png)
 
-Separate into project setting for add this description from Editor
+Setting UI Description, like as Display mode, TipTool text etc.
+Separate into SettingUIInfo class, and setup in project setting from Editor
 
 ![TestsExample](https://raw.githubusercontent.com/koenigigor/NetworkShooter/main/Images/AdditionalSettingsUIInfo.png)
 
