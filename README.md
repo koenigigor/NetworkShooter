@@ -45,5 +45,24 @@ Tests for inventory and equipment
 
 ![TestsExample](https://raw.githubusercontent.com/koenigigor/NetworkShooter/main/Images/Tests.png)
 
+### 6. Enhanced Input
 
-##### 6. And other things...
+Input Actions for simple actions (movement and other)
+
+![TestsExample](https://raw.githubusercontent.com/koenigigor/NetworkShooter/main/Images/InputMapping.png)
+
+Input Actions with GameplayTag for send input events in GAS
+
+![TestsExample](https://raw.githubusercontent.com/koenigigor/NetworkShooter/main/Images/InputActionWithTag.png)
+
+### 7. Base Video settings
+
+Setting UI Description, like as Display mode, TipTool text...
+
+![TestsExample](https://raw.githubusercontent.com/koenigigor/NetworkShooter/main/Images/SettingsWidget.png)
+
+Separate into project setting for add this description from Editor
+
+![TestsExample](https://raw.githubusercontent.com/koenigigor/NetworkShooter/main/Images/AdditionalSettingsUIInfo.png)
+
+##### 8. And other things...
