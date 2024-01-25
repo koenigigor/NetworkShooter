@@ -55,6 +55,8 @@ FReply UMinimapWidget::NativeOnMouseWheel(const FGeometry& InGeometry, const FPo
 
 void UMinimapWidget::AddIcon(UMapObjectComponent* Icon)
 {
+	if (!IsSatisfiesFilter(Icon)) return;
+	
 	const auto IconWidget = Icon->CreateIcon();
 	if (!IconWidget)
 	{
@@ -73,7 +75,7 @@ void UMinimapWidget::AddIcon(UMapObjectComponent* Icon)
 	CanvasSlot->SetAnchors(FAnchors(UV.X, UV.Y));
 	CanvasSlot->SetZOrder(ZOrder);
 
-	if (Icon->bScalable)
+	if (Icon->IsIcon() && Icon->bScalable)
 	{
 		const auto ReverseScale = FVector2d(1.f) / RootCanvas->GetRenderTransform().Scale;
 		IconWidget->SetRenderScale(ReverseScale);
@@ -85,9 +87,12 @@ void UMinimapWidget::AddIcon(UMapObjectComponent* Icon)
 }
 
 void UMinimapWidget::RemoveIcon(UMapObjectComponent* Icon)
-{	
-	IconObjects.FindAndRemoveChecked(Icon)->RemoveFromParent();
-	Icon->OnLayerChange.RemoveAll(this);
+{
+	if (IconObjects.Contains(Icon))
+	{
+		IconObjects.FindAndRemoveChecked(Icon)->RemoveFromParent();
+		Icon->OnLayerChange.RemoveAll(this);
+	}
 }
 
 void UMinimapWidget::OnIconLayerChange(UMapObjectComponent* Icon)
@@ -199,9 +204,81 @@ void UMinimapWidget::MoveMap()
 	}
 }
 
+void UMinimapWidget::CenterToPlayer()
+{
+	GetWorld()->GetTimerManager().ClearTimer(UseCustomCenterOfMapTimer);
+	CenterMapState = Player;
+}
+
 FVector2D UMinimapWidget::WorldToMap(FVector WorldLocation) const
 {
 	//center map is 0 0 0
 	const auto UV = (FVector2d(WorldLocation) / SegmentSize) - 0.5;
 	return FVector2D(1.0 + UV.Y, -UV.X);
+}
+
+bool UMinimapWidget::IsSatisfiesFilter(UMapObjectComponent* Icon) const
+{
+	if (!Icon) return false;
+	if (!Icon->IsIcon()) return true; // background
+
+#if WITH_EDITOR
+	if (!Icon->FilterCategory.IsValid())
+	{
+		UE_LOG(LogMinimapWidget, Warning, TEXT("Empty category for map icon %s, item will be ignored in package"), *Icon->GetOwner()->GetActorNameOrLabel())
+		return true;
+	}
+#endif
+
+	return Filter.HasTag(Icon->FilterCategory);
+}
+
+void UMinimapWidget::SetFilter(FGameplayTagContainer NewFilter)
+{
+	Filter = NewFilter;
+	
+	// add remove visible map objects
+	const auto MinimapController = UMinimapController::Get(this);
+	for (const auto& MapObject : MinimapController->VisibleMapObjects)
+	{
+		const auto bVisible = IconObjects.Contains(MapObject);
+		const auto bMustVisible = IsSatisfiesFilter(MapObject);
+		
+		if (!bVisible && bMustVisible)
+		{
+			AddIcon(MapObject);
+		}
+		else if (bVisible && !bMustVisible)
+		{
+			RemoveIcon(MapObject);
+		}
+	} 
+}
+
+void UMinimapWidget::AddFilter(FGameplayTag Tag)
+{
+	Filter.AddTag(Tag);
+
+	const auto MinimapController = UMinimapController::Get(this);
+	for (const auto& MapObject : MinimapController->VisibleMapObjects)
+	{
+		const auto bVisible = IconObjects.Contains(MapObject);
+		const auto bMustVisible = IsSatisfiesFilter(MapObject);
+		
+		if (!bVisible && bMustVisible)
+		{
+			AddIcon(MapObject);
+		}
+	} 
+}
+
+void UMinimapWidget::RemoveFilter(FGameplayTag Tag)
+{
+	Filter.RemoveTag(Tag);
+
+	for (auto It = IconObjects.CreateIterator(); It; ++It)
+	{
+		if (!IsSatisfiesFilter(It.Key()))
+			RemoveIcon(It.Key());
+	}
 }

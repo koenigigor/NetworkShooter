@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "GameplayTagContainer.h"
 #include "MapObjectComponent.generated.h"
 
 class UWidget;
@@ -52,6 +53,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (EditCondition = "bIcon"))
 	bool bScalable = true;
 
+	/** Icon category for filter (shop, npc, chest) */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (EditCondition = "bIcon", Categories="Map"))
+	FGameplayTag FilterCategory;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category= "Image", meta=( AllowPrivateAccess="true", DisplayThumbnail="true", DisplayName="Image", AllowedClasses="/Script/Engine.Texture,/Script/Engine.MaterialInterface,/Script/Engine.SlateTextureAtlasInterface", DisallowedClasses = "/Script/MediaAssets.MediaTexture"))
 	TObjectPtr<UObject> Image = nullptr;
 
