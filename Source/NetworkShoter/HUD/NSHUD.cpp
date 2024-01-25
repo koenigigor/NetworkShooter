@@ -5,14 +5,10 @@
 
 #include "LayerWidget/WindowLayerWidget.h"
 #include "Blueprint/UserWidget.h"
-#include "Blueprint/WidgetLayoutLibrary.h"
-#include "Components/CanvasPanelSlot.h"
 #include "Game/NSGameState.h"
 #include "Game/PCNetShooter.h"
-#include "LayerWidget/ContextMenuLayerWidget.h"
 #include "Widgets/TabMenu.h"
 #include "Widgets/HUDWidget.h"
-#include "Widgets/NSCanvasPanel.h"
 #include "Pawn/ShooterPlayer.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogNSHUD, All, All);
@@ -85,7 +81,7 @@ void ANSHUD::BeginPlay()
 	
 		if (IsValid(ContextMenuLayerClass))
 		{
-			ContextMenuLayer = CreateWidget<UContextMenuLayerWidget>(GetOwningPlayerController(), ContextMenuLayerClass);
+			ContextMenuLayer = CreateWidget<UWindowLayerWidget>(GetOwningPlayerController(), ContextMenuLayerClass);
 			ContextMenuLayer->AddToViewport(999);
 		} else UE_LOG(LogNSHUD, Error, TEXT("ContextMenuCanvasClass not set"))
 	}
@@ -265,38 +261,29 @@ void ANSHUD::RemoveAllWindows()
 
 #pragma region ContextMenu
 
-void ANSHUD::PushContextMenu(UUserWidget* InMenu)
+void ANSHUD::PushContextMenu(UWidget* InMenu)
 {
-	ContextMenuLayer->Canvas->ClearChildren();
-	const auto Slot = ContextMenuLayer->Canvas->AddChildToCanvas(InMenu);
-	Slot->SetAutoSize(true);
-	Slot->SetPosition(UWidgetLayoutLibrary::GetMousePositionOnViewport(this));
+	ContextMenuLayer->RemoveAllWindows();
+	ContextMenuLayer->PushWindow(InMenu);
 }
 
-void ANSHUD::PushContextMenuAroundWidget(UUserWidget* InMenu, UUserWidget* Window, EWindowSnap ParentSnap, bool bHorizontal)
+void ANSHUD::PushContextMenuAroundWidget(UWidget* Parent, UWidget* Menu, EWindowSnap ParentSnap, bool bHorizontal)
 {
-	ContextMenuLayer->Canvas->ClearChildren();
-
-	FVector2D Anchor, Alignment;
-	ContextMenuLayer->Canvas->CalcSnapAndAlign(Window, ParentSnap, Anchor, Alignment, bHorizontal);
-
-	const auto Slot = ContextMenuLayer->Canvas->AddChildToCanvas(InMenu);
-	Slot->SetAutoSize(true);
-	Slot->SetAnchors(FAnchors(Anchor.X, Anchor.Y));
-	Slot->SetAlignment(Alignment);
+	ContextMenuLayer->RemoveAllWindows();
+	ContextMenuLayer->PushWindow(Parent, Menu, ParentSnap, bHorizontal);
 }
 
 void ANSHUD::OnVisibleMouseClick()
 {
-	if (!ContextMenuLayer->IsHovered())
+	if (!ContextMenuLayer->IsHovered_Slow())
 	{
-		ContextMenuLayer->Canvas->ClearChildren();
+		ContextMenuLayer->RemoveAllWindows();
 	}
 }
 
 void ANSHUD::OnSetInputModeGameOnly()
 {
-	ContextMenuLayer->Canvas->ClearChildren();
+	ContextMenuLayer->RemoveAllWindows();
 	RemoveAllWindows();
 }
 

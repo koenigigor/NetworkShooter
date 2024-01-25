@@ -23,12 +23,15 @@ public:
 
 	int32 GetWindowCount() const;
 
-	void PushWindow(FGameplayTag WindowTag, UWidget* Window);
+	void PushWindow(UWidget* Window);							//push at mouse position
+	void PushWindow(FGameplayTag WindowTag, UWidget* Window);	//push at default location
 	void PushWindow(UWidget* ParentWindow, UWidget* Window, EWindowSnap ParentSnap, bool bHorizontal = true);
 
 	//remove window wih higher ZOrder
 	void RemoveTopWindow();
 	void RemoveAllWindows();
+
+	bool IsHovered_Slow();
 
 	FSimpleDelegate OnWindowCountChanged;
 

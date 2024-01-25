@@ -10,7 +10,6 @@
 
 class UTabMenu;
 class UHUDWidget;
-class UContextMenuLayerWidget;
 class UWindowLayerWidget;
 class UWidget;
 
@@ -118,13 +117,13 @@ public:
 public:
 	/** Empty widget with canvas */
 	UPROPERTY(EditDefaultsOnly, Category="Settings")
-	TSubclassOf<UContextMenuLayerWidget> ContextMenuLayerClass;
+	TSubclassOf<UWindowLayerWidget> ContextMenuLayerClass;
 
 	/** Push context menu at mouse location */
 	UFUNCTION(BlueprintCallable)
-	void PushContextMenu(UUserWidget* InMenu);
+	void PushContextMenu(UWidget* Menu);
 	UFUNCTION(BlueprintCallable)
-	void PushContextMenuAroundWidget(UUserWidget* InMenu, UUserWidget* Window, EWindowSnap ParentSnap, bool bHorizontal = true);
+	void PushContextMenuAroundWidget(UWidget* Parent, UWidget* Menu, EWindowSnap ParentSnap, bool bHorizontal = true);
 
 	UFUNCTION()
 	void OnVisibleMouseClick();
@@ -133,7 +132,7 @@ public:
 	
 private:
 	UPROPERTY()
-	UContextMenuLayerWidget* ContextMenuLayer = nullptr;
+	UWindowLayerWidget* ContextMenuLayer = nullptr;
 #pragma endregion ContextMenu
 
 	UPROPERTY(EditDefaultsOnly, Category="Settings")

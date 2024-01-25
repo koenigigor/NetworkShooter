@@ -4,6 +4,7 @@
 #include "WindowLayerWidget.h"
 
 #include "Blueprint/SlateBlueprintLibrary.h"
+#include "Blueprint/WidgetLayoutLibrary.h"
 #include "Components/CanvasPanelSlot.h"
 #include "Widgets/NSCanvasPanel.h"
 
@@ -24,6 +25,13 @@ int32 UWindowLayerWidget::GetWindowCount() const
 	return MainCanvas->GetChildrenCount();
 }
 
+void UWindowLayerWidget::PushWindow(UWidget* Window)
+{
+	const auto CanvasSlot = MainCanvas->AddChildToCanvas(Window);
+	CanvasSlot->SetAutoSize(true);
+	CanvasSlot->SetPosition(UWidgetLayoutLibrary::GetMousePositionOnViewport(this));
+}
+
 void UWindowLayerWidget::PushWindow(FGameplayTag WindowTag, UWidget* Window)
 {
 	const FVector2D WindowAnchor = WindowLocations.Contains(WindowTag) ? WindowLocations[WindowTag] : FVector2D(0.25f, 0.2f);
@@ -40,6 +48,8 @@ void UWindowLayerWidget::PushWindow(FGameplayTag WindowTag, UWidget* Window)
 //push window near parent window
 void UWindowLayerWidget::PushWindow(UWidget* ParentWindow, UWidget* Window, EWindowSnap ParentSnap, bool bHorizontal)
 {
+	if (ParentSnap == EWindowSnap::None) ParentSnap = EWindowSnap::TopLeft;
+	
 	//get window anchor and align parameters por target snap
 	auto SnapAnchor = FVector2D::ZeroVector;
 	auto WindowAlignment = FVector2D::ZeroVector;
@@ -96,6 +106,22 @@ void UWindowLayerWidget::RemoveTopWindow()
 void UWindowLayerWidget::RemoveAllWindows()
 {
 	MainCanvas->ClearChildren();
+}
+
+bool UWindowLayerWidget::IsHovered_Slow()
+{
+	//simple is hovered false on click in context menu
+	const auto Mouse = FSlateApplication::Get().GetCursorPos();
+	
+	for (const auto& Widget : MainCanvas->GetAllChildren())
+	{
+		const auto WidgetStart = Widget->GetCachedGeometry().LocalToAbsolute(FVector2D::ZeroVector);
+		const auto WidgetEnd = Widget->GetCachedGeometry().LocalToAbsolute(Widget->GetCachedGeometry().GetLocalSize());
+
+		const auto bInside = Mouse.ComponentwiseAllGreaterOrEqual(WidgetStart) && Mouse.ComponentwiseAllLessOrEqual(WidgetEnd);
+		if (bInside) return true;
+	}
+	return false;
 }
 
 
