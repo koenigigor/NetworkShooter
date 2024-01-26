@@ -4,9 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "EditorBuildUtils.h"
+#include "Minimap/MapStructures.h"
 #include "WorldPartition/WorldPartitionBuilder.h"
 #include "MinimapBakeData.generated.h"
 
+class UMapObjectComponent;
 
 /** Build minimap data (layers, icons, backgrounds) in file
  *	For world partition world */
@@ -29,5 +31,19 @@ protected:
 	virtual bool PostRun(UWorld* World, FPackageSourceControlHelper& PackageHelper, const bool bInRunSuccess) override;
 	// UWorldPartitionBuilder interface end
 	
+	/** Return layer data pointer for position (if it exist in data) */
+	FBakedMapLayerData* GetLayerDataForPoint(FVector IconPosition);
 
+	void ExportJson();
+	void WriteDatatable();
+
+	
+	FBakedMapData Data;
+
+	/** Cache object id for fast filter duplicated items */
+	TSet<int32> BakedColliderIDs;
+	TSet<int32> BakedObjectsIDs;
+
+	/** Cache object layer data, if collider not found */
+	TArray<FBakedMapObjectData> CachedObjectsData;
 };

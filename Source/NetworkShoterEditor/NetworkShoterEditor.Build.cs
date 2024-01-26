@@ -14,7 +14,8 @@ public class NetworkShoterEditor : ModuleRules
 			"CoreUObject", 
 			"Engine",
 			"NetworkShoter",
-			
+			"Json",
+			"JsonUtilities",
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[]
