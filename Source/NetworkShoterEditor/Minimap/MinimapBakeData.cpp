@@ -3,14 +3,17 @@
 
 #include "MinimapBakeData.h"
 
+#include "AssetToolsModule.h"
 #include "CollisionChannels.h"
 #include "EditorBuildUtils.h"
 #include "EngineUtils.h"
 #include "JsonObjectConverter.h"
-#include "Components/Widget.h"
+#include "PackageHelperFunctions.h"
+#include "AssetRegistry/AssetRegistryModule.h"
 #include "Minimap/MapObjectComponent.h"
 #include "Minimap/MinimapLayerCollider.h"
 #include "Misc/FileHelper.h"
+#include "UObject/SavePackage.h"
 #include "WorldPartition/IWorldPartitionEditorModule.h"
 
 
@@ -40,9 +43,46 @@ namespace
 }
 
 
+namespace 
+{
+	//DataTable info
+	FString AssetName = "DT_BakedMaps";
+	FString PackagePath = "/Game/NetworkShoter/UI/Widgets/Minimap/DT_BakedMaps";
+	FString AssetPath = "/Script/Engine.DataTable'/Game/NetworkShoter/UI/Widgets/Minimap/DT_BakedMaps.DT_BakedMaps'";
+
+	//Json info
+	FString GetJsonFolder() { return FPaths::ProjectSavedDir() + "TestData/"; };
+}
+
 void UMinimapBakeData::BuildMinimapCMD(const TArray<FString>& Strings, UWorld* World)
 {
-	FEditorBuildUtils::EditorBuild(World, "MinimapBakeData");
+	if (!World) return;
+	
+	// create and reload datatable not work on post run, (because is not main tread)
+		
+	// create datatable if no exist
+	if (!LoadObject<UDataTable>(nullptr, *AssetPath, nullptr, LOAD_NoWarn | LOAD_NoRedirects))
+    {
+    	UPackage* Package = CreatePackage(*PackagePath);
+       		
+    	UDataTable* DataTable = NewObject<UDataTable>(Package, *AssetName, EObjectFlags::RF_Public | RF_Standalone);
+    	DataTable->RowStruct = FBakedMapData::StaticStruct();
+    
+    	FAssetRegistryModule::AssetCreated(DataTable);
+    	DataTable->GetPackage()->MarkPackageDirty();
+    }
+
+	// bake world partition world
+	{
+		FEditorBuildUtils::EditorBuild(World, "MinimapBakeData");
+	}
+
+	// reload datatable asset
+	{
+    	UDataTable* DataTable = LoadObject<UDataTable>(nullptr, *AssetPath);
+    	UPackage* Package = DataTable->GetPackage();
+    	UPackageTools::ReloadPackages({Package});
+	}
 }
 
 EEditorBuildResult UMinimapBakeData::ExecuteBuild(UWorld* InWorld, FName Name)
@@ -142,10 +182,6 @@ bool UMinimapBakeData::PostRun(UWorld* World, FPackageSourceControlHelper& Packa
 			ZeroLayer.MapObjects.Add(MapObjectData);
 		}
 	} 
-
-	// export data
-	ExportJson();
-	WriteDatatable();
 	
 	//log result data
 	{
@@ -169,6 +205,10 @@ bool UMinimapBakeData::PostRun(UWorld* World, FPackageSourceControlHelper& Packa
 			} 
 		}
 	}
+
+	// export data
+	ExportJson();
+	WriteDatatable();
 	
 	return true;
 }
@@ -186,10 +226,7 @@ FBakedMapLayerData* UMinimapBakeData::GetLayerDataForPoint(FVector IconPosition)
 
 void UMinimapBakeData::ExportJson()
 {
-	const auto Folder = FPaths::ProjectSavedDir() + "TestData/";
-	const auto LevelName = Data.LevelName;
-	const auto FileName = Folder + "MinimapData_" + LevelName + ".Json";
-	
+	const auto FileName = GetJsonFolder() + "MinimapData_" + Data.LevelName + ".Json";
 		
 	TSharedPtr<FJsonObject> MainJsonObject = FJsonObjectConverter::UStructToJsonObject(Data);
 	if (!MainJsonObject.IsValid())
@@ -222,31 +259,19 @@ void UMinimapBakeData::ExportJson()
 
 void UMinimapBakeData::WriteDatatable()
 {
-	//TODO
-	return;
-	
-	//edit datatable
-	FString AssetName = "/Script/Engine.DataTable'/Game/NetworkShoter/UI/Widgets/Minimap/NewDataTable.NewDataTable'";
-	
-    if (FindObject<UDataTable>(nullptr, *AssetName))
-    {
-	    UDataTable* DataTable = LoadObject<UDataTable>(nullptr, *AssetName);
-    	if (!DataTable) return;
+	UDataTable* DataTable = LoadObject<UDataTable>(nullptr, *AssetPath);
+	if (!DataTable) return;
 
-    	for (auto RowName : DataTable->GetRowNames())
-    		UE_LOG(LogTemp, Error, TEXT("Found row %s"), *RowName.ToString());
-	
-    	DataTable->AddRow(FName(Data.LevelName), Data);
-    } 
-    else
-    {
-	    /*
-        auto DataTable = NewObject<UDataTable>();
-        DataTable->RowStruct = FBakedMapData::StaticStruct();
-        
-        DataTable->AddRow(FName(Data.LevelName), Data);
-        */
-    }	
-	
+	// add new map row in datatable
+	DataTable->AddRow(FName(Data.LevelName), Data);
+
+	// save datatable
+	UPackage* Package = DataTable->GetPackage();
+	const FString PackageName = Package->GetName();
+	const FString PackageFileName = FPackageName::LongPackageNameToFilename(PackageName, FPackageName::GetAssetPackageExtension());
+
+	FSavePackageArgs SaveArgs;
+	SaveArgs.TopLevelFlags = RF_Standalone;
+	UPackage::SavePackage(Package, nullptr, *PackageFileName, FSavePackageArgs());
 }
 
