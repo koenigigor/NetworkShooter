@@ -131,7 +131,7 @@ bool UMinimapBakeData::RunInternal(UWorld* World, const FCellInfo& InCellInfo, F
 
 			auto& LayerData = Data.Layers.AddDefaulted_GetRef();
 			LayerData.Transform = Actor->GetActorTransform();
-			LayerData.Center = Origin;
+			LayerData.Center = LayerData.Transform.InverseTransformPosition(Origin);;
 			LayerData.Extend = LocalBounds.Min.GetAbs() + LocalBounds.Max.GetAbs() * 0.5;
 			LayerData.Layer = Collider->Layer;			
 		}
@@ -218,7 +218,8 @@ FBakedMapLayerData* UMinimapBakeData::GetLayerDataForPoint(FVector IconPosition)
 	//can be issues with not rectangle surfaces, (trace overlaps not works) (maybe need fill list in world on construction?)
 	return Data.Layers.FindByPredicate([&](const FBakedMapLayerData& Layer)
 	{
-		const auto IconLocalPosition = Layer.Transform.InverseTransformPosition(IconPosition);
+		const auto LocalCenter =  
+		const auto IconLocalPosition = Layer.Transform.InverseTransformPosition(IconPosition) + Layer.Center;
 		const auto Box = FBox(-Layer.Extend, Layer.Extend);
 		return Box.IsInside(IconLocalPosition);
 	});	

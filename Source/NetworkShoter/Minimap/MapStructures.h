@@ -52,10 +52,10 @@ struct FBakedMapLayerData
 {
 	GENERATED_BODY()
 	
-	// Box transform end extend
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FTransform Transform = FTransform::Identity;
 
+	// Center of collision in Local space
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FVector Center = FVector::ZeroVector;
 	
@@ -80,5 +80,8 @@ struct FBakedMapData : public FTableRowBase
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<FBakedMapLayerData> Layers;
+
+	/** return array of layers by 2d world position */
+	TArray<FBakedMapLayerData*> GetLayersAtPosition(FVector WorldPosition);
 };
 
