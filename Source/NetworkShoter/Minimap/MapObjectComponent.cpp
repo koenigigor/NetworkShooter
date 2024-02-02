@@ -4,14 +4,19 @@
 #include "MapObjectComponent.h"
 
 #include "CollisionChannels.h"
+#include "MapObject.h"
 #include "MinimapLayerCollider.h"
-
 #include "MinimapController.h"
-#include "Components/Image.h"
 
 UMapObjectComponent::UMapObjectComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
+
+	//default map object variant
+	MapObject = CreateDefaultSubobject<UMapObjectSimpleImage>("MapObject");
+
+	//todo not find any "Event Construct" for auto update parameters, layers
+	//MapObject->InitialLocation = GetOwner()->GetActorLocation();
 }
 
 
@@ -19,13 +24,17 @@ void UMapObjectComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	RefreshLayerVolumes(); //todo sometimes is overhead (movable icons)
+	UMinimapController::Get(this)->RegisterMapObject(this);
+	
+	RefreshLayerVolumes();
 	UpdateVisibility();
 }
 
 void UMapObjectComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	RemoveIcon();
+	//RemoveIcon();
+	
+	UMinimapController::Get(this)->UnregisterMapObject(this);
 	
 	Super::EndPlay(EndPlayReason);
 }
@@ -34,7 +43,7 @@ void UMapObjectComponent::UpdateVisibility()
 {
 	if (OverlappedVolumes.IsEmpty())
 	{
-		ShowIcon();
+		//ShowIcon();
 		return;
 	}
 	
@@ -42,25 +51,14 @@ void UMapObjectComponent::UpdateVisibility()
 	{
 		if (Volume->IsLayerActive())
 		{
-			ShowIcon();
+			//ShowIcon();
 			return;
 		}
 	}
 		
-	RemoveIcon();
+	//RemoveIcon();
 }
 
-void UMapObjectComponent::ShowIcon()
-{
-	const auto Map = UMinimapController::Get(this);
-	if (Map) Map->ShowIcon(this);	
-}
-
-void UMapObjectComponent::RemoveIcon()
-{
-	const auto Map = UMinimapController::Get(this);
-	if (Map) Map->RemoveIcon(this);		
-}
 
 int32 UMapObjectComponent::GetLayer() const
 {
@@ -119,7 +117,10 @@ void UMapObjectComponent::AddLayerVolume(UMinimapLayerCollider* Volume)
 	UpdateVisibility();
 	
 	if (bTopLayerChange)
-		OnLayerChange.Broadcast(this);
+	{
+		MapObject->Layer = GetLayer();
+		MapObject->OnLayerChange.Broadcast(MapObject);
+	}
 }
 
 void UMapObjectComponent::RemoveLayerVolume(UMinimapLayerCollider* Volume)
@@ -131,18 +132,8 @@ void UMapObjectComponent::RemoveLayerVolume(UMinimapLayerCollider* Volume)
 
 	const auto bTopLayerChange = Volume->Layer > GetLayer();
 	if (bTopLayerChange)
-		OnLayerChange.Broadcast(this);
+	{
+		MapObject->Layer = GetLayer();
+		MapObject->OnLayerChange.Broadcast(MapObject);
+	}
 }
-
-
-UWidget* UMapObjectComponent::CreateIcon_Implementation()
-{
-	//create simple Image, override for custom widget
-	const auto ImageWidget = NewObject<UImage>(this);
-	ImageWidget->SetBrushResourceObject(Image);
-	ImageWidget->SetDesiredSizeOverride(FVector2D(Size));
-	ImageWidget->Brush.SetImageSize(FVector2D(Size));
-	
-	return ImageWidget;
-}
-

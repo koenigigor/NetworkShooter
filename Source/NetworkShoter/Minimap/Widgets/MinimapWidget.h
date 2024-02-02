@@ -7,12 +7,10 @@
 #include "Blueprint/UserWidget.h"
 #include "MinimapWidget.generated.h"
 
-class UMapObjectComponent;
-class UMinimapIconWidget;
+class UMapObject;
+class UMapObjectWrapper;
 class UCanvasPanel;
-class UMinimapController;
 class UImage;
-class AMinimapBackground;
 
 /** Minimap widget contain background and icons
  *	ZOrder calculation:
@@ -29,10 +27,14 @@ protected:
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 	virtual FReply NativeOnMouseWheel(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 
-	UFUNCTION() void AddIcon(UMapObjectComponent* Icon);
-	UFUNCTION() void RemoveIcon(UMapObjectComponent* Icon);
+	void OnMapObjectAdd(const FString& LevelName, UMapObjectWrapper* MapObjectContainer);
+	void OnMapObjectUpdate(const FString& LevelName, UMapObjectWrapper* MapObjectContainer);
+	void OnMapObjectRemove(const FString& LevelName, UMapObjectWrapper* MapObjectContainer);
+	
+	void AddIcon(UMapObject* MapObject);
+	void RemoveIcon(UMapObject* MapObject);
 
-	void OnIconLayerChange(UMapObjectComponent* Icon);
+	void OnIconLayerChange(UMapObject* MapObject);
 
 	void UpdateCenterOfMap(float DeltaTime);
 	void MoveMap();
@@ -77,14 +79,16 @@ protected:
 	/** Get pivot on Mark canvas based on world location */
 	FVector2D WorldToMap(FVector WorldLocation) const;
 
-	bool IsSatisfiesFilter(UMapObjectComponent* Icon) const;
+	bool IsSatisfiesFilter(UMapObject* MapObject) const;
 
 protected:
 	/** World to map UV Scale [0,1] */
 	float SegmentSize = 10000.f;	
 	
 	UPROPERTY()
-	TMap<UMapObjectComponent*, UWidget*> IconObjects;
+	TMap<UMapObject*, UWidget*> MapObjects;
+	UPROPERTY()
+	TMap<FString, UMapObject*> MapObjectsIds;
 
 	/** Map (widget) center in map space */
 	FVector2D CenterOfMap;

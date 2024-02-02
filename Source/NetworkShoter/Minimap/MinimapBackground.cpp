@@ -3,6 +3,7 @@
 
 #include "MinimapBackground.h"
 
+#include "MapObject.h"
 #include "MapObjectComponent.h"
 #include "Components/BoxComponent.h"
 #include "Components/SceneCaptureComponent2D.h"
@@ -35,7 +36,7 @@ AMinimapBackground::AMinimapBackground()
 #endif
 
 	MapObjectComponent = CreateDefaultSubobject<UMapObjectComponent>("MapObject");
-	MapObjectComponent->bIcon = false;
+	MapObjectComponent->MapObject->bIcon = false;
 }
 
 void AMinimapBackground::OnConstruction(const FTransform& Transform)
@@ -57,12 +58,14 @@ void AMinimapBackground::Capture()
 	
 	SceneCapture->CaptureScene();
 
+	const auto MapObject = Cast<UMapObjectSimpleImage>(MapObjectComponent->MapObject);
+
 	//override current image if exist
-	if (bOverrideTexture && MapObjectComponent->Image)
+	if (bOverrideTexture && MapObject->Image)
 	{
-		RenderTarget->ConstructTexture2D( MapObjectComponent->Image->GetPackage(), MapObjectComponent->Image.GetName(), RenderTarget->GetMaskedFlags(), CTF_Default, nullptr );
-		MapObjectComponent->Size = Size;
-		MapObjectComponent->Image->MarkPackageDirty();
+		RenderTarget->ConstructTexture2D( MapObject->Image->GetPackage(), MapObject->Image.GetName(), RenderTarget->GetMaskedFlags(), CTF_Default, nullptr );
+		MapObject->Size = Size;
+		MapObject->Image->MarkPackageDirty();
 		return;
 	}
 
@@ -84,8 +87,8 @@ void AMinimapBackground::Capture()
 		FAssetRegistryModule::AssetCreated(NewTexture);
 
 		//Image = NewTexture;
-		MapObjectComponent->Image = NewTexture;
-		MapObjectComponent->Size = Size;
+		MapObject->Image = NewTexture;
+		MapObject->Size = Size;
 	}
 #endif	
 }

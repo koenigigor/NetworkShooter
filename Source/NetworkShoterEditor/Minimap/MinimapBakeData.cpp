@@ -145,7 +145,7 @@ bool UMinimapBakeData::RunInternal(UWorld* World, const FCellInfo& InCellInfo, F
 				
 			// get data ref to data or data cache
 			auto& ObjectData = ColliderDataRef ? ColliderDataRef->MapObjects.AddDefaulted_GetRef() : CachedObjectsData.AddDefaulted_GetRef();
-
+/*
 			// fill map object data
 			ObjectData.bIcon = MapObject->IsIcon();
 			ObjectData.Image = MapObject->Image;
@@ -155,6 +155,7 @@ bool UMinimapBakeData::RunInternal(UWorld* World, const FCellInfo& InCellInfo, F
 			ObjectData.WidgetPriority = MapObject->WidgetPriority;
 			//ObjectData.CustomWidgetClass; //todo
 			//ObjectData.CustomWidgetBinaryData;
+			*/
 		}
 	}
 	
@@ -218,7 +219,6 @@ FBakedMapLayerData* UMinimapBakeData::GetLayerDataForPoint(FVector IconPosition)
 	//can be issues with not rectangle surfaces, (trace overlaps not works) (maybe need fill list in world on construction?)
 	return Data.Layers.FindByPredicate([&](const FBakedMapLayerData& Layer)
 	{
-		const auto LocalCenter =  
 		const auto IconLocalPosition = Layer.Transform.InverseTransformPosition(IconPosition) + Layer.Center;
 		const auto Box = FBox(-Layer.Extend, Layer.Extend);
 		return Box.IsInside(IconLocalPosition);

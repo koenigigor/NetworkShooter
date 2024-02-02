@@ -4,12 +4,11 @@
 #include "MinimapWidget.h"
 
 #include "../MinimapController.h"
-#include "../MapObjectComponent.h"
-#include "../MinimapBackground.h"
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
 #include "MinimapIconWidget.h"
 #include "Components/Image.h"
+#include "Minimap/MapObject.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogMinimapWidget, All, All);
 
@@ -28,11 +27,12 @@ void UMinimapWidget::NativeOnInitialized()
 	const auto MinimapController = UMinimapController::Get(this);
 
 	//init icons
-	MinimapController->OnIconAdd.AddDynamic(this, &ThisClass::AddIcon);
-	MinimapController->OnIconRemove.AddDynamic(this, &ThisClass::RemoveIcon);
-	for (const auto& Icon : MinimapController->VisibleMapObjects)
-		AddIcon(Icon);
-	
+	const FString ObservedLevelName = GetWorld()->GetMapName();
+	MinimapController->OnMapObjectAdd.AddUObject(this, &ThisClass::OnMapObjectAdd);
+	MinimapController->OnMapObjectUpdate.AddUObject(this, &ThisClass::OnMapObjectUpdate);
+	MinimapController->OnMapObjectRemove.AddUObject(this, &ThisClass::OnMapObjectRemove);
+	for (const auto& [Name, Icon] : MinimapController->GetMapObjects(ObservedLevelName))
+		OnMapObjectAdd(ObservedLevelName, Icon);
 }
 
 void UMinimapWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
@@ -53,21 +53,73 @@ FReply UMinimapWidget::NativeOnMouseWheel(const FGeometry& InGeometry, const FPo
 	return FReply::Handled();
 }
 
-void UMinimapWidget::AddIcon(UMapObjectComponent* Icon)
+void UMinimapWidget::OnMapObjectAdd(const FString& LevelName, UMapObjectWrapper* MapObjectContainer)
 {
-	if (!IsSatisfiesFilter(Icon)) return;
+	const FString ObservedLevelName = GetWorld()->GetMapName();
+	if (LevelName.Equals(ObservedLevelName))
+	{
+		const auto MapObject = MapObjectContainer->Get(); //todo get map object for current map type
+
+		// add NEW icon, 
+		ensure(!MapObjectsIds.Contains(MapObject->GetUniqueName()));
+		AddIcon(MapObject);
+	}	
+}
+
+void UMinimapWidget::OnMapObjectRemove(const FString& LevelName, UMapObjectWrapper* MapObjectContainer)
+{
+	const FString ObservedLevelName = GetWorld()->GetMapName();
+	if (LevelName.Equals(ObservedLevelName))
+	{
+		if (MapObjectsIds.Contains(MapObjectContainer->Name))
+		{
+			RemoveIcon(MapObjectsIds[MapObjectContainer->Name]);
+		}
+	}
+}
+
+void UMinimapWidget::OnMapObjectUpdate(const FString& LevelName, UMapObjectWrapper* MapObjectContainer)
+{
+	const FString ObservedLevelName = GetWorld()->GetMapName();
+	if (LevelName.Equals(ObservedLevelName))
+	{
+		const auto NewMapObject = MapObjectContainer->Get(); //todo get map object for current map type
+
+		if (MapObjectsIds.Contains(MapObjectContainer->Name))
+		{
+			const auto CurrentMapObject = MapObjectsIds[MapObjectContainer->Name];
+			
+			// was added low priority map object, ignore
+			if (CurrentMapObject == NewMapObject) return;
+
+			//remove current, add new
+			RemoveIcon(CurrentMapObject);
+			AddIcon(NewMapObject);
+		}
+		else
+		{
+			AddIcon(NewMapObject);
+		}
+	}		
+}
+
+void UMinimapWidget::AddIcon(UMapObject* MapObject)
+{
+	//auto MapObject = MapObjectWrapper->Get(); //todo get icon for current map type (global, mini or compass)
 	
-	const auto IconWidget = Icon->CreateIcon();
+	if (!IsSatisfiesFilter(MapObject)) return;
+	
+	const auto IconWidget = MapObject->CreateWidget();
 	if (!IconWidget)
 	{
-		UE_LOG(LogTemp, Display, TEXT("Null icon widget in %s"), *Icon->GetOwner()->GetName())
+		UE_LOG(LogTemp, Display, TEXT("Null icon widget for map object %s"), *MapObject->GetUniqueName())
 		return;
 	}
 	
-	const auto ZOrder = Icon->IsIcon()
-		? Icon->GetLayer() * 10 + 5 + Icon->WidgetPriority		// Icon Layer + 5 + Priority
-		: Icon->GetLayer() * 10 + Icon->WidgetPriority;			// Background Layer + Priority;
-	const auto UV = WorldToMap(Icon->GetOwner()->GetActorLocation());
+	const auto ZOrder = MapObject->IsIcon()
+		? MapObject->GetLayer() * 10 + 5 + MapObject->WidgetPriority		// Icon Layer + 5 + Priority
+		: MapObject->GetLayer() * 10 + MapObject->WidgetPriority;			// Background Layer + Priority;
+	const auto UV = WorldToMap(MapObject->GetWorldLocation());
 
 	const auto CanvasSlot = MarkCanvas->AddChildToCanvas(IconWidget);
 	CanvasSlot->SetAutoSize(true);
@@ -75,43 +127,46 @@ void UMinimapWidget::AddIcon(UMapObjectComponent* Icon)
 	CanvasSlot->SetAnchors(FAnchors(UV.X, UV.Y));
 	CanvasSlot->SetZOrder(ZOrder);
 
-	if (Icon->IsIcon() && Icon->bScalable)
+	if (MapObject->IsScalable())
 	{
 		const auto ReverseScale = FVector2d(1.f) / RootCanvas->GetRenderTransform().Scale;
 		IconWidget->SetRenderScale(ReverseScale);
 	}
 	
-	IconObjects.Add(Icon, IconWidget);
+	MapObjects.Add(MapObject, IconWidget);
+	MapObjectsIds.Add(MapObject->GetUniqueName(), MapObject);
 
-	Icon->OnLayerChange.AddUObject(this, &ThisClass::OnIconLayerChange);
+	MapObject->OnLayerChange.AddUObject(this, &ThisClass::OnIconLayerChange);
 }
 
-void UMinimapWidget::RemoveIcon(UMapObjectComponent* Icon)
+void UMinimapWidget::RemoveIcon(UMapObject* MapObject)
 {
-	if (IconObjects.Contains(Icon))
+	if (MapObjects.Contains(MapObject))
 	{
-		IconObjects.FindAndRemoveChecked(Icon)->RemoveFromParent();
-		Icon->OnLayerChange.RemoveAll(this);
+		MapObjects.FindAndRemoveChecked(MapObject)->RemoveFromParent();
+		MapObjectsIds.FindAndRemoveChecked(MapObject->GetUniqueName());
+		MapObject->OnLayerChange.RemoveAll(this);
 	}
 }
 
-void UMinimapWidget::OnIconLayerChange(UMapObjectComponent* Icon)
+void UMinimapWidget::OnIconLayerChange(UMapObject* MapObject)
 {
-	UE_LOG(LogMinimapWidget, Display, TEXT("Icon %s change layer to %d"), *Icon->GetName(), Icon->GetLayer())
-	if (!ensure(IconObjects.Contains(Icon))) return;
+	UE_LOG(LogMinimapWidget, Display, TEXT("Icon %s change layer to %d"), *MapObject->GetUniqueName(), MapObject->GetLayer())
+	if (!ensure(MapObjects.Contains(MapObject))) return;
 
-	const auto ZOrder = Icon->GetLayer() * 10 + 9;
-	const auto CanvasSlot = StaticCast<UCanvasPanelSlot*>(IconObjects[Icon]->Slot);
-	CanvasSlot->SetZOrder(ZOrder);
+	const auto ZOrder = MapObject->GetLayer() * 10 + 9;
+	const auto CanvasSlot = StaticCast<UCanvasPanelSlot*>(MapObjects[MapObject]->Slot);
+	CanvasSlot->SetZOrder(ZOrder);	
 }
 
 void UMinimapWidget::UpdateIconLocations()
 {
-	for (auto [Icon, Widget] : IconObjects)
+	//todo different array for movable objects, for reduce costs
+	for (auto [MapObject, Widget] : MapObjects)
 	{
-		if (Icon->bMovable)
+		//if (MapObject->Get()->IsRuntimeObject())
 		{
-			const auto UV = WorldToMap(Icon->GetOwner()->GetActorLocation());
+			const auto UV = WorldToMap(MapObject->GetWorldLocation());
 			const auto CanvasSlot = StaticCast<UCanvasPanelSlot*>(Widget->Slot);
 			CanvasSlot->SetAnchors(FAnchors(UV.X, UV.Y));
 		}
@@ -125,9 +180,9 @@ void UMinimapWidget::ScaleMap(float Delta)
 	
 	//scale icons
 	const auto ReverseScale = FVector2d(1.0) / NewScale;
-	for (const auto& [Icon, Widget] : IconObjects)
+	for (const auto& [MapObject, Widget] : MapObjects)
 	{
-		if (Icon->IsScalable())
+		if (MapObject->IsScalable())
 		{
 			Widget->SetRenderScale(ReverseScale);
 		}
@@ -136,7 +191,7 @@ void UMinimapWidget::ScaleMap(float Delta)
 
 void UMinimapWidget::SetCenterOfMap(FVector2D NewCenter)
 {
-	//todo target layer, scale, in out interpolations with sine scale
+	//todo if change layer, scale, in out interpolations with sine scale
 	
 	CustomCenterOfMap = NewCenter;
 	CenterMapState = Custom;
@@ -217,20 +272,23 @@ FVector2D UMinimapWidget::WorldToMap(FVector WorldLocation) const
 	return FVector2D(1.0 + UV.Y, -UV.X);
 }
 
-bool UMinimapWidget::IsSatisfiesFilter(UMapObjectComponent* Icon) const
+bool UMinimapWidget::IsSatisfiesFilter(UMapObject* MapObject) const
 {
-	if (!Icon) return false;
-	if (!Icon->IsIcon()) return true; // background
+	// check tags filter
+	if (!MapObject) return false;
+	if (!MapObject->IsIcon()) return true; // background
 
 #if WITH_EDITOR
-	if (!Icon->FilterCategory.IsValid())
+	if (!MapObject->Category.IsValid())
 	{
-		UE_LOG(LogMinimapWidget, Warning, TEXT("Empty category for map icon %s, item will be ignored in package"), *Icon->GetOwner()->GetActorNameOrLabel())
+		UE_LOG(LogMinimapWidget, Warning, TEXT("Invalid category for icon %s"), *MapObject->GetUniqueName())
 		return true;
 	}
 #endif
+	
+	return Filter.HasTag(MapObject->Category);	
 
-	return Filter.HasTag(Icon->FilterCategory);
+	//todo also check layer
 }
 
 void UMinimapWidget::SetFilter(FGameplayTagContainer NewFilter)
@@ -238,10 +296,12 @@ void UMinimapWidget::SetFilter(FGameplayTagContainer NewFilter)
 	Filter = NewFilter;
 	
 	// add remove visible map objects
+	const FString ObservedLevelName = GetWorld()->GetMapName();
 	const auto MinimapController = UMinimapController::Get(this);
-	for (const auto& MapObject : MinimapController->VisibleMapObjects)
+	for (const auto& [Name, MapObjectContainer] : MinimapController->GetMapObjects(ObservedLevelName))
 	{
-		const auto bVisible = IconObjects.Contains(MapObject);
+		const auto MapObject = MapObjectContainer->Get();	//todo get map object for current map type
+		const auto bVisible = MapObjects.Contains(MapObject);
 		const auto bMustVisible = IsSatisfiesFilter(MapObject);
 		
 		if (!bVisible && bMustVisible)
@@ -259,10 +319,12 @@ void UMinimapWidget::AddFilter(FGameplayTag Tag)
 {
 	Filter.AddTag(Tag);
 
+	const FString ObservedLevelName = GetWorld()->GetMapName();
 	const auto MinimapController = UMinimapController::Get(this);
-	for (const auto& MapObject : MinimapController->VisibleMapObjects)
+	for (const auto& [Name, MapObjectContainer] : MinimapController->GetMapObjects(ObservedLevelName))
 	{
-		const auto bVisible = IconObjects.Contains(MapObject);
+		const auto MapObject = MapObjectContainer->Get();	//todo get map object for current map type
+		const auto bVisible = MapObjects.Contains(MapObject);
 		const auto bMustVisible = IsSatisfiesFilter(MapObject);
 		
 		if (!bVisible && bMustVisible)
@@ -276,7 +338,7 @@ void UMinimapWidget::RemoveFilter(FGameplayTag Tag)
 {
 	Filter.RemoveTag(Tag);
 
-	for (auto It = IconObjects.CreateIterator(); It; ++It)
+	for (auto It = MapObjects.CreateIterator(); It; ++It)
 	{
 		if (!IsSatisfiesFilter(It.Key()))
 			RemoveIcon(It.Key());
