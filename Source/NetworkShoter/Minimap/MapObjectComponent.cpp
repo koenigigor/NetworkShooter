@@ -14,9 +14,6 @@ UMapObjectComponent::UMapObjectComponent()
 
 	//default map object variant
 	MapObject = CreateDefaultSubobject<UMapObjectSimpleImage>("MapObject");
-
-	//todo not find any "Event Construct" for auto update parameters, layers
-	//MapObject->InitialLocation = GetOwner()->GetActorLocation();
 }
 
 
@@ -24,23 +21,25 @@ void UMapObjectComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	UMinimapController::Get(this)->RegisterMapObject(this);
-	
+	const auto MapController = UMinimapController::Get(this);
+	if (MapController) MapController->RegisterMapObject(this);
+
 	RefreshLayerVolumes();
-	UpdateVisibility();
+	UpdateLayer();
 }
 
 void UMapObjectComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	UMinimapController::Get(this)->UnregisterMapObject(this);
-	
+	const auto MapController = UMinimapController::Get(this);
+	if (MapController) MapController->UnregisterMapObject(this);
+
 	Super::EndPlay(EndPlayReason);
 }
 
-void UMapObjectComponent::UpdateVisibility()
+void UMapObjectComponent::UpdateLayer()
 {
-	const auto PreviousLayer = MapObject->GetLayer();
-	
+	const auto PreviousSublayer = MapObject->GetSublayer();
+
 	if (OverlappedVolumes.IsEmpty())
 	{
 		MapObject->LayerInfo = {"", "", 0};
@@ -59,15 +58,15 @@ void UMapObjectComponent::UpdateVisibility()
 			}
 		}
 
-		MapObject->LayerInfo = { ClosestLayer->OwningLayerStack, ClosestLayer->GetUniqueName(), ClosestLayer->Floor };
+		MapObject->LayerInfo = {ClosestLayer->LayerGroup, ClosestLayer->GetUniqueName(), ClosestLayer->Floor};
 	}
-	
-	if (!PreviousLayer.Equals(MapObject->GetLayer()))
+
+	if (!PreviousSublayer.Equals(MapObject->GetSublayer()))
 	{
 		MapObject->OnLayerChange.Broadcast(MapObject);
 
-		//if is player, notify player layer
-		if (const auto Pawn = GetOwner<APawn>(); Pawn && Pawn->IsLocallyControlled())
+		//if is player icon, notify player layer
+		if (const auto Pawn = GetOwner<APawn>(); Pawn && Pawn->IsPlayerControlled())
 		{
 			const auto MapController = UMinimapController::Get(this);
 			MapController->SetPlayerLayer(MapObject->LayerInfo);
@@ -96,28 +95,31 @@ void UMapObjectComponent::RefreshLayerVolumes()
 		FCollisionShape::MakeSphere(0.f),
 		Params);
 
+	// Set new volumes
 	for (const FOverlapResult& Hit : Hits)
 	{
 		const auto LayerCollider = Hit.GetActor()->FindComponentByClass<UMinimapLayerCollider>();
-		if (LayerCollider)
+		if (LayerCollider && !OverlappedVolumes.Contains(LayerCollider))
 		{
-			AddLayerVolume(LayerCollider);
+			OverlappedVolumes.Add(LayerCollider);
 		}
 	}
+
+	UpdateLayer();
 }
 
 void UMapObjectComponent::AddLayerVolume(UMinimapLayerCollider* Volume)
 {
 	if (OverlappedVolumes.Contains(Volume)) return;
-	
+
 	OverlappedVolumes.Add(Volume);
 
-	UpdateVisibility();
+	UpdateLayer();
 }
 
 void UMapObjectComponent::RemoveLayerVolume(UMinimapLayerCollider* Volume)
 {
 	OverlappedVolumes.Remove(Volume);
 
-	UpdateVisibility();
+	UpdateLayer();
 }

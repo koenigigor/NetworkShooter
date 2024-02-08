@@ -5,47 +5,45 @@
 #include "CoreMinimal.h"
 #include "MinimapLayerCollider.generated.h"
 
-class UMapObjectComponent;
-class UVisibilityCondition;
+class ULayerVisibilityCondition;
 
 
-/**	Component for trigger volume.
- *	Represent a map layer (ground, 1st floor, 2nd floor).
- *	Register in icon on overlap.
- *	Activate layer on overlap with player. */
-UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent), Blueprintable )
+/**	Layers collider for map abjects, must be attached to trigger volume.
+ *	Represent a map layer (1st floor, 2nd floor) */
+UCLASS(ClassGroup=(Minimap), meta=(BlueprintSpawnableComponent), NotBlueprintable)
 class NETWORKSHOTER_API UMinimapLayerCollider : public UActorComponent
 {
 	GENERATED_BODY()
-public:	
+public:
 	UMinimapLayerCollider();
 	virtual void BeginPlay() override;
-	UFUNCTION() void OnBeginOverlap(AActor* OverlappedActor, AActor* OtherActor);
-	UFUNCTION() void OnEndOverlap(AActor* OverlappedActor, AActor* OtherActor);
 
-	/** Layer stack name */
+	UFUNCTION()
+	void OnBeginOverlap(AActor* OverlappedActor, AActor* OtherActor);
+
+	UFUNCTION()
+	void OnEndOverlap(AActor* OverlappedActor, AActor* OtherActor);
+
+	/** Get asset unique name (same in pie and shipping builds) */
+	FString GetUniqueName() const;
+
+	/** The group this layer belongs to (Tower, Cave_01, etc)  */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FString OwningLayerStack;
+	FString LayerGroup;
 
-	/** Floor in level */
+	/** Floor in layer group */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 Floor = 0;
 
 #if WITH_EDITORONLY_DATA
-	
-	/** If layer has an irregular shape, use EditorOnly primitives (boxes) for bake layer bounds as simple data */
+
+	/** Layer visibility condition (like "require discover area first") */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Instanced)
+	ULayerVisibilityCondition* VisibilityCondition = nullptr;
+
+	/** If layer has an irregular shape, use box primitives (can be editor only) for bake layer bounds as simple data */
 	UPROPERTY(EditAnywhere, Category = "Layer")
 	TArray<AActor*> OptionalStaticLayerBounds;
 
-	/** Layer visibility condition, baked */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Instanced)
-	UVisibilityCondition* VisibilityCondition = nullptr;
-
 #endif
-	
-	FString GetUniqueName() const;
-	
-protected:
-	void OnOverlapPlayer();
-	void OnEndOverlapPlayer();
 };

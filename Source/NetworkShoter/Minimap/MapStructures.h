@@ -29,6 +29,12 @@ struct FLayerInfo
 	bool IsEmpty() const;
 };
 
+enum EMapObjectType
+{
+	Baked,
+	External,
+	Runtime
+};
 
 
 //class UWidget; //todo custom class

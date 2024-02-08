@@ -13,7 +13,7 @@ FString FLayerInfo::ToString() const
 {
 	if (LayerGroup.IsEmpty()) return "Is Ground";
 	
-	return "Group:" + LayerGroup + ", Sublayer: " + Sublayer + ", Floor: " + FString::FromInt(Floor);
+	return "Group:" + LayerGroup + ", Floor: " + FString::FromInt(Floor) + ", Sublayer: " + Sublayer;
 }
 
 bool FLayerInfo::IsSameLayer(const FLayerInfo& Other) const

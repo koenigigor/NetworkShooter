@@ -5,8 +5,6 @@
 
 #include "MapObjectComponent.h"
 
-DEFINE_LOG_CATEGORY_STATIC(LogMinimapCollider, All, All);
-
 UMinimapLayerCollider::UMinimapLayerCollider()
 {
 	PrimaryComponentTick.bCanEverTick = false;
@@ -27,14 +25,7 @@ void UMinimapLayerCollider::BeginPlay()
 
 void UMinimapLayerCollider::OnBeginOverlap(AActor* OverlappedActor, AActor* OtherActor)
 {
-	// If player activate layer
-	const auto Pawn = Cast<APawn>(OtherActor);
-	if (Pawn && Pawn->IsPlayerControlled() && Pawn->IsLocallyControlled())
-	{
-		OnOverlapPlayer();
-	}
-
-	// Notify register icon on overlap, (in Collier overlap, because icon actor can have lot overlaps, and it'll be not optimized performance)
+	// Notify icon on begin overlap
 	if (const auto Icon = OtherActor->FindComponentByClass<UMapObjectComponent>())
 	{
 		Icon->AddLayerVolume(this);
@@ -43,34 +34,16 @@ void UMinimapLayerCollider::OnBeginOverlap(AActor* OverlappedActor, AActor* Othe
 
 void UMinimapLayerCollider::OnEndOverlap(AActor* OverlappedActor, AActor* OtherActor)
 {
-	// Notify unregister icon on end overlap
+	// Notify icon on end overlap
 	if (const auto Icon = OtherActor->FindComponentByClass<UMapObjectComponent>())
 	{
 		Icon->RemoveLayerVolume(this);
 	}
-
-	// If player deactivate layer
-	const auto Pawn = Cast<APawn>(OtherActor);
-	if (Pawn && Pawn->IsPlayerControlled() && Pawn->IsLocallyControlled())
-	{
-		OnEndOverlapPlayer();
-	}
 }
-
-void UMinimapLayerCollider::OnOverlapPlayer()
-{
-	UE_LOG(LogMinimapCollider, Display, TEXT("Activate layer %s, Floor = %d"), *OwningLayerStack, Floor)
-}
-
-void UMinimapLayerCollider::OnEndOverlapPlayer()
-{
-	UE_LOG(LogMinimapCollider, Display, TEXT("Deactivate layer %s, Floor = %d"), *OwningLayerStack, Floor)
-}
-
 
 FString UMinimapLayerCollider::GetUniqueName() const
 {
-	//get unique name in format ActorName.ComponentName  (GetUniqueID() has different results)
+	//get unique name in format ActorName.ComponentName  (GetUniqueID() has different results in shipping)
 	FString OutString;
 	GetPathName(GetOuter()->GetOuter(), OutString);
 	return OutString;

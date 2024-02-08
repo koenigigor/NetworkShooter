@@ -9,7 +9,7 @@
 #include "PackageTools.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "Kismet2/KismetEditorUtilities.h"
-#include "Minimap/MapLayerStack.h"
+#include "Minimap/MapLayerGroup.h"
 #include "Minimap/MinimapLayerCollider.h"
 #include "UObject/SavePackage.h"
 #include "WorldPartition/IWorldPartitionEditorModule.h"
@@ -178,19 +178,19 @@ void UBuildMapLayers::AccumulateLayersData(UWorld* World, UMapLayersData* Layers
 		const auto Collider = Actor->FindComponentByClass<UMinimapLayerCollider>();
 		if (!Collider) continue;
 
-		auto StackName = Collider->OwningLayerStack;
+		auto StackName = Collider->LayerGroup;
 		auto ColliderName = Collider->GetUniqueName();
 		auto Floor = Collider->Floor;
 
 		// Find or add stack (group of layers)
-		const int32 Index = LayersData->LayerStacks.IndexOfByPredicate([&](const UMapLayerStack* Stack)
+		const int32 Index = LayersData->LayerStacks.IndexOfByPredicate([&](const UMapLayerGroup* Stack)
 		{
 			return Stack->UniqueName.Equals(StackName);
 		});
 
-		UMapLayerStack* Stack = Index != INDEX_NONE
+		UMapLayerGroup* Stack = Index != INDEX_NONE
 			                        ? LayersData->LayerStacks[Index]
-			                        : LayersData->LayerStacks.Add_GetRef(NewObject<UMapLayerStack>(LayersData, *FString("Stack" + StackIndex++),
+			                        : LayersData->LayerStacks.Add_GetRef(NewObject<UMapLayerGroup>(LayersData, *FString("Stack" + StackIndex++),
 				                        EObjectFlags::RF_Public | RF_Standalone));
 		if (Index == INDEX_NONE) Stack->UniqueName = StackName;
 
@@ -211,7 +211,7 @@ void UBuildMapLayers::AccumulateLayersData(UWorld* World, UMapLayersData* Layers
 
 		//set visibility by copy constructor
 		NewSublayer.VisibilityCondition = Collider->VisibilityCondition
-			                                  ? NewObject<UVisibilityCondition>(
+			                                  ? NewObject<ULayerVisibilityCondition>(
 				                                  LayersData,
 				                                  Collider->VisibilityCondition->GetClass(),
 				                                  *FString("Condition" + ConditionIndex++),

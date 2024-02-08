@@ -7,36 +7,35 @@
 #include "MinimapBackground.generated.h"
 
 class UBoxComponent;
-class UMinimapLayerCollider;
 class UMapObjectComponent;
 
-/** Minimap background image actor, represent map layer.
+/**	Support actor for minimap background image.
  *	In Editor, use Capture() for create render target image and set it to MapObject */
 UCLASS()
 class NETWORKSHOTER_API AMinimapBackground : public AActor
 {
 	GENERATED_BODY()
-public:	
+public:
 	AMinimapBackground();
 	virtual void OnConstruction(const FTransform& Transform) override;
 
 	/** Capture render target image */
 	UFUNCTION(CallInEditor, BlueprintCallable, Category = "Capture")
 	void Capture();
-	
+
 protected:
 #if WITH_EDITORONLY_DATA
-	/** Override map texture if exist, else create new */
+	/** Override texture if exist, or create new */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Capture")
 	bool bOverrideTexture = true;
-	
+
 	/** Size of background image */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Capture")
 	float Size = 2400.f;
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Capture")
 	UTextureRenderTarget2D* RenderTarget = nullptr;
-	
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	USceneCaptureComponent2D* SceneCapture = nullptr;
 
@@ -51,4 +50,3 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UMapObjectComponent* MapObjectComponent = nullptr;
 };
-

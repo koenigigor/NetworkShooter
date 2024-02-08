@@ -1,11 +1,11 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "MapLayerStack.h"
+#include "MapLayerGroup.h"
 
-bool UVisibilityCondition::IsVisible_Implementation() const { return true; }
+bool ULayerVisibilityCondition::IsVisible_Implementation() const { return true; }
 
-void UVisibilityCondition::Update()
+void ULayerVisibilityCondition::Update()
 {
 	if (OwningLayerStack.IsValid())
 	{
@@ -13,30 +13,34 @@ void UVisibilityCondition::Update()
 	}
 }
 
-void UMapLayerStack::PostInitProperties()
+void UMapLayerGroup::PostInitProperties()
 {
 	UObject::PostInitProperties();
 
-	if(GetOuter() && GetOuter()->GetWorld())
+	if (GetOuter() && GetOuter()->GetWorld())
 	{
 		Init();
 	}
 }
 
-void UMapLayerStack::Init()
+void UMapLayerGroup::Init()
 {
 	UE_LOG(LogTemp, Display, TEXT("UMapLayerStack::Init"))
-	
+
 	for (const auto& [Floor, Sublayers] : Floors)
 	{
 		for (const auto& Sublayer : Sublayers.Sublayers)
 		{
-			Sublayer.VisibilityCondition->OwningLayerStack = MakeWeakObjectPtr(this);
-		} 
-	} 
+			if (Sublayer.VisibilityCondition)
+			{
+				Sublayer.VisibilityCondition->OwningLayerStack = MakeWeakObjectPtr(this);
+				Sublayer.VisibilityCondition->BeginPlay();
+			}
+		}
+	}
 }
 
-bool UMapLayerStack::IsPointOnStack2D(FVector WorldLocation) const
+bool UMapLayerGroup::IsPointOnStack2D(FVector WorldLocation) const
 {
 	for (const auto& [Floor, Sublayers] : Floors)
 	{
@@ -52,16 +56,16 @@ bool UMapLayerStack::IsPointOnStack2D(FVector WorldLocation) const
 					}
 				}
 			}
-		} 
+		}
 	}
 
 	return false;
 }
 
-FVector UMapLayerStack::GetCenter() const
+FVector UMapLayerGroup::GetCenter() const
 {
 	// todo я очень очень не уверен в том что сделал
-	
+
 	FBox Box(EForceInit::ForceInit);
 
 	for (const auto& [Floor, Sublayers] : Floors)
@@ -80,7 +84,7 @@ FVector UMapLayerStack::GetCenter() const
 					Box += NewBounds.GetBox();
 				}
 			}
-		} 
+		}
 	}
 
 	return Box.GetCenter();

@@ -9,32 +9,45 @@
 
 class UMapObjectComponent;
 class UMapObject;
-class UMapObjectWrapper;
-class UMapLayerStack;
+class UMapObjectContainer;
+class UMapLayerGroup;
+
+/** Map objects on level */
+USTRUCT()
+struct FMapObjectsCache
+{
+	GENERATED_BODY()
+
+	/** Key - MapObject ID */
+	UPROPERTY()
+	TMap<FString, UMapObjectContainer*> Containers;
+};
 
 /** Game state component,
  *	Keep map icons and images, in different maps,
  *	Icon can be baked, runtime and external */
-UCLASS( ClassGroup=(Minimap), meta=(BlueprintSpawnableComponent) )
+UCLASS(ClassGroup=(Minimap), meta=(BlueprintSpawnableComponent))
 class NETWORKSHOTER_API UMinimapController : public UActorComponent
 {
 	GENERATED_BODY()
-public:	
+public:
 	UFUNCTION(BlueprintPure, DisplayName = "GetMinimapController", meta = (DefaultToSelf = "WorldContextObject", HidePin = "WorldContextObject"))
 	static UMinimapController* Get(UObject* WorldContextObject);
-	
+
 	UMinimapController();
 
 	void RegisterMapObject(UMapObjectComponent* Icon);
 	void UnregisterMapObject(UMapObjectComponent* Icon);
 
-	/** Return cached map objects for level [UniqueName, Object] */
-	const TMap<FString, UMapObjectWrapper*>& GetMapObjects(FString LevelName);
-	TMap<FString, UMapObjectWrapper*>& GetMapObjects_Mutable(FString LevelName);
+	void AddExternalIcon(UMapObject* MapObject, const FString& MapName, bool bNotify = true);
+	void RemoveExternalIcon(UMapObject* MapObject, const FString& MapName, bool bNotify = true);
 
-	DECLARE_MULTICAST_DELEGATE_TwoParams(FCachedMapObjetDelegate, const FString& LevelName, UMapObjectWrapper* MapObject);
+	/** Return cached map objects for level [UniqueName, Object] */
+	const TMap<FString, UMapObjectContainer*>& GetMapObjects(FString LevelName);
+
+	DECLARE_MULTICAST_DELEGATE_TwoParams(FCachedMapObjetDelegate, const FString& LevelName, UMapObjectContainer* MapObject);
 	FCachedMapObjetDelegate OnMapObjectAdd;
-	FCachedMapObjetDelegate OnMapObjectUpdate;	//add/remove new map object type in container
+	FCachedMapObjetDelegate OnMapObjectUpdate; //add/remove new map object type in container
 	FCachedMapObjetDelegate OnMapObjectRemove;
 	FCachedMapObjetDelegate OnMapObjectChangeLayer;
 
@@ -42,25 +55,16 @@ public:
 	FChangeLayerDelegate OnPlayerChangeLayer;
 	void SetPlayerLayer(FLayerInfo NewLayer);
 	const FLayerInfo& GetPlayerLayer() const { return PlayerLayer; };
+
+protected:
 	FLayerInfo PlayerLayer;
 
-	/** All loaded runtime map objects (registered and unregistered on begin play) */
-	UPROPERTY(BlueprintReadOnly)
-	TArray<UMapObjectComponent*> RuntimeMapComponents;
+	void AddMapObject_Internal(UMapObject* MapObject, EMapObjectType Type, const FString& MapName, bool bNotify = true);
+	void RemoveMapObject_Internal(UMapObject* MapObject, EMapObjectType Type, const FString& MapName, bool bNotify = true);
 
-	/** External map objects (ex. from quest, saved points etc) */
+	TMap<FString, UMapObjectContainer*>& GetMapObjects_Mutable(FString LevelName);
+
+	/** [LevelName - MapObjects on level] */
 	UPROPERTY()
-	TArray<UMapObject*> ExternalMapObjects;
-
-	void AddBaked_Internal(UMapObject* MapObject, const FString& MapName, bool bNotify = true);
-	void RemoveBaked_Internal(UMapObject* MapObject, const FString& MapName, bool bNotify = true);
-	void AddRuntime_Internal(UMapObject* MapObject, const FString& MapName, bool bNotify = true);
-	void RemoveRuntime_Internal(UMapObject* MapObject, const FString& MapName, bool bNotify = true);
-	void AddExternal_Internal(UMapObject* MapObject, const FString& MapName, bool bNotify = true);
-	void RemoveExternal_Internal(UMapObject* MapObject, const FString& MapName, bool bNotify = true);
-	
-	/** Cache map objects with override order Baked > External > Runtime if has same unique name
-	 *	[LevelName - TMap<ObjectName, Combined objects>]*/
-	TMap<FString, TMap<FString, UMapObjectWrapper*>> MapObjectsCache; //todo strong pointer
-	//TMap<FString, UMapLayerStack*> LayerStackCache;
+	TMap<FString, FMapObjectsCache> MapObjectsCache;
 };

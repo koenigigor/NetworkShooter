@@ -4,9 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
-#include "MapLayerStack.generated.h"
+#include "MapLayerGroup.generated.h"
 
-class UMapLayerStack;
+class UMapLayerGroup;
 
 USTRUCT(BlueprintType)
 struct FLayerBounds
@@ -14,11 +14,11 @@ struct FLayerBounds
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere)
-	FVector Center;
-	
+	FVector Center = FVector::ZeroVector;
+
 	UPROPERTY(EditAnywhere)
-	FVector LocalExtend;
-	
+	FVector LocalExtend = FVector::ZeroVector;
+
 	UPROPERTY(EditAnywhere)
 	FTransform Transform;
 
@@ -33,7 +33,7 @@ struct FLayerBounds
 /** Visibility condition for sublayer,
  *	if IsVisible() return false, this part of layer will be hidden (like area not discover) */
 UCLASS(DefaultToInstanced, EditInlineNew, Blueprintable)
-class NETWORKSHOTER_API UVisibilityCondition : public UObject
+class NETWORKSHOTER_API ULayerVisibilityCondition : public UObject
 {
 	GENERATED_BODY()
 public:
@@ -45,7 +45,10 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void Update();
 
-	TWeakObjectPtr<UMapLayerStack> OwningLayerStack;
+	UFUNCTION(BlueprintImplementableEvent)
+	void BeginPlay();
+
+	TWeakObjectPtr<UMapLayerGroup> OwningLayerStack;
 };
 
 /** Part of layer, can be enabled by condition (this part of floor not explored, etc)
@@ -63,10 +66,12 @@ struct FLayerSublayer
 	TArray<FLayerBounds> Bounds;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Instanced)
-	UVisibilityCondition* VisibilityCondition = nullptr;
+	ULayerVisibilityCondition* VisibilityCondition = nullptr;
+
+	bool IsVisible() const { return VisibilityCondition ? VisibilityCondition->IsVisible() : true; };
 };
 
-/** Group of separate subfloor in single floor */
+/** Group of sublayers in single floor */
 USTRUCT(BlueprintType)
 struct FLayerSublayers
 {
@@ -79,15 +84,15 @@ struct FLayerSublayers
 /** Single world map layer stack
  *	Using for identify single group of layers (like castle or cave) */
 UCLASS(DefaultToInstanced, EditInlineNew)
-class NETWORKSHOTER_API UMapLayerStack : public UObject
+class NETWORKSHOTER_API UMapLayerGroup : public UObject
 {
 	GENERATED_BODY()
 public:
 	virtual void PostInitProperties() override;
-	
+
 	UPROPERTY(EditAnywhere)
 	FString UniqueName;
-	
+
 	UPROPERTY(EditAnywhere)
 	TMap<int32, FLayerSublayers> Floors;
 
@@ -96,22 +101,21 @@ public:
 
 	/** True if point overlap layer stack bounds */
 	bool IsPointOnStack2D(FVector WorldLocation) const;
-	
+
 	/** Return center of layer stack bounds, use for identify closest layer stack, if found multiple */
 	FVector GetCenter() const;
 
-	DECLARE_MULTICAST_DELEGATE_OneParam(FMapLayerStackDelegate, UMapLayerStack* MapLayerStack);
+	DECLARE_MULTICAST_DELEGATE_OneParam(FMapLayerStackDelegate, UMapLayerGroup* MapLayerStack);
 	FMapLayerStackDelegate OnSublayerVisibilityUpdate;
 };
 
 
-
-/** Data asset with baked information about all layers on map */
+/** Data blueprint with baked information about all layers on map */
 UCLASS(Blueprintable)
 class NETWORKSHOTER_API UMapLayersData : public UObject
 {
 	GENERATED_BODY()
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Instanced)
-	TArray<UMapLayerStack*> LayerStacks;
+	TArray<UMapLayerGroup*> LayerStacks;
 };

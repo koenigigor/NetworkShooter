@@ -9,7 +9,7 @@
 #include "MinimapWidget.generated.h"
 
 class UMapObject;
-class UMapObjectWrapper;
+class UMapObjectContainer;
 class UCanvasPanel;
 class UImage;
 
@@ -28,32 +28,30 @@ protected:
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 	virtual FReply NativeOnMouseWheel(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 
-	void OnMapObjectAdd(const FString& LevelName, UMapObjectWrapper* MapObjectContainer);
-	void OnMapObjectUpdate(const FString& LevelName, UMapObjectWrapper* MapObjectContainer);
-	void OnMapObjectRemove(const FString& LevelName, UMapObjectWrapper* MapObjectContainer);
-	void OnMapObjectChangeLayer(const FString& LevelName, UMapObjectWrapper* MapObjectContainer);
-	
+	void OnMapObjectAdd(const FString& LevelName, UMapObjectContainer* MapObjectContainer);
+	void OnMapObjectUpdate(const FString& LevelName, UMapObjectContainer* MapObjectContainer);
+	void OnMapObjectRemove(const FString& LevelName, UMapObjectContainer* MapObjectContainer);
+	void OnMapObjectChangeLayer(const FString& LevelName, UMapObjectContainer* MapObjectContainer);
+
 	void AddIcon(UMapObject* MapObject);
 	void RemoveIcon(UMapObject* MapObject);
 
-	void OnIconLayerChange(UMapObject* MapObject);
-
 	void UpdateCenterOfMap(float DeltaTime);
 	void MoveMap();
-	void UpdateIconLocations();
+	void MoveIcons();
 	void ScaleMap(float Delta);
-	
+
 public:
 	UFUNCTION(BlueprintCallable)
 	void SetCenterOfMap(FVector2D NewCenter);
 	UFUNCTION(BlueprintPure)
 	FVector2D GetCenterOfMap() const { return CenterOfMap; };
-	
+
 	/** Reset custom center of map, return to player */
-    UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable)
 	void CenterToPlayer();
 
-	
+
 	UFUNCTION(BlueprintCallable)
 	void SetFilter(FGameplayTagContainer NewFilter);
 	UFUNCTION(BlueprintCallable)
@@ -61,31 +59,31 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void RemoveFilter(FGameplayTag Tag);
 
-	
+
 	void SetObservedLayer(const FLayerInfo& NewLayer);
 	void OnPlayerChangeLayer(const FLayerInfo& NewLayer);
-	
+
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	bool bRotateMap = false;
-    
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Scale")
 	float WheelScaleStep = 0.1f;
-    
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Scale")
 	float MinScale = 0.05f;
-    
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Scale")
 	float MaxScale = 5.00f;
-	
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Filter", meta = (Categories="Map"))
-	FGameplayTagContainer Filter;	
+	FGameplayTagContainer Filter;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Filter")
 	FLayerInfo ObservedLayer;
 
 	FString ObservedLevelName;
-	
+
 protected:
 	/** Get pivot on Mark canvas based on world location */
 	FVector2D WorldToMap(FVector WorldLocation) const;
@@ -95,15 +93,11 @@ protected:
 
 	/** Iterate all icons on level, enable/disable it by filter and layer */
 	void RegenerateMap();
-	
+
 protected:
 	/** World to map UV Scale [0,1] */
-	float SegmentSize = 10000.f;	
-	
-	UPROPERTY()
-	TMap<UMapObject*, UWidget*> MapObjects;
-	UPROPERTY()
-	TMap<FString, UMapObject*> MapObjectsIds;
+	float SegmentSize = 10000.f;
+
 
 	/** Map (widget) center in map space */
 	FVector2D CenterOfMap;
@@ -120,11 +114,18 @@ protected:
 		Custom,
 		CustomToPlayer
 	};
+
 	ECenterMapState CenterMapState;
 	FTimerHandle UseCustomCenterOfMapTimer;
 	FVector2D CustomCenterOfMap;
 
-/// Widgets	
+
+	UPROPERTY()
+	TMap<UMapObject*, UWidget*> MapObjects;
+	UPROPERTY()
+	TMap<FString, UMapObject*> MapObjectsIds;
+
+	/// Widgets	
 protected:
 	/** Player centred panel, mark canvas moves along it */
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
@@ -134,4 +135,3 @@ protected:
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
 	UCanvasPanel* MarkCanvas = nullptr;
 };
-

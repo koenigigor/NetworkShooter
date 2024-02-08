@@ -29,50 +29,42 @@ UMinimapController::UMinimapController()
 
 void UMinimapController::RegisterMapObject(UMapObjectComponent* Icon)
 {
-	RuntimeMapComponents.Add(Icon);
-
-	// update cached map objects, call delegates
 	const auto LevelName = GetWorld()->GetMapName();
-	AddRuntime_Internal(Icon->MapObject, LevelName);
+	AddMapObject_Internal(Icon->MapObject, Runtime, LevelName);
 }
 
 void UMinimapController::UnregisterMapObject(UMapObjectComponent* Icon)
-{	
-	RuntimeMapComponents.Remove(Icon);
-
-	// update cached map objects, call delegates
+{
 	const auto LevelName = GetWorld()->GetMapName();
-	RemoveRuntime_Internal(Icon->MapObject, LevelName);
+	RemoveMapObject_Internal(Icon->MapObject, Runtime, LevelName);
 }
 
 
-TMap<FString, UMapObjectWrapper*>& UMinimapController::GetMapObjects_Mutable(FString LevelName)
+TMap<FString, UMapObjectContainer*>& UMinimapController::GetMapObjects_Mutable(FString LevelName)
 {
 	if (MapObjectsCache.Contains(LevelName))
 	{
-		return MapObjectsCache[LevelName];
+		return MapObjectsCache[LevelName].Containers;
 	}
 
 	UE_LOG(LogMinimapController, Log, TEXT("Load map objects for level %s"), *LevelName)
 
-	auto& MapObjectsRow = MapObjectsCache.Add(LevelName);
-	
-	// Add baked objects in cache	//todo
+	MapObjectsCache.Add(LevelName);
+
+	// todo load baked (and external?) objects for different level
+	/*
 	//GetMutableDefaults...
 	TArray<UMapObject*> BakedObjects{};
 	for (const auto& BakedObject : BakedObjects)
 	{
-		AddBaked_Internal(BakedObject, LevelName, false);
+		AddMapObject_Internal(BakedObject, EMapObjectType::Baked, LevelName, false);
 	}
+	*/
 
-	//todo external objects
-		//todo how about level (add property in Object)
-		//todo how about pointer to different level door
-	
-	return MapObjectsCache[LevelName];
+	return MapObjectsCache[LevelName].Containers;
 }
 
-const TMap<FString, UMapObjectWrapper*>&  UMinimapController::GetMapObjects(FString LevelName)
+const TMap<FString, UMapObjectContainer*>& UMinimapController::GetMapObjects(FString LevelName)
 {
 	return GetMapObjects_Mutable(LevelName);
 }
@@ -86,83 +78,53 @@ void UMinimapController::SetPlayerLayer(FLayerInfo NewLayer)
 	OnPlayerChangeLayer.Broadcast(PlayerLayer);
 }
 
-void UMinimapController::AddBaked_Internal(UMapObject* MapObject, const FString& MapName, bool bNotify)
+
+void UMinimapController::AddExternalIcon(UMapObject* MapObject, const FString& MapName, bool bNotify)
 {
-	const auto& ObjectName = MapObject->GetUniqueName();
-	auto& MapObjectsRow = GetMapObjects_Mutable(MapName);
-	
-	if (MapObjectsRow.Contains(ObjectName))
-	{
-		const auto MapObjectWrapper = MapObjectsRow[ObjectName]->AddBaked(MapObject);
-		if (bNotify)
-			OnMapObjectUpdate.Broadcast(MapName, MapObjectWrapper);
-	}
-	else
-	{
-		const auto MapObjectWrapper = MapObjectsRow.Add(ObjectName, NewObject<UMapObjectWrapper>()->AddBaked(MapObject));
-		if (bNotify)
-			OnMapObjectAdd.Broadcast(MapName, MapObjectWrapper);
-	}
+	AddMapObject_Internal(MapObject, External, MapName, bNotify);
 }
 
-void UMinimapController::RemoveBaked_Internal(UMapObject* MapObject, const FString& MapName, bool bNotify)
+void UMinimapController::RemoveExternalIcon(UMapObject* MapObject, const FString& MapName, bool bNotify)
 {
-	const auto& ObjectName = MapObject->GetUniqueName();
-	auto& MapObjectsRow = GetMapObjects_Mutable(MapName);
-	
-	const auto MapObjectWrapper = MapObjectsRow[ObjectName];
-	check(MapObjectWrapper);
-	
-	MapObjectWrapper->RemoveBaked();
-	if (!MapObjectWrapper->IsValid())
-	{
-		MapObjectsRow.Remove(ObjectName);
-		if (bNotify)
-			OnMapObjectRemove.Broadcast(MapName, MapObjectWrapper);
-	}
-	else
-	{
-		if (bNotify)
-			OnMapObjectUpdate.Broadcast(MapName, MapObjectWrapper);
-	}
+	RemoveMapObject_Internal(MapObject, External, MapName, bNotify);
 }
 
-void UMinimapController::AddRuntime_Internal(UMapObject* MapObject, const FString& MapName, bool bNotify)
+void UMinimapController::AddMapObject_Internal(UMapObject* MapObject, EMapObjectType Type, const FString& MapName, bool bNotify)
 {
 	const auto& ObjectName = MapObject->GetUniqueName();
 	auto& MapObjectsRow = GetMapObjects_Mutable(MapName);
-	
+
 	if (MapObjectsRow.Contains(ObjectName))
 	{
-		const auto MapObjectWrapper = MapObjectsRow[ObjectName]->AddRuntime(MapObject);
+		const auto MapObjectWrapper = MapObjectsRow[ObjectName]->Add(MapObject, Type);
 		if (bNotify)
 			OnMapObjectUpdate.Broadcast(MapName, MapObjectWrapper);
 	}
 	else
 	{
-		const auto MapObjectWrapper = MapObjectsRow.Add(ObjectName, NewObject<UMapObjectWrapper>()->AddRuntime(MapObject));
+		const auto MapObjectWrapper = MapObjectsRow.Add(ObjectName, NewObject<UMapObjectContainer>()->Add(MapObject, Type));
 
-		MapObjectWrapper->OnLayerChange.AddLambda([&](UMapObjectWrapper* Wrapper)
+		MapObjectWrapper->OnLayerChange.AddLambda([&](UMapObjectContainer* Wrapper)
 		{
 			OnMapObjectChangeLayer.Broadcast(GetWorld()->GetMapName(), Wrapper);
 		});
-		
+
 		if (bNotify)
 			OnMapObjectAdd.Broadcast(MapName, MapObjectWrapper);
-	}	
+	}
 }
 
-void UMinimapController::RemoveRuntime_Internal(UMapObject* MapObject, const FString& MapName, bool bNotify)
+void UMinimapController::RemoveMapObject_Internal(UMapObject* MapObject, EMapObjectType Type, const FString& MapName, bool bNotify)
 {
 	const auto& ObjectName = MapObject->GetUniqueName();
 	auto& MapObjectsRow = GetMapObjects_Mutable(MapName);
 
 	if (!ensure(MapObjectsRow.Contains(ObjectName))) return;
-	
+
 	const auto MapObjectWrapper = MapObjectsRow[ObjectName];
 	check(MapObjectWrapper);
-	
-	MapObjectWrapper->RemoveRuntime();
+
+	MapObjectWrapper->Remove(Type);
 	if (!MapObjectWrapper->IsValid())
 	{
 		MapObjectsRow.Remove(ObjectName);
@@ -175,45 +137,3 @@ void UMinimapController::RemoveRuntime_Internal(UMapObject* MapObject, const FSt
 			OnMapObjectUpdate.Broadcast(MapName, MapObjectWrapper);
 	}
 }
-
-void UMinimapController::AddExternal_Internal(UMapObject* MapObject, const FString& MapName, bool bNotify)
-{
-	const auto& ObjectName = MapObject->GetUniqueName();
-	auto& MapObjectsRow = GetMapObjects_Mutable(MapName);
-	
-	if (MapObjectsRow.Contains(ObjectName))
-	{
-		const auto MapObjectWrapper = MapObjectsRow[ObjectName]->AddExternal(MapObject);
-		if (bNotify)
-			OnMapObjectUpdate.Broadcast(MapName, MapObjectWrapper);
-	}
-	else
-	{
-		const auto MapObjectWrapper = MapObjectsRow.Add(ObjectName, NewObject<UMapObjectWrapper>()->AddExternal(MapObject));
-		if (bNotify)
-			OnMapObjectAdd.Broadcast(MapName, MapObjectWrapper);
-	}
-}
-
-void UMinimapController::RemoveExternal_Internal(UMapObject* MapObject, const FString& MapName, bool bNotify)
-{
-	const auto& ObjectName = MapObject->GetUniqueName();
-	auto& MapObjectsRow = GetMapObjects_Mutable(MapName);
-	
-	const auto MapObjectWrapper = MapObjectsRow[ObjectName];
-	check(MapObjectWrapper);
-	
-	MapObjectWrapper->RemoveExternal();
-	if (!MapObjectWrapper->IsValid())
-	{
-		MapObjectsRow.Remove(ObjectName);
-		if (bNotify)
-			OnMapObjectRemove.Broadcast(MapName, MapObjectWrapper);
-	}
-	else
-	{
-		if (bNotify)
-			OnMapObjectUpdate.Broadcast(MapName, MapObjectWrapper);
-	}
-}
-
