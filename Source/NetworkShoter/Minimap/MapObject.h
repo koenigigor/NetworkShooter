@@ -22,11 +22,10 @@ public:
 	const FString& GetUniqueName() const;
 	FVector GetWorldLocation() const;
 
-	/** Highest value of layer (floor), used as ZOrder in multi layer view */
-	int32 GetLayer() const {return Layer; }
-
-	/** Unique layer ID todo */
-	int32 GetLayerID() const {return Layer; }
+	FString GetLayerGroup() const { return LayerInfo.LayerGroup; }
+	FString GetLayer() const { return LayerInfo.Sublayer; }
+	int32 GetFloor() const { return LayerInfo.Floor; }
+	int32 GetFloorAbs() const { return FMath::Abs(LayerInfo.Floor); }
 	
 	/** Create icon widget, override for specify */
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
@@ -36,24 +35,25 @@ public:
 	/** Called on runtime objects when it change own map layer */
     FOnLayerChange OnLayerChange;
 
-	
+	UPROPERTY(VisibleAnywhere, Category = "Layer")
+	FLayerInfo LayerInfo;
 	
 //protected:
 	
 	/** Is icon or background */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Icon")
 	bool bIcon = true;
 	
 	/** Icon widget has static size or scale with minimap */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (EditCondition = "bIcon"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Icon", meta = (EditCondition = "bIcon"))
 	bool bScalable = true;
 
 	/** Icon category for filter (shop, npc, chest) */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (EditCondition = "bIcon", Categories="Map"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Icon", meta = (EditCondition = "bIcon", Categories="Map"))
 	FGameplayTag Category = TAG_MAP_DEFAULT;	
 
 	/** eq. Widget z order priority in layer space, [0..3] */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Image", meta = (ClampMin=0, ClampMax=3))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Icon", meta = (ClampMin=0, ClampMax=3))
 	int32 WidgetPriority = 0;	
 
 	mutable FString UniqueName;
@@ -62,9 +62,6 @@ public:
 	/** Default icon world location, auto setup */
 	UPROPERTY(EditAnywhere)	//todo how save it without construct event
 	FVector InitialLocation;
-
-	UPROPERTY(EditAnywhere) //todo also save
-	int32 Layer;
 };
 
 /** Simple map object version with static image */

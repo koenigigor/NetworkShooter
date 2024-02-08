@@ -13,6 +13,24 @@ UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_MAP_AMMO);
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_MAP_CHEST);
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_MAP_MISC);
 
+/** Encapsulated main info about layer for clean view */
+USTRUCT(BlueprintType)
+struct FLayerInfo
+{
+	GENERATED_BODY()
+
+	FString LayerGroup;
+	FString Sublayer;
+	int32 Floor = 0;
+
+	FString ToString() const;
+	bool IsSameLayer(const FLayerInfo& Other) const;
+	bool IsSameLayerGroup(const FLayerInfo& Other) const;
+	bool IsEmpty() const;
+};
+
+
+
 //class UWidget; //todo custom class
 
 /** Map object data for bake/json export */

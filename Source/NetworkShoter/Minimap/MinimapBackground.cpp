@@ -90,6 +90,8 @@ void AMinimapBackground::Capture()
 		MapObject->Image = NewTexture;
 		MapObject->Size = Size;
 	}
+
+	MarkPackageDirty();
 #endif	
 }
 

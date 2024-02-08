@@ -27,10 +27,14 @@ void UMinimapWidget::NativeOnInitialized()
 	const auto MinimapController = UMinimapController::Get(this);
 
 	//init icons
-	const FString ObservedLevelName = GetWorld()->GetMapName();
+	ObservedLevelName = GetWorld()->GetMapName();
+
+	ObservedLayer = MinimapController->GetPlayerLayer();
 	MinimapController->OnMapObjectAdd.AddUObject(this, &ThisClass::OnMapObjectAdd);
 	MinimapController->OnMapObjectUpdate.AddUObject(this, &ThisClass::OnMapObjectUpdate);
 	MinimapController->OnMapObjectRemove.AddUObject(this, &ThisClass::OnMapObjectRemove);
+	MinimapController->OnMapObjectChangeLayer.AddUObject(this, &ThisClass::OnMapObjectChangeLayer);
+	MinimapController->OnPlayerChangeLayer.AddUObject(this, &ThisClass::OnPlayerChangeLayer);
 	for (const auto& [Name, Icon] : MinimapController->GetMapObjects(ObservedLevelName))
 		OnMapObjectAdd(ObservedLevelName, Icon);
 }
@@ -55,7 +59,6 @@ FReply UMinimapWidget::NativeOnMouseWheel(const FGeometry& InGeometry, const FPo
 
 void UMinimapWidget::OnMapObjectAdd(const FString& LevelName, UMapObjectWrapper* MapObjectContainer)
 {
-	const FString ObservedLevelName = GetWorld()->GetMapName();
 	if (LevelName.Equals(ObservedLevelName))
 	{
 		const auto MapObject = MapObjectContainer->Get(); //todo get map object for current map type
@@ -68,7 +71,6 @@ void UMinimapWidget::OnMapObjectAdd(const FString& LevelName, UMapObjectWrapper*
 
 void UMinimapWidget::OnMapObjectRemove(const FString& LevelName, UMapObjectWrapper* MapObjectContainer)
 {
-	const FString ObservedLevelName = GetWorld()->GetMapName();
 	if (LevelName.Equals(ObservedLevelName))
 	{
 		if (MapObjectsIds.Contains(MapObjectContainer->Name))
@@ -78,9 +80,17 @@ void UMinimapWidget::OnMapObjectRemove(const FString& LevelName, UMapObjectWrapp
 	}
 }
 
+void UMinimapWidget::OnMapObjectChangeLayer(const FString& LevelName, UMapObjectWrapper* MapObjectContainer)
+{
+	// add icon if new icon was move to current layer (existing icons updates by OnIconLayerChange) //todo combine they
+	if (MapObjectsIds.Contains(MapObjectContainer->Name)) return;
+	if (!ObservedLevelName.Equals(LevelName)) return;
+
+	AddIcon(MapObjectContainer->Get());
+}
+
 void UMinimapWidget::OnMapObjectUpdate(const FString& LevelName, UMapObjectWrapper* MapObjectContainer)
 {
-	const FString ObservedLevelName = GetWorld()->GetMapName();
 	if (LevelName.Equals(ObservedLevelName))
 	{
 		const auto NewMapObject = MapObjectContainer->Get(); //todo get map object for current map type
@@ -107,7 +117,9 @@ void UMinimapWidget::AddIcon(UMapObject* MapObject)
 {
 	//auto MapObject = MapObjectWrapper->Get(); //todo get icon for current map type (global, mini or compass)
 	
-	if (!IsSatisfiesFilter(MapObject)) return;
+	UE_LOG(LogTemp, Display, TEXT("pre AddIcon"))
+	if (!(IsSatisfiesFilter(MapObject) && IsSatisfiesLayer(MapObject))) return;
+	UE_LOG(LogTemp, Display, TEXT("post AddIcon"))
 	
 	const auto IconWidget = MapObject->CreateWidget();
 	if (!IconWidget)
@@ -117,8 +129,8 @@ void UMinimapWidget::AddIcon(UMapObject* MapObject)
 	}
 	
 	const auto ZOrder = MapObject->IsIcon()
-		? MapObject->GetLayer() * 10 + 5 + MapObject->WidgetPriority		// Icon Layer + 5 + Priority
-		: MapObject->GetLayer() * 10 + MapObject->WidgetPriority;			// Background Layer + Priority;
+		? MapObject->GetFloorAbs() * 10 + 5 + MapObject->WidgetPriority		// Icon Layer + 5 + Priority
+		: MapObject->GetFloorAbs() * 10 + MapObject->WidgetPriority;			// Background Layer + Priority;
 	const auto UV = WorldToMap(MapObject->GetWorldLocation());
 
 	const auto CanvasSlot = MarkCanvas->AddChildToCanvas(IconWidget);
@@ -132,6 +144,8 @@ void UMinimapWidget::AddIcon(UMapObject* MapObject)
 		const auto ReverseScale = FVector2d(1.f) / RootCanvas->GetRenderTransform().Scale;
 		IconWidget->SetRenderScale(ReverseScale);
 	}
+	
+	UE_LOG(LogTemp, Display, TEXT("AddIcon Z = %d"), ZOrder)
 	
 	MapObjects.Add(MapObject, IconWidget);
 	MapObjectsIds.Add(MapObject->GetUniqueName(), MapObject);
@@ -151,12 +165,20 @@ void UMinimapWidget::RemoveIcon(UMapObject* MapObject)
 
 void UMinimapWidget::OnIconLayerChange(UMapObject* MapObject)
 {
-	UE_LOG(LogMinimapWidget, Display, TEXT("Icon %s change layer to %d"), *MapObject->GetUniqueName(), MapObject->GetLayer())
+	UE_LOG(LogMinimapWidget, Display, TEXT("Icon %s change layer to %d"), *MapObject->GetUniqueName(), MapObject->GetFloor())
 	if (!ensure(MapObjects.Contains(MapObject))) return;
 
-	const auto ZOrder = MapObject->GetLayer() * 10 + 9;
-	const auto CanvasSlot = StaticCast<UCanvasPanelSlot*>(MapObjects[MapObject]->Slot);
-	CanvasSlot->SetZOrder(ZOrder);	
+	//todo observed layer, observed layer group, floor, visibility settings for other floors
+	if (IsSatisfiesLayer(MapObject))
+	{
+		const auto ZOrder = MapObject->GetFloorAbs() * 10 + 9;
+		const auto CanvasSlot = StaticCast<UCanvasPanelSlot*>(MapObjects[MapObject]->Slot);
+		CanvasSlot->SetZOrder(ZOrder);
+	}
+	else
+	{
+		RemoveIcon(MapObject);
+	}
 }
 
 void UMinimapWidget::UpdateIconLocations()
@@ -296,30 +318,13 @@ void UMinimapWidget::SetFilter(FGameplayTagContainer NewFilter)
 	Filter = NewFilter;
 	
 	// add remove visible map objects
-	const FString ObservedLevelName = GetWorld()->GetMapName();
-	const auto MinimapController = UMinimapController::Get(this);
-	for (const auto& [Name, MapObjectContainer] : MinimapController->GetMapObjects(ObservedLevelName))
-	{
-		const auto MapObject = MapObjectContainer->Get();	//todo get map object for current map type
-		const auto bVisible = MapObjects.Contains(MapObject);
-		const auto bMustVisible = IsSatisfiesFilter(MapObject);
-		
-		if (!bVisible && bMustVisible)
-		{
-			AddIcon(MapObject);
-		}
-		else if (bVisible && !bMustVisible)
-		{
-			RemoveIcon(MapObject);
-		}
-	} 
+	RegenerateMap();
 }
 
 void UMinimapWidget::AddFilter(FGameplayTag Tag)
 {
 	Filter.AddTag(Tag);
 
-	const FString ObservedLevelName = GetWorld()->GetMapName();
 	const auto MinimapController = UMinimapController::Get(this);
 	for (const auto& [Name, MapObjectContainer] : MinimapController->GetMapObjects(ObservedLevelName))
 	{
@@ -343,4 +348,54 @@ void UMinimapWidget::RemoveFilter(FGameplayTag Tag)
 		if (!IsSatisfiesFilter(It.Key()))
 			RemoveIcon(It.Key());
 	}
+}
+
+bool UMinimapWidget::IsSatisfiesLayer(UMapObject* MapObject) const
+{
+	//return MapObject->LayerInfo.IsSameLayer(ObservedLayer);
+	
+	// todo get map controller -> is layer visible
+	
+	// show icons only on same layer
+	if (MapObject->IsIcon())
+	{
+		return MapObject->LayerInfo.IsSameLayer(ObservedLayer);
+	}
+
+	// show backgrounds on same layer or ground
+	return MapObject->LayerInfo.IsEmpty() || MapObject->LayerInfo.IsSameLayer(ObservedLayer);
+}
+
+void UMinimapWidget::SetObservedLayer(const FLayerInfo& NewLayer)
+{
+	ObservedLayer = NewLayer;
+	UE_LOG(LogTemp, Display, TEXT("SetObservedLayer: %s"), *ObservedLayer.ToString())
+	
+	RegenerateMap();
+}
+
+void UMinimapWidget::OnPlayerChangeLayer(const FLayerInfo& NewLayer)
+{
+	//todo if keep eyes on player
+	SetObservedLayer(NewLayer);
+}
+
+void UMinimapWidget::RegenerateMap()
+{
+	const auto MinimapController = UMinimapController::Get(this);
+	for (const auto& [Name, MapObjectContainer] : MinimapController->GetMapObjects(ObservedLevelName))
+	{
+		const auto MapObject = MapObjectContainer->Get();	//todo get map object for current map type
+		const auto bVisible = MapObjects.Contains(MapObject);
+		const auto bMustVisible = IsSatisfiesFilter(MapObject) && IsSatisfiesLayer(MapObject);
+		
+		if (!bVisible && bMustVisible)
+		{
+			AddIcon(MapObject);
+		}
+		else if (bVisible && !bMustVisible)
+		{
+			RemoveIcon(MapObject);
+		}
+	} 	
 }

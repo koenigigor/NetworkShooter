@@ -3,12 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "MapStructures.h"
 #include "Components/ActorComponent.h"
 #include "MinimapController.generated.h"
 
 class UMapObjectComponent;
 class UMapObject;
 class UMapObjectWrapper;
+class UMapLayerStack;
 
 /** Game state component,
  *	Keep map icons and images, in different maps,
@@ -32,8 +34,15 @@ public:
 
 	DECLARE_MULTICAST_DELEGATE_TwoParams(FCachedMapObjetDelegate, const FString& LevelName, UMapObjectWrapper* MapObject);
 	FCachedMapObjetDelegate OnMapObjectAdd;
-	FCachedMapObjetDelegate OnMapObjectUpdate;	//add/remove new map object type
+	FCachedMapObjetDelegate OnMapObjectUpdate;	//add/remove new map object type in container
 	FCachedMapObjetDelegate OnMapObjectRemove;
+	FCachedMapObjetDelegate OnMapObjectChangeLayer;
+
+	DECLARE_MULTICAST_DELEGATE_OneParam(FChangeLayerDelegate, const FLayerInfo& NewLayer);
+	FChangeLayerDelegate OnPlayerChangeLayer;
+	void SetPlayerLayer(FLayerInfo NewLayer);
+	const FLayerInfo& GetPlayerLayer() const { return PlayerLayer; };
+	FLayerInfo PlayerLayer;
 
 	/** All loaded runtime map objects (registered and unregistered on begin play) */
 	UPROPERTY(BlueprintReadOnly)
@@ -53,4 +62,5 @@ public:
 	/** Cache map objects with override order Baked > External > Runtime if has same unique name
 	 *	[LevelName - TMap<ObjectName, Combined objects>]*/
 	TMap<FString, TMap<FString, UMapObjectWrapper*>> MapObjectsCache; //todo strong pointer
+	//TMap<FString, UMapLayerStack*> LayerStackCache;
 };

@@ -32,8 +32,6 @@ void UMapObjectComponent::BeginPlay()
 
 void UMapObjectComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	//RemoveIcon();
-	
 	UMinimapController::Get(this)->UnregisterMapObject(this);
 	
 	Super::EndPlay(EndPlayReason);
@@ -41,37 +39,40 @@ void UMapObjectComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void UMapObjectComponent::UpdateVisibility()
 {
+	const auto PreviousLayer = MapObject->GetLayer();
+	
 	if (OverlappedVolumes.IsEmpty())
 	{
-		//ShowIcon();
-		return;
+		MapObject->LayerInfo = {"", "", 0};
+	}
+	else
+	{
+		UMinimapLayerCollider* ClosestLayer = nullptr;
+		float ClosestDistance = MAX_FLT;
+		for (const auto& Layer : OverlappedVolumes)
+		{
+			const auto Distance = Layer->GetOwner()->GetDistanceTo(GetOwner());
+			if (Distance < ClosestDistance)
+			{
+				ClosestDistance = Distance;
+				ClosestLayer = Layer.Get();
+			}
+		}
+
+		MapObject->LayerInfo = { ClosestLayer->OwningLayerStack, ClosestLayer->GetUniqueName(), ClosestLayer->Floor };
 	}
 	
-	for (const auto& Volume : OverlappedVolumes)
+	if (!PreviousLayer.Equals(MapObject->GetLayer()))
 	{
-		if (Volume->IsLayerActive())
+		MapObject->OnLayerChange.Broadcast(MapObject);
+
+		//if is player, notify player layer
+		if (const auto Pawn = GetOwner<APawn>(); Pawn && Pawn->IsLocallyControlled())
 		{
-			//ShowIcon();
-			return;
+			const auto MapController = UMinimapController::Get(this);
+			MapController->SetPlayerLayer(MapObject->LayerInfo);
 		}
 	}
-		
-	//RemoveIcon();
-}
-
-
-int32 UMapObjectComponent::GetLayer() const
-{
-	int32 Layer = 0;
-	for (const auto& Volume : OverlappedVolumes) 
-	{
-		if (Volume->Layer > Layer)
-		{
-			Layer = Volume->Layer;
-		}
-	}
-	
-	return Layer;
 }
 
 void UMapObjectComponent::RefreshLayerVolumes()
@@ -108,32 +109,15 @@ void UMapObjectComponent::RefreshLayerVolumes()
 void UMapObjectComponent::AddLayerVolume(UMinimapLayerCollider* Volume)
 {
 	if (OverlappedVolumes.Contains(Volume)) return;
-
-	const auto bTopLayerChange = Volume->Layer > GetLayer();
 	
 	OverlappedVolumes.Add(Volume);
-	Volume->AddIcon(this);
 
 	UpdateVisibility();
-	
-	if (bTopLayerChange)
-	{
-		MapObject->Layer = GetLayer();
-		MapObject->OnLayerChange.Broadcast(MapObject);
-	}
 }
 
 void UMapObjectComponent::RemoveLayerVolume(UMinimapLayerCollider* Volume)
 {
 	OverlappedVolumes.Remove(Volume);
-	Volume->RemoveIcon(this);
 
 	UpdateVisibility();
-
-	const auto bTopLayerChange = Volume->Layer > GetLayer();
-	if (bTopLayerChange)
-	{
-		MapObject->Layer = GetLayer();
-		MapObject->OnLayerChange.Broadcast(MapObject);
-	}
 }

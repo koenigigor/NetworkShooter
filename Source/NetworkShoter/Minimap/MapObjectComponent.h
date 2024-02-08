@@ -25,9 +25,6 @@ public:
 	/** Toggle visibility if any layer volume active */
 	void UpdateVisibility();	
 
-	/** Get highest owning layer */
-	int32 GetLayer() const;
-
 	/** Make trace for manual update OverlappedVolumes list */
 	void RefreshLayerVolumes();
 

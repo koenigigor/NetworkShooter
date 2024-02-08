@@ -131,9 +131,9 @@ bool UMinimapBakeData::RunInternal(UWorld* World, const FCellInfo& InCellInfo, F
 
 			auto& LayerData = Data.Layers.AddDefaulted_GetRef();
 			LayerData.Transform = Actor->GetActorTransform();
-			LayerData.Center = LayerData.Transform.InverseTransformPosition(Origin);;
-			LayerData.Extend = LocalBounds.Min.GetAbs() + LocalBounds.Max.GetAbs() * 0.5;
-			LayerData.Layer = Collider->Layer;			
+			LayerData.Center = LayerData.Transform.InverseTransformPosition(Origin);;	//todo LocalBounds.GetCenter
+			LayerData.Extend = (LocalBounds.Min.GetAbs() + LocalBounds.Max.GetAbs()) * 0.5;
+			LayerData.Layer = Collider->Floor;			
 		}
 
 		if (MapObject && !BakedObjectsIDs.Contains(Actor->GetUniqueID()))

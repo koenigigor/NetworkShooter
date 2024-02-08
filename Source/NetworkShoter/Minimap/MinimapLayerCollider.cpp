@@ -15,7 +15,7 @@ UMinimapLayerCollider::UMinimapLayerCollider()
 void UMinimapLayerCollider::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	//if (!GetOwner()->bGenerateOverlapEventsDuringLevelStreaming)
 	//{
 	//	UE_LOG(LogMinimapCollider, Warning, TEXT("Can be issues, enable bGenerateOverlapEventsDuringLevelStreaming on actor %s"), *GetOwner()->GetName())
@@ -31,14 +31,14 @@ void UMinimapLayerCollider::OnBeginOverlap(AActor* OverlappedActor, AActor* Othe
 	const auto Pawn = Cast<APawn>(OtherActor);
 	if (Pawn && Pawn->IsPlayerControlled() && Pawn->IsLocallyControlled())
 	{
-		ActivateLayer();
-	}	
+		OnOverlapPlayer();
+	}
 
 	// Notify register icon on overlap, (in Collier overlap, because icon actor can have lot overlaps, and it'll be not optimized performance)
 	if (const auto Icon = OtherActor->FindComponentByClass<UMapObjectComponent>())
-    {
+	{
 		Icon->AddLayerVolume(this);
-    }	
+	}
 }
 
 void UMinimapLayerCollider::OnEndOverlap(AActor* OverlappedActor, AActor* OtherActor)
@@ -53,46 +53,25 @@ void UMinimapLayerCollider::OnEndOverlap(AActor* OverlappedActor, AActor* OtherA
 	const auto Pawn = Cast<APawn>(OtherActor);
 	if (Pawn && Pawn->IsPlayerControlled() && Pawn->IsLocallyControlled())
 	{
-		DeactivateLayer();
-	}		
-}
-
-void UMinimapLayerCollider::ActivateLayer()
-{
-	UE_LOG(LogMinimapCollider, Display, TEXT("Activate %s, Layer = %d"), *GetName(), Layer)
-
-	bLayerActive = true;
-
-	for (const auto& Icon : OverlappedIcons)
-	{
-		if (Icon.IsValid())
-			Icon->UpdateVisibility();
+		OnEndOverlapPlayer();
 	}
 }
 
-void UMinimapLayerCollider::DeactivateLayer()
+void UMinimapLayerCollider::OnOverlapPlayer()
 {
-	UE_LOG(LogMinimapCollider, Display, TEXT("Deactivate %s, Layer = %d"), *GetName(), Layer)
+	UE_LOG(LogMinimapCollider, Display, TEXT("Activate layer %s, Floor = %d"), *OwningLayerStack, Floor)
+}
 
-	bLayerActive = false;
-
-	for (const auto& Icon : OverlappedIcons)
-	{
-		if (Icon.IsValid())
-			Icon->UpdateVisibility();
-	}
+void UMinimapLayerCollider::OnEndOverlapPlayer()
+{
+	UE_LOG(LogMinimapCollider, Display, TEXT("Deactivate layer %s, Floor = %d"), *OwningLayerStack, Floor)
 }
 
 
-void UMinimapLayerCollider::AddIcon(UMapObjectComponent* Icon)
+FString UMinimapLayerCollider::GetUniqueName() const
 {
-	OverlappedIcons.Add(Icon);
+	//get unique name in format ActorName.ComponentName  (GetUniqueID() has different results)
+	FString OutString;
+	GetPathName(GetOuter()->GetOuter(), OutString);
+	return OutString;
 }
-
-void UMinimapLayerCollider::RemoveIcon(UMapObjectComponent* Icon)
-{
-	OverlappedIcons.Remove(Icon);
-}
-
-
-

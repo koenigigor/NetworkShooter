@@ -9,3 +9,23 @@ UE_DEFINE_GAMEPLAY_TAG(TAG_MAP_AMMO, "Map.Ammo");
 UE_DEFINE_GAMEPLAY_TAG(TAG_MAP_CHEST, "Map.Chest");
 UE_DEFINE_GAMEPLAY_TAG(TAG_MAP_MISC, "Map.Misc");
 
+FString FLayerInfo::ToString() const
+{
+	if (LayerGroup.IsEmpty()) return "Is Ground";
+	
+	return "Group:" + LayerGroup + ", Sublayer: " + Sublayer + ", Floor: " + FString::FromInt(Floor);
+}
+
+bool FLayerInfo::IsSameLayer(const FLayerInfo& Other) const
+{
+	return LayerGroup.Equals(Other.LayerGroup) && Floor == Other.Floor;
+}
+bool FLayerInfo::IsSameLayerGroup(const FLayerInfo& Other) const
+{
+	return LayerGroup.Equals(Other.LayerGroup);
+}
+
+bool FLayerInfo::IsEmpty() const
+{
+	return LayerGroup.IsEmpty();
+}

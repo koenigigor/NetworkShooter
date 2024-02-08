@@ -78,6 +78,14 @@ const TMap<FString, UMapObjectWrapper*>&  UMinimapController::GetMapObjects(FStr
 }
 
 
+void UMinimapController::SetPlayerLayer(FLayerInfo NewLayer)
+{
+	PlayerLayer = NewLayer;
+
+	//todo ignore if same floor and new sublayer not change visibility?
+	OnPlayerChangeLayer.Broadcast(PlayerLayer);
+}
+
 void UMinimapController::AddBaked_Internal(UMapObject* MapObject, const FString& MapName, bool bNotify)
 {
 	const auto& ObjectName = MapObject->GetUniqueName();
@@ -133,6 +141,12 @@ void UMinimapController::AddRuntime_Internal(UMapObject* MapObject, const FStrin
 	else
 	{
 		const auto MapObjectWrapper = MapObjectsRow.Add(ObjectName, NewObject<UMapObjectWrapper>()->AddRuntime(MapObject));
+
+		MapObjectWrapper->OnLayerChange.AddLambda([&](UMapObjectWrapper* Wrapper)
+		{
+			OnMapObjectChangeLayer.Broadcast(GetWorld()->GetMapName(), Wrapper);
+		});
+		
 		if (bNotify)
 			OnMapObjectAdd.Broadcast(MapName, MapObjectWrapper);
 	}	

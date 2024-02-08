@@ -6,6 +6,7 @@
 #include "MinimapLayerCollider.generated.h"
 
 class UMapObjectComponent;
+class UVisibilityCondition;
 
 
 /**	Component for trigger volume.
@@ -22,22 +23,29 @@ public:
 	UFUNCTION() void OnBeginOverlap(AActor* OverlappedActor, AActor* OtherActor);
 	UFUNCTION() void OnEndOverlap(AActor* OverlappedActor, AActor* OtherActor);
 
-	FORCEINLINE bool IsLayerActive() const { return bLayerActive; }
-	
+	/** Layer stack name */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 Layer = 0;
+	FString OwningLayerStack;
 
-	/** Icons and Backgrounds register self in volume */
-	void AddIcon(UMapObjectComponent* Icon);
-	void RemoveIcon(UMapObjectComponent* Icon);
+	/** Floor in level */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 Floor = 0;
+
+#if WITH_EDITORONLY_DATA
+	
+	/** If layer has an irregular shape, use EditorOnly primitives (boxes) for bake layer bounds as simple data */
+	UPROPERTY(EditAnywhere, Category = "Layer")
+	TArray<AActor*> OptionalStaticLayerBounds;
+
+	/** Layer visibility condition, baked */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Instanced)
+	UVisibilityCondition* VisibilityCondition = nullptr;
+
+#endif
+	
+	FString GetUniqueName() const;
 	
 protected:
-	void ActivateLayer();
-	void DeactivateLayer();
-	
-	//activate when character overlap
-	bool bLayerActive = false;
-
-	/** Cashed backgrounds and icons for easiest access */
-	TArray<TWeakObjectPtr<UMapObjectComponent>> OverlappedIcons;
+	void OnOverlapPlayer();
+	void OnEndOverlapPlayer();
 };

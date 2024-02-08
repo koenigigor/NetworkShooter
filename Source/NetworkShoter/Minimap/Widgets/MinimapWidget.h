@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
 #include "Blueprint/UserWidget.h"
+#include "Minimap/MapStructures.h"
 #include "MinimapWidget.generated.h"
 
 class UMapObject;
@@ -30,6 +31,7 @@ protected:
 	void OnMapObjectAdd(const FString& LevelName, UMapObjectWrapper* MapObjectContainer);
 	void OnMapObjectUpdate(const FString& LevelName, UMapObjectWrapper* MapObjectContainer);
 	void OnMapObjectRemove(const FString& LevelName, UMapObjectWrapper* MapObjectContainer);
+	void OnMapObjectChangeLayer(const FString& LevelName, UMapObjectWrapper* MapObjectContainer);
 	
 	void AddIcon(UMapObject* MapObject);
 	void RemoveIcon(UMapObject* MapObject);
@@ -59,6 +61,10 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void RemoveFilter(FGameplayTag Tag);
 
+	
+	void SetObservedLayer(const FLayerInfo& NewLayer);
+	void OnPlayerChangeLayer(const FLayerInfo& NewLayer);
+	
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	bool bRotateMap = false;
@@ -75,12 +81,21 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Filter", meta = (Categories="Map"))
 	FGameplayTagContainer Filter;	
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Filter")
+	FLayerInfo ObservedLayer;
+
+	FString ObservedLevelName;
+	
 protected:
 	/** Get pivot on Mark canvas based on world location */
 	FVector2D WorldToMap(FVector WorldLocation) const;
 
 	bool IsSatisfiesFilter(UMapObject* MapObject) const;
+	bool IsSatisfiesLayer(UMapObject* MapObject) const;
 
+	/** Iterate all icons on level, enable/disable it by filter and layer */
+	void RegenerateMap();
+	
 protected:
 	/** World to map UV Scale [0,1] */
 	float SegmentSize = 10000.f;	
