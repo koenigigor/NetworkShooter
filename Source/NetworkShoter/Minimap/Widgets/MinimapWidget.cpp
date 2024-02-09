@@ -453,85 +453,53 @@ void UMinimapWidget::DrawDebugLayers(FSlateWindowElementList& DrawElements, int3
 				WorldToWidget(FVector(Bounds.Min.X, Bounds.Max.Y, 0.0))
 			};
 
-			// true if x or y in range [0, max]
-			/*
-			auto AnyAxisInRange = [](FVector2D Point, FVector2D Max)
-			{
-				return (Point.X >= 0.0 && Point.X <= Max.X) || (Point.Y >= 0.0 && Point.Y <= Max.Y);
-			};
-			*/
-			auto InRange = [](FVector2D Point, FVector2D Max)
-			{
-				return (Point.X >= 0.0 && Point.X <= Max.X) && (Point.Y >= 0.0 && Point.Y <= Max.Y);
-			};
 			// clamp point inside [0, max]
 			auto ClampPoint = [](FVector2D Point, FVector2D Max)
 			{
 				return FVector2D(FMath::Clamp(Point.X, 0.0, Max.X), FMath::Clamp(Point.Y, 0.0, Max.Y));
 			};
 
-			bool bAddForward = true;
-			int32 LeftOutsidePointIndex = INDEX_NONE;
-			int32 RightOutsidePointIndex = INDEX_NONE;
-			for (int32 i = 0; i != Points.Num(); ++i)
+			auto IsLineIntersectBox = [](FVector2D PointA, FVector2D PointB, FVector2D Max) -> bool
 			{
-				auto Point = Points[i];
-				if (InRange(Point, WidgetSize))
+				if (FMath::IsNearlyEqual(PointA.X, PointB.X, 0.1) && PointA.X >= 0.0 && PointA.X <= Max.X)
 				{
+					return FMath::Min(PointA.Y, PointB.Y) <= Max.Y && FMath::Max(PointA.Y, PointB.Y) >= 0.0;
+				}
+				if (FMath::IsNearlyEqual(PointA.Y, PointB.Y, 0.1) && PointA.Y >= 0.0 && PointA.Y <= Max.Y)
+				{
+					return FMath::Min(PointA.X, PointB.X) <= Max.X && FMath::Max(PointA.X, PointB.X) >= 0.0;
+				}
+				return false;
+			};
+
+			bool bAddForward = true;
+			for (int32 i = 0; i < Points.Num(); ++i)
+			{
+				auto LineStartIndex = bAddForward ? i : (-i + Points.Num()) % Points.Num();
+				auto LineEndIndex = (LineStartIndex + 1) % Points.Num();
+				auto LineStart = Points[LineStartIndex];
+				auto LineEnd = Points[LineEndIndex];
+
+				if (IsLineIntersectBox(LineStart, LineEnd, WidgetSize))
+				{
+					if (DrawPoints.Num() == 0)
+					{
+						bAddForward
+							? DrawPoints.Add(UE::Slate::CastToVector2f(ClampPoint(LineStart, WidgetSize)))
+							: DrawPoints.Add(UE::Slate::CastToVector2f(ClampPoint(LineEnd, WidgetSize)));						
+					}
+
 					bAddForward
-						? DrawPoints.Add(UE::Slate::CastToVector2f(ClampPoint(Point, WidgetSize)))
-						: DrawPoints.Insert(UE::Slate::CastToVector2f(ClampPoint(Point, WidgetSize)), 0);
+						? DrawPoints.Add(UE::Slate::CastToVector2f(ClampPoint(LineEnd, WidgetSize)))
+						: DrawPoints.Insert(UE::Slate::CastToVector2f(ClampPoint(LineStart, WidgetSize)), 0);
 				}
 				else
 				{
-					if (bAddForward) RightOutsidePointIndex = i;
-					if (!bAddForward) LeftOutsidePointIndex = i;
-					
+					if (!bAddForward) break;
 					bAddForward = false;
+					i = 0;
 				}
 			}
-
-			//todo issues part visible
-			
-            if (RightOutsidePointIndex != INDEX_NONE && !DrawPoints.IsEmpty())
-            {
-            	auto Point = Points[RightOutsidePointIndex];
-            	DrawPoints.Add(UE::Slate::CastToVector2f(ClampPoint(Point, WidgetSize)));
-            }
-			if (LeftOutsidePointIndex != INDEX_NONE && !DrawPoints.IsEmpty())
-			{
-				auto Point = Points[LeftOutsidePointIndex];
-				DrawPoints.Insert(UE::Slate::CastToVector2f(ClampPoint(Point, WidgetSize)), 0);				
-			}
-
-			if (bAddForward)
-			{
-				//all point inside window, try close loop
-				if (InRange(FVector2D(DrawPoints.Last()), WidgetSize) && InRange(Points[0], WidgetSize))
-				{
-					DrawPoints.Add(UE::Slate::CastToVector2f(Points[0]));
-
-					if (LayerGroup->UniqueName.Equals("Tower"))
-					{
-						UE_LOG(LogTemp, Display, TEXT("Close loop"))
-					}
-				}
-			}
-
-			// check if visible 1 edge (but points hidden)
-			/*
-				// issues on edge widget
-			if (DrawPoints.IsEmpty())
-			{
-				for (auto Point : Points)
-				{
-					if (AnyAxisInRange(Point, WidgetSize))
-					{
-						DrawPoints.Add(UE::Slate::CastToVector2f(ClampPoint(Point, WidgetSize)));
-					}
-				}
-			}
-			*/
 		}
 
 		/*
@@ -542,11 +510,11 @@ void UMinimapWidget::DrawDebugLayers(FSlateWindowElementList& DrawElements, int3
 		DrawPoints.Add(UE::Slate::CastToVector2f(WorldToWidget(Bounds.Max)));
 		*/
 
-		++LayerId;
+		if (DrawPoints.IsEmpty()) return;
 
 		FSlateDrawElement::MakeLines(
 			DrawElements,
-			LayerId,
+			++LayerId,
 			AllottedGeometry.ToPaintGeometry(),
 			DrawPoints,
 			ESlateDrawEffect::None,
@@ -554,21 +522,23 @@ void UMinimapWidget::DrawDebugLayers(FSlateWindowElementList& DrawElements, int3
 			true,
 			2);
 
-		++LayerId;
+		
+		FVector2D TextPosition = WorldToWidget(Bounds.Min);
+		bool bTextInsideWidget = TextPosition.X >= 0 && TextPosition.X <= WidgetSize.X && TextPosition.Y >= 0 && TextPosition.Y <= WidgetSize.Y;
+		if (bTextInsideWidget)
+		{
+			FSlateFontInfo FontInfo = FUMGCoreStyle::Get().GetWidgetStyle<FTextBlockStyle>("NormalText").Font;
+			FontInfo.Size += 10;
 
-		FSlateFontInfo FontInfo = FUMGCoreStyle::Get().GetWidgetStyle<FTextBlockStyle>("NormalText").Font;
-		FontInfo.Size += 10;
-
-		FVector2D Position = WorldToWidget(Bounds.Min);
-
-		FSlateDrawElement::MakeText(
-			DrawElements,
-			LayerId,
-			AllottedGeometry.ToOffsetPaintGeometry(Position),
-			LayerGroup->UniqueName,
-			FontInfo,
-			ESlateDrawEffect::None,
-			LayerGroup == OverlappedGroup ? FLinearColor::Green : FLinearColor::Red);
+			FSlateDrawElement::MakeText(
+				DrawElements,
+				++LayerId,
+				AllottedGeometry.ToOffsetPaintGeometry(TextPosition),
+				LayerGroup->UniqueName,
+				FontInfo,
+				ESlateDrawEffect::None,
+				LayerGroup == OverlappedGroup ? FLinearColor::Green : FLinearColor::Red);
+		}
 	}
 
 #endif
