@@ -26,12 +26,14 @@ protected:
 	virtual void NativePreConstruct() override;
 	virtual void NativeOnInitialized() override;
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
+	virtual int32 NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;
 	virtual FReply NativeOnMouseWheel(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 
 	void OnMapObjectAdd(const FString& LevelName, UMapObjectContainer* MapObjectContainer);
 	void OnMapObjectUpdate(const FString& LevelName, UMapObjectContainer* MapObjectContainer);
 	void OnMapObjectRemove(const FString& LevelName, UMapObjectContainer* MapObjectContainer);
 	void OnMapObjectChangeLayer(const FString& LevelName, UMapObjectContainer* MapObjectContainer);
+	void OnPlayerChangeLayer(const FLayerInfo& NewLayer);
 
 	void AddIcon(UMapObject* MapObject);
 	void RemoveIcon(UMapObject* MapObject);
@@ -61,7 +63,6 @@ public:
 
 
 	void SetObservedLayer(const FLayerInfo& NewLayer);
-	void OnPlayerChangeLayer(const FLayerInfo& NewLayer);
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
@@ -79,14 +80,11 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Filter", meta = (Categories="Map"))
 	FGameplayTagContainer Filter;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Filter")
-	FLayerInfo ObservedLayer;
-
-	FString ObservedLevelName;
 
 protected:
 	/** Get pivot on Mark canvas based on world location */
 	FVector2D WorldToMap(FVector WorldLocation) const;
+	FVector MapToWorld(FVector2D MapLocation) const;
 
 	bool IsSatisfiesFilter(UMapObject* MapObject) const;
 	bool IsSatisfiesLayer(UMapObject* MapObject) const;
@@ -94,10 +92,15 @@ protected:
 	/** Iterate all icons on level, enable/disable it by filter and layer */
 	void RegenerateMap();
 
+	void DrawDebugLayers(FSlateWindowElementList& DrawElements, int32 LayerId, const FGeometry& AllottedGeometry) const;
+	
 protected:
 	/** World to map UV Scale [0,1] */
 	float SegmentSize = 10000.f;
 
+	FLayerInfo ObservedLayer;
+
+	FString ObservedLevelName;
 
 	/** Map (widget) center in map space */
 	FVector2D CenterOfMap;

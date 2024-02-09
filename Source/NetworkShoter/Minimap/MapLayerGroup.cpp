@@ -7,11 +7,19 @@ bool ULayerVisibilityCondition::IsVisible_Implementation() const { return true; 
 
 void ULayerVisibilityCondition::Update()
 {
-	if (OwningLayerStack.IsValid())
+	if (OwningGroup.IsValid())
 	{
-		OwningLayerStack->OnSublayerVisibilityUpdate.Broadcast(OwningLayerStack.Get());
+		OwningGroup->OnSublayerVisibilityUpdate.Broadcast(OwningGroup.Get());
 	}
 }
+
+UWorld* ULayerVisibilityCondition::GetWorld() const
+{
+	if (GIsEditor && !GIsPlayInEditorWorld) return nullptr;
+	return GetOuter() ? GetOuter()->GetWorld() : nullptr;
+}
+
+///
 
 void UMapLayerGroup::PostInitProperties()
 {
@@ -25,28 +33,26 @@ void UMapLayerGroup::PostInitProperties()
 
 void UMapLayerGroup::Init()
 {
-	UE_LOG(LogTemp, Display, TEXT("UMapLayerStack::Init"))
-
 	for (const auto& [Floor, Sublayers] : Floors)
 	{
 		for (const auto& Sublayer : Sublayers.Sublayers)
 		{
 			if (Sublayer.VisibilityCondition)
 			{
-				Sublayer.VisibilityCondition->OwningLayerStack = MakeWeakObjectPtr(this);
+				Sublayer.VisibilityCondition->OwningGroup = MakeWeakObjectPtr(this);
 				Sublayer.VisibilityCondition->BeginPlay();
 			}
 		}
 	}
 }
 
-bool UMapLayerGroup::IsPointOnStack2D(FVector WorldLocation) const
+bool UMapLayerGroup::IsPointInside2D(FVector WorldLocation) const
 {
 	for (const auto& [Floor, Sublayers] : Floors)
 	{
 		for (const auto& Sublayer : Sublayers.Sublayers)
 		{
-			if (Sublayer.VisibilityCondition->IsVisible())
+			if (Sublayer.IsVisible())
 			{
 				for (const auto& Bound : Sublayer.Bounds)
 				{
@@ -64,28 +70,63 @@ bool UMapLayerGroup::IsPointOnStack2D(FVector WorldLocation) const
 
 FVector UMapLayerGroup::GetCenter() const
 {
-	// todo я очень очень не уверен в том что сделал
+	return GetBounds().GetCenter();
+}
 
+FBox UMapLayerGroup::GetBounds() const
+{
 	FBox Box(EForceInit::ForceInit);
 
 	for (const auto& [Floor, Sublayers] : Floors)
 	{
 		for (const auto& Sublayer : Sublayers.Sublayers)
 		{
-			if (Sublayer.VisibilityCondition->IsVisible())
+			if (Sublayer.IsVisible())
 			{
 				for (const auto& Bound : Sublayer.Bounds)
 				{
 					FBoxSphereBounds NewBounds;
-					NewBounds.Origin = Bound.Center; //Bound.Transform.TransformPosition(Bound.Center);
+					NewBounds.Origin = Bound.Center;
 					NewBounds.BoxExtent = Bound.LocalExtend;
-					NewBounds.TransformBy(Bound.Transform);
 
-					Box += NewBounds.GetBox();
+					Box += NewBounds.GetBox().TransformBy(Bound.Transform);
 				}
 			}
 		}
 	}
 
-	return Box.GetCenter();
+	return Box;
+}
+
+///
+
+UMapLayerGroup* UMapLayersData::GetGroupAtLocation2D(FVector WorldLocation)
+{
+	// find overlapped groups
+	TArray<UMapLayerGroup*> Groups;
+	for (auto Group : LayerGroups)
+	{
+		if (!Group->UniqueName.IsEmpty() && Group->IsPointInside2D(WorldLocation))
+		{
+			Groups.Add(Group);
+		}
+	}
+
+	if (Groups.IsEmpty()) return nullptr;
+	if (Groups.Num() == 1) return Groups[0];
+
+	// find closest if multiple groups
+	UMapLayerGroup* ClosestGroup = nullptr;
+	float ClosestDistance = MAX_FLT;
+	for (const auto Group : Groups)
+	{
+		const auto Distance = FVector::DistSquared2D(Group->GetCenter(), WorldLocation);
+		if (Distance < ClosestDistance)
+		{
+			ClosestDistance = Distance;
+			ClosestGroup = Group;
+		}
+	}
+
+	return ClosestGroup;
 }

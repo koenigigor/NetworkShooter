@@ -11,6 +11,7 @@ class UMapObjectComponent;
 class UMapObject;
 class UMapObjectContainer;
 class UMapLayerGroup;
+class UMapLayersData;
 
 /** Map objects on level */
 USTRUCT()
@@ -32,7 +33,7 @@ class NETWORKSHOTER_API UMinimapController : public UActorComponent
 	GENERATED_BODY()
 public:
 	UFUNCTION(BlueprintPure, DisplayName = "GetMinimapController", meta = (DefaultToSelf = "WorldContextObject", HidePin = "WorldContextObject"))
-	static UMinimapController* Get(UObject* WorldContextObject);
+	static UMinimapController* Get(const UObject* WorldContextObject);
 
 	UMinimapController();
 
@@ -56,6 +57,17 @@ public:
 	void SetPlayerLayer(FLayerInfo NewLayer);
 	const FLayerInfo& GetPlayerLayer() const { return PlayerLayer; };
 
+	/** Layers data for each level */
+	UPROPERTY(EditDefaultsOnly)
+	TMap<FString, TSubclassOf<UMapLayersData>> BakedLayersData;
+
+	/** LevelName - Baked data */
+	UPROPERTY()
+	TMap<FString, UMapLayersData*> BakedLayers;
+
+	UFUNCTION(BlueprintCallable)
+	UMapLayersData* GetLayersData(const FString& MapName);
+	
 protected:
 	FLayerInfo PlayerLayer;
 

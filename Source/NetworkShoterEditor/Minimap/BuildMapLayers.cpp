@@ -83,7 +83,7 @@ void UBuildMapLayers::BuildMapLayersCMD(const TArray<FString>& Strings, UWorld* 
 
 		UBlueprint* Blueprint = LoadBlueprint(BasePath, AssetName);
         UMapLayersData* LayersData = Blueprint->GeneratedClass.Get()->GetDefaultObject<UMapLayersData>();
-        LayersData->LayerStacks.Empty();
+        LayersData->LayerGroups.Empty();
 
 		AccumulateLayersData(World, LayersData);
 		Blueprint->GetPackage()->MarkPackageDirty();
@@ -111,7 +111,7 @@ bool UBuildMapLayers::PreRun(UWorld* World, FPackageSourceControlHelper& Package
 	// Load blueprint
 	Blueprint = LoadBlueprint(BasePath, AssetName);
 	LayersData = Blueprint->GeneratedClass.Get()->GetDefaultObject<UMapLayersData>();
-	LayersData->LayerStacks.Empty();
+	LayersData->LayerGroups.Empty();
 
 	return true;
 }
@@ -183,14 +183,14 @@ void UBuildMapLayers::AccumulateLayersData(UWorld* World, UMapLayersData* Layers
 		auto Floor = Collider->Floor;
 
 		// Find or add stack (group of layers)
-		const int32 Index = LayersData->LayerStacks.IndexOfByPredicate([&](const UMapLayerGroup* Stack)
+		const int32 Index = LayersData->LayerGroups.IndexOfByPredicate([&](const UMapLayerGroup* Stack)
 		{
 			return Stack->UniqueName.Equals(StackName);
 		});
 
 		UMapLayerGroup* Stack = Index != INDEX_NONE
-			                        ? LayersData->LayerStacks[Index]
-			                        : LayersData->LayerStacks.Add_GetRef(NewObject<UMapLayerGroup>(LayersData, *FString("Stack" + StackIndex++),
+			                        ? LayersData->LayerGroups[Index]
+			                        : LayersData->LayerGroups.Add_GetRef(NewObject<UMapLayerGroup>(LayersData, *FString("Stack" + StackIndex++),
 				                        EObjectFlags::RF_Public | RF_Standalone));
 		if (Index == INDEX_NONE) Stack->UniqueName = StackName;
 

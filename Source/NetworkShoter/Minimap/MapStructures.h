@@ -27,6 +27,11 @@ struct FLayerInfo
 	bool IsSameLayer(const FLayerInfo& Other) const;
 	bool IsSameLayerGroup(const FLayerInfo& Other) const;
 	bool IsEmpty() const;
+
+	bool operator==(const FLayerInfo& Other) const
+	{
+		return Sublayer.Equals(Other.Sublayer);
+	} 
 };
 
 enum EMapObjectType

@@ -40,7 +40,7 @@ public:
 	UFUNCTION(BlueprintNativeEvent)
 	bool IsVisible() const;
 
-	/** Update visibility conditions,
+	/** Notify visibility conditions update,
 	 *	manual call after update condition */
 	UFUNCTION(BlueprintCallable)
 	void Update();
@@ -48,7 +48,9 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void BeginPlay();
 
-	TWeakObjectPtr<UMapLayerGroup> OwningLayerStack;
+	virtual UWorld* GetWorld() const override;
+
+	TWeakObjectPtr<UMapLayerGroup> OwningGroup;
 };
 
 /** Part of layer, can be enabled by condition (this part of floor not explored, etc)
@@ -81,8 +83,8 @@ struct FLayerSublayers
 	TArray<FLayerSublayer> Sublayers;
 };
 
-/** Single world map layer stack
- *	Using for identify single group of layers (like castle or cave) */
+/** Single world map layer group
+ *	Using for identify single group of layers (like castle or cave zone) */
 UCLASS(DefaultToInstanced, EditInlineNew)
 class NETWORKSHOTER_API UMapLayerGroup : public UObject
 {
@@ -90,32 +92,37 @@ class NETWORKSHOTER_API UMapLayerGroup : public UObject
 public:
 	virtual void PostInitProperties() override;
 
+	void Init();
+
+	/** True if point inside this group of layers bounds */
+	bool IsPointInside2D(FVector WorldLocation) const;
+
+	/** Return center of layer stack bounds, use for identify closest layer stack, if found multiple */
+	FVector GetCenter() const;
+
+	/** Box bounds of all layers in group */
+	FBox GetBounds() const;
+
 	UPROPERTY(EditAnywhere)
 	FString UniqueName;
 
 	UPROPERTY(EditAnywhere)
 	TMap<int32, FLayerSublayers> Floors;
 
-	void Init();
-
-
-	/** True if point overlap layer stack bounds */
-	bool IsPointOnStack2D(FVector WorldLocation) const;
-
-	/** Return center of layer stack bounds, use for identify closest layer stack, if found multiple */
-	FVector GetCenter() const;
-
-	DECLARE_MULTICAST_DELEGATE_OneParam(FMapLayerStackDelegate, UMapLayerGroup* MapLayerStack);
+	DECLARE_MULTICAST_DELEGATE_OneParam(FMapLayerStackDelegate, UMapLayerGroup* LayerGroup);
 	FMapLayerStackDelegate OnSublayerVisibilityUpdate;
 };
 
 
 /** Data blueprint with baked information about all layers on map */
-UCLASS(Blueprintable)
+UCLASS(Blueprintable, Abstract)
 class NETWORKSHOTER_API UMapLayersData : public UObject
 {
 	GENERATED_BODY()
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Instanced)
-	TArray<UMapLayerGroup*> LayerStacks;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Instanced, meta=(TitleProperty="UniqueName"))
+	TArray<UMapLayerGroup*> LayerGroups;
+
+	/** Find closest overlapped layered location */
+	UMapLayerGroup* GetGroupAtLocation2D(FVector WorldLocation);
 };

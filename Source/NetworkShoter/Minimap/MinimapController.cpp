@@ -3,6 +3,7 @@
 
 #include "Minimap/MinimapController.h"
 
+#include "MapLayerGroup.h"
 #include "MapObject.h"
 #include "MapObjectComponent.h"
 #include "GameFramework/GameStateBase.h"
@@ -10,7 +11,7 @@
 DEFINE_LOG_CATEGORY_STATIC(LogMinimapController, All, All);
 
 
-UMinimapController* UMinimapController::Get(UObject* WorldContextObject)
+UMinimapController* UMinimapController::Get(const UObject* WorldContextObject)
 {
 	if (WorldContextObject && WorldContextObject->GetWorld() && WorldContextObject->GetWorld()->GetGameState())
 	{
@@ -67,6 +68,21 @@ TMap<FString, UMapObjectContainer*>& UMinimapController::GetMapObjects_Mutable(F
 const TMap<FString, UMapObjectContainer*>& UMinimapController::GetMapObjects(FString LevelName)
 {
 	return GetMapObjects_Mutable(LevelName);
+}
+
+UMapLayersData* UMinimapController::GetLayersData(const FString& MapName)
+{
+	if (BakedLayers.Contains(MapName))
+	{
+		return BakedLayers[MapName];
+	}
+
+	if (!ensure(BakedLayersData.Contains(MapName))) return nullptr;
+
+	// load baked data
+	const auto LoadedData = NewObject<UMapLayersData>(this, BakedLayersData[MapName]);
+	BakedLayers.Add(MapName, LoadedData);
+	return LoadedData;
 }
 
 

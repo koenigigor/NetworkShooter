@@ -7,7 +7,9 @@
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
 #include "Components/Image.h"
+#include "Minimap/MapLayerGroup.h"
 #include "Minimap/MapObject.h"
+#include "Styling/UMGCoreStyle.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogMinimapWidget, All, All);
 
@@ -46,6 +48,14 @@ void UMinimapWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 	MoveIcons();
 }
 
+int32 UMinimapWidget::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect,
+	FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
+{
+	DrawDebugLayers(OutDrawElements, LayerId, AllottedGeometry);
+
+	return Super::NativePaint(Args, AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, InWidgetStyle, bParentEnabled);
+}
+
 FReply UMinimapWidget::NativeOnMouseWheel(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
 	Super::NativeOnMouseWheel(InGeometry, InMouseEvent);
@@ -54,6 +64,8 @@ FReply UMinimapWidget::NativeOnMouseWheel(const FGeometry& InGeometry, const FPo
 
 	return FReply::Handled();
 }
+
+#pragma region MapControllerEvents
 
 void UMinimapWidget::OnMapObjectAdd(const FString& LevelName, UMapObjectContainer* MapObjectContainer)
 {
@@ -128,6 +140,14 @@ void UMinimapWidget::OnMapObjectChangeLayer(const FString& LevelName, UMapObject
 		}
 	}
 }
+
+void UMinimapWidget::OnPlayerChangeLayer(const FLayerInfo& NewLayer)
+{
+	//todo if keep eyes on player
+	SetObservedLayer(NewLayer);
+}
+
+#pragma endregion MapControllerEvents
 
 void UMinimapWidget::AddIcon(UMapObject* MapObject)
 {
@@ -278,6 +298,13 @@ FVector2D UMinimapWidget::WorldToMap(FVector WorldLocation) const
 	return FVector2D(1.0 + UV.Y, -UV.X);
 }
 
+FVector UMinimapWidget::MapToWorld(FVector2D MapLocation) const
+{
+	return (FVector(MapLocation.Y - 1.0, -MapLocation.X, 0.0) + 0.5) * SegmentSize * -1.0;
+}
+
+#pragma region IconTagFilter
+
 bool UMinimapWidget::IsSatisfiesFilter(UMapObject* MapObject) const
 {
 	// check tags filter
@@ -332,6 +359,10 @@ void UMinimapWidget::RemoveFilter(FGameplayTag Tag)
 	}
 }
 
+#pragma endregion IconTagFilter
+
+#pragma region LayerFilter
+
 bool UMinimapWidget::IsSatisfiesLayer(UMapObject* MapObject) const
 {
 	// todo get map controller -> is layer visible
@@ -348,17 +379,15 @@ bool UMinimapWidget::IsSatisfiesLayer(UMapObject* MapObject) const
 
 void UMinimapWidget::SetObservedLayer(const FLayerInfo& NewLayer)
 {
+	if (ObservedLayer == NewLayer) return;
+
 	ObservedLayer = NewLayer;
 	UE_LOG(LogMinimapWidget, Display, TEXT("SetObservedLayer: %s"), *ObservedLayer.ToString())
 
 	RegenerateMap();
 }
 
-void UMinimapWidget::OnPlayerChangeLayer(const FLayerInfo& NewLayer)
-{
-	//todo if keep eyes on player
-	SetObservedLayer(NewLayer);
-}
+#pragma endregion LayerFilter
 
 void UMinimapWidget::RegenerateMap()
 {
@@ -378,4 +407,169 @@ void UMinimapWidget::RegenerateMap()
 			RemoveIcon(MapObject);
 		}
 	}
+}
+
+
+void UMinimapWidget::DrawDebugLayers(FSlateWindowElementList& DrawElements, int32 LayerId, const FGeometry& AllottedGeometry) const
+{
+#if !UE_BUILD_SHIPPING
+
+	auto WorldToWidget = [&](FVector WorldPosition) -> FVector2D
+	{
+		const auto PointOnMapDelta = WorldToMap(WorldPosition) - CenterOfMap;
+		const auto AbsTargetPosition = MarkCanvas->GetCachedGeometry().LocalToAbsolute(
+			PointOnMapDelta * MarkCanvas->GetCachedGeometry().GetLocalSize() - MarkCanvas->GetRenderTransform().Translation);
+		const auto WidgetStart = AllottedGeometry.LocalToAbsolute(FVector2D::ZeroVector);
+		const auto WidgetEnd = AllottedGeometry.LocalToAbsolute(AllottedGeometry.GetLocalSize());
+
+		const auto LocalTargetPositionAbs = (WidgetStart - AbsTargetPosition) / (WidgetStart - WidgetEnd);
+		const auto LocalTargetPosition = LocalTargetPositionAbs * AllottedGeometry.GetLocalSize();
+
+		return LocalTargetPosition;
+	};
+
+	const auto MapController = UMinimapController::Get(this);
+	if (!MapController) return;
+
+	const auto LayersData = MapController->GetLayersData(ObservedLevelName.Replace(*FString("UEDPIE_0_"), *FString(""))); //todo UEDPIE_0_
+	if (!LayersData) return;
+
+	const auto OverlappedGroup = LayersData->GetGroupAtLocation2D(MapToWorld(CenterOfMap));
+	const auto WidgetSize = AllottedGeometry.GetLocalSize();
+
+	for (const auto LayerGroup : LayersData->LayerGroups)
+	{
+		const auto Bounds = LayerGroup->GetBounds();
+
+		TArray<FVector2f> DrawPoints;
+
+		//clamp lines inside widget
+		{
+			TArray<FVector2D> Points
+			{
+				WorldToWidget(Bounds.Max),
+				WorldToWidget(FVector(Bounds.Max.X, Bounds.Min.Y, 0.0)),
+				WorldToWidget(Bounds.Min),
+				WorldToWidget(FVector(Bounds.Min.X, Bounds.Max.Y, 0.0))
+			};
+
+			// true if x or y in range [0, max]
+			/*
+			auto AnyAxisInRange = [](FVector2D Point, FVector2D Max)
+			{
+				return (Point.X >= 0.0 && Point.X <= Max.X) || (Point.Y >= 0.0 && Point.Y <= Max.Y);
+			};
+			*/
+			auto InRange = [](FVector2D Point, FVector2D Max)
+			{
+				return (Point.X >= 0.0 && Point.X <= Max.X) && (Point.Y >= 0.0 && Point.Y <= Max.Y);
+			};
+			// clamp point inside [0, max]
+			auto ClampPoint = [](FVector2D Point, FVector2D Max)
+			{
+				return FVector2D(FMath::Clamp(Point.X, 0.0, Max.X), FMath::Clamp(Point.Y, 0.0, Max.Y));
+			};
+
+			bool bAddForward = true;
+			int32 LeftOutsidePointIndex = INDEX_NONE;
+			int32 RightOutsidePointIndex = INDEX_NONE;
+			for (int32 i = 0; i != Points.Num(); ++i)
+			{
+				auto Point = Points[i];
+				if (InRange(Point, WidgetSize))
+				{
+					bAddForward
+						? DrawPoints.Add(UE::Slate::CastToVector2f(ClampPoint(Point, WidgetSize)))
+						: DrawPoints.Insert(UE::Slate::CastToVector2f(ClampPoint(Point, WidgetSize)), 0);
+				}
+				else
+				{
+					if (bAddForward) RightOutsidePointIndex = i;
+					if (!bAddForward) LeftOutsidePointIndex = i;
+					
+					bAddForward = false;
+				}
+			}
+
+			//todo issues part visible
+			
+            if (RightOutsidePointIndex != INDEX_NONE && !DrawPoints.IsEmpty())
+            {
+            	auto Point = Points[RightOutsidePointIndex];
+            	DrawPoints.Add(UE::Slate::CastToVector2f(ClampPoint(Point, WidgetSize)));
+            }
+			if (LeftOutsidePointIndex != INDEX_NONE && !DrawPoints.IsEmpty())
+			{
+				auto Point = Points[LeftOutsidePointIndex];
+				DrawPoints.Insert(UE::Slate::CastToVector2f(ClampPoint(Point, WidgetSize)), 0);				
+			}
+
+			if (bAddForward)
+			{
+				//all point inside window, try close loop
+				if (InRange(FVector2D(DrawPoints.Last()), WidgetSize) && InRange(Points[0], WidgetSize))
+				{
+					DrawPoints.Add(UE::Slate::CastToVector2f(Points[0]));
+
+					if (LayerGroup->UniqueName.Equals("Tower"))
+					{
+						UE_LOG(LogTemp, Display, TEXT("Close loop"))
+					}
+				}
+			}
+
+			// check if visible 1 edge (but points hidden)
+			/*
+				// issues on edge widget
+			if (DrawPoints.IsEmpty())
+			{
+				for (auto Point : Points)
+				{
+					if (AnyAxisInRange(Point, WidgetSize))
+					{
+						DrawPoints.Add(UE::Slate::CastToVector2f(ClampPoint(Point, WidgetSize)));
+					}
+				}
+			}
+			*/
+		}
+
+		/*
+		DrawPoints.Add(UE::Slate::CastToVector2f(WorldToWidget(Bounds.Max)));
+		DrawPoints.Add(UE::Slate::CastToVector2f(WorldToWidget(FVector(Bounds.Max.X, Bounds.Min.Y, 0.0))));
+		DrawPoints.Add(UE::Slate::CastToVector2f(WorldToWidget(Bounds.Min)));
+		DrawPoints.Add(UE::Slate::CastToVector2f(WorldToWidget(FVector(Bounds.Min.X, Bounds.Max.Y, 0.0))));
+		DrawPoints.Add(UE::Slate::CastToVector2f(WorldToWidget(Bounds.Max)));
+		*/
+
+		++LayerId;
+
+		FSlateDrawElement::MakeLines(
+			DrawElements,
+			LayerId,
+			AllottedGeometry.ToPaintGeometry(),
+			DrawPoints,
+			ESlateDrawEffect::None,
+			LayerGroup == OverlappedGroup ? FLinearColor::Green : FLinearColor::Red,
+			true,
+			2);
+
+		++LayerId;
+
+		FSlateFontInfo FontInfo = FUMGCoreStyle::Get().GetWidgetStyle<FTextBlockStyle>("NormalText").Font;
+		FontInfo.Size += 10;
+
+		FVector2D Position = WorldToWidget(Bounds.Min);
+
+		FSlateDrawElement::MakeText(
+			DrawElements,
+			LayerId,
+			AllottedGeometry.ToOffsetPaintGeometry(Position),
+			LayerGroup->UniqueName,
+			FontInfo,
+			ESlateDrawEffect::None,
+			LayerGroup == OverlappedGroup ? FLinearColor::Green : FLinearColor::Red);
+	}
+
+#endif
 }
