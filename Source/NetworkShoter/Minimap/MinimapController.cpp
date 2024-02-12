@@ -77,7 +77,11 @@ UMapLayersData* UMinimapController::GetLayersData(const FString& MapName)
 		return BakedLayers[MapName];
 	}
 
-	if (!ensure(BakedLayersData.Contains(MapName))) return nullptr;
+	if (!BakedLayersData.Contains(MapName))
+	{
+		UE_LOG(LogMinimapController, Log, TEXT("Not found baked layer data for level %s"), *MapName)
+		return nullptr;
+	}
 
 	// load baked data
 	const auto LoadedData = NewObject<UMapLayersData>(this, BakedLayersData[MapName]);

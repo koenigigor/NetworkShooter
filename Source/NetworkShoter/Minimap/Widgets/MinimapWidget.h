@@ -61,7 +61,10 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void RemoveFilter(FGameplayTag Tag);
 
-
+	UFUNCTION(BlueprintCallable)
+	void SetAutoFocusPlayer(bool bFocusPlayer);
+	UFUNCTION(BlueprintCallable)
+	void SetObservedLevel(const FString& LevelName);
 	void SetObservedLayer(const FLayerInfo& NewLayer);
 
 protected:
@@ -105,6 +108,14 @@ protected:
 	/** Map (widget) center in map space */
 	FVector2D CenterOfMap;
 
+	/** Center of map follow for player */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+	bool bAutoFocusPlayer = true;
+
+	/** Timer return to player after manual move map */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+	float AutoFocusPlayerTime = 5.f;
+
 	/** Center of map state machine:
 	 *	Player ->
 	 *	Player to Custom interpolation ->
@@ -119,7 +130,7 @@ protected:
 	};
 
 	ECenterMapState CenterMapState;
-	FTimerHandle UseCustomCenterOfMapTimer;
+	FTimerHandle BackToFocusPlayerTimer;
 	FVector2D CustomCenterOfMap;
 
 

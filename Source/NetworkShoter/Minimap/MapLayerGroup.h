@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
+#include "MapStructures.h"
 #include "MapLayerGroup.generated.h"
 
 class UMapLayerGroup;
@@ -125,4 +126,6 @@ public:
 
 	/** Find closest overlapped layered location */
 	UMapLayerGroup* GetGroupAtLocation2D(FVector WorldLocation);
+
+	bool IsSublayerVisible(const FLayerInfo& LayerInfo);
 };

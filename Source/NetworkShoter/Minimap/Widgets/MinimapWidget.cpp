@@ -143,8 +143,11 @@ void UMinimapWidget::OnMapObjectChangeLayer(const FString& LevelName, UMapObject
 
 void UMinimapWidget::OnPlayerChangeLayer(const FLayerInfo& NewLayer)
 {
-	//todo if keep eyes on player
-	SetObservedLayer(NewLayer);
+	// Apply layer if keep eyes on player
+	if (CenterMapState == Player)
+	{
+		SetObservedLayer(NewLayer);
+	}
 }
 
 #pragma endregion MapControllerEvents
@@ -220,18 +223,43 @@ void UMinimapWidget::ScaleMap(float Delta)
 	}
 }
 
+#pragma region StateMachineCenterOfMap
+
 void UMinimapWidget::SetCenterOfMap(FVector2D NewCenter)
 {
 	CustomCenterOfMap = NewCenter;
 	CenterMapState = Custom;
 
-	// set timer for end custom mode
-	constexpr float ResetMapTime = 5.f;
-	GetWorld()->GetTimerManager().SetTimer(
-		UseCustomCenterOfMapTimer,
-		FTimerDelegate::CreateLambda([&]() { CenterMapState = CustomToPlayer; }),
-		ResetMapTime,
-		false);
+	// End custom mode timer
+	if (bAutoFocusPlayer)
+	{
+		GetWorld()->GetTimerManager().SetTimer(
+			BackToFocusPlayerTimer,
+			FTimerDelegate::CreateLambda([&]() { CenterMapState = CustomToPlayer; }),
+			AutoFocusPlayerTime,
+			false);
+	}
+}
+
+void UMinimapWidget::CenterToPlayer()
+{
+	GetWorld()->GetTimerManager().ClearTimer(BackToFocusPlayerTimer);
+	CenterMapState = Player;
+
+	SetObservedLevel(GetWorld()->GetMapName());
+
+	const auto MapController = UMinimapController::Get(this);
+	SetObservedLayer(MapController->GetPlayerLayer());
+}
+
+void UMinimapWidget::SetAutoFocusPlayer(bool bFocusPlayer)
+{
+	bAutoFocusPlayer = bFocusPlayer;
+
+	if (bAutoFocusPlayer)
+	{
+		CenterToPlayer();
+	}
 }
 
 void UMinimapWidget::UpdateCenterOfMap(float DeltaTime)
@@ -272,11 +300,7 @@ void UMinimapWidget::UpdateCenterOfMap(float DeltaTime)
 	}
 }
 
-void UMinimapWidget::CenterToPlayer()
-{
-	GetWorld()->GetTimerManager().ClearTimer(UseCustomCenterOfMapTimer);
-	CenterMapState = Player;
-}
+#pragma endregion StateMachineCenterOfMap
 
 void UMinimapWidget::MoveMap()
 {
@@ -301,6 +325,24 @@ FVector2D UMinimapWidget::WorldToMap(FVector WorldLocation) const
 FVector UMinimapWidget::MapToWorld(FVector2D MapLocation) const
 {
 	return (FVector(MapLocation.Y - 1.0, -MapLocation.X, 0.0) + 0.5) * SegmentSize * -1.0;
+}
+
+void UMinimapWidget::SetObservedLevel(const FString& LevelName)
+{
+	if (LevelName.Equals(ObservedLevelName)) return;
+
+	ObservedLevelName = LevelName;
+	UE_LOG(LogMinimapWidget, Display, TEXT("SetObservedLevel: %s"), *ObservedLevelName)
+
+	// Destroy all icons
+	for (auto [MapObject, Widget] : MapObjects)
+	{
+		Widget->RemoveFromParent();
+	}
+	MapObjects.Empty();
+	MapObjectsIds.Empty();
+	
+	RegenerateMap();
 }
 
 #pragma region IconTagFilter
@@ -365,9 +407,12 @@ void UMinimapWidget::RemoveFilter(FGameplayTag Tag)
 
 bool UMinimapWidget::IsSatisfiesLayer(UMapObject* MapObject) const
 {
-	// todo get map controller -> is layer visible
+	// check layer visibility
+	const auto MapController = UMinimapController::Get(this);
+	const auto Layers = MapController->GetLayersData(ObservedLevelName);
+	if (Layers && !Layers->IsSublayerVisible(MapObject->LayerInfo)) return false;
 
-	// todo show icon on same layer, or ground who not overlap layer
+	// todo also show 'ground' layer icons, if they not overlap layer area
 	if (MapObject->IsIcon())
 	{
 		return MapObject->LayerInfo.IsSameLayer(ObservedLayer);
@@ -522,7 +567,6 @@ void UMinimapWidget::DrawDebugLayers(FSlateWindowElementList& DrawElements, int3
 			true,
 			2);
 
-		
 		FVector2D TextPosition = WorldToWidget(Bounds.Min);
 		bool bTextInsideWidget = TextPosition.X >= 0 && TextPosition.X <= WidgetSize.X && TextPosition.Y >= 0 && TextPosition.Y <= WidgetSize.Y;
 		if (bTextInsideWidget)

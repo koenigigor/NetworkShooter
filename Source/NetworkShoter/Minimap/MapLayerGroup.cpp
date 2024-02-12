@@ -130,3 +130,26 @@ UMapLayerGroup* UMapLayersData::GetGroupAtLocation2D(FVector WorldLocation)
 
 	return ClosestGroup;
 }
+
+bool UMapLayersData::IsSublayerVisible(const FLayerInfo& LayerInfo)
+{
+	for (const auto Group : LayerGroups)
+	{
+		if (Group->UniqueName.Equals(LayerInfo.LayerGroup))
+		{
+			const auto Sublayers = Group->Floors.Find(LayerInfo.Floor);
+			if (Sublayers)
+			{
+				for (auto Sublayer : Sublayers->Sublayers)
+				{
+					if (Sublayer.UniqueName.Equals(LayerInfo.Sublayer))
+					{
+						return Sublayer.IsVisible();
+					}
+				}
+			}
+		}
+	}
+	
+	return false;
+}
