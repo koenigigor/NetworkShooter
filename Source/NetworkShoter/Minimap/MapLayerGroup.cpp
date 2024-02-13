@@ -133,6 +133,8 @@ UMapLayerGroup* UMapLayersData::GetGroupAtLocation2D(FVector WorldLocation)
 
 bool UMapLayersData::IsSublayerVisible(const FLayerInfo& LayerInfo)
 {
+	if (LayerInfo.IsEmpty()) return true; // Ground layer always visible
+	
 	for (const auto Group : LayerGroups)
 	{
 		if (Group->UniqueName.Equals(LayerInfo.LayerGroup))

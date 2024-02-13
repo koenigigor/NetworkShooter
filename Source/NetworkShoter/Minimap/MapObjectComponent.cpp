@@ -21,8 +21,11 @@ void UMapObjectComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	const auto MapController = UMinimapController::Get(this);
-	if (MapController) MapController->RegisterMapObject(this);
+	if (bRuntime)
+	{
+		const auto MapController = UMinimapController::Get(this);
+		if (MapController) MapController->RegisterMapObject(this);
+	}
 
 	RefreshLayerVolumes();
 	UpdateLayer();
@@ -30,8 +33,11 @@ void UMapObjectComponent::BeginPlay()
 
 void UMapObjectComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	const auto MapController = UMinimapController::Get(this);
-	if (MapController) MapController->UnregisterMapObject(this);
+	if (bRuntime)
+	{
+		const auto MapController = UMinimapController::Get(this);
+		if (MapController) MapController->UnregisterMapObject(this);
+	}
 
 	Super::EndPlay(EndPlayReason);
 }

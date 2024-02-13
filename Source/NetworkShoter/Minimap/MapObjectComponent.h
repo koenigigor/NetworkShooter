@@ -30,6 +30,15 @@ public:
 	void AddLayerVolume(UMinimapLayerCollider* Volume);
 	void RemoveLayerVolume(UMinimapLayerCollider* Volume);
 
+	/** Save map object in static data? */
+	UPROPERTY(EditAnywhere)
+	bool bCanBake = false;
+
+	//todo mb different component with #EditorOnly MapObject for not cook extra data???
+	/** Register map object in MapController */  
+	UPROPERTY(EditAnywhere)
+	bool bRuntime = true;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Instanced)
 	UMapObject* MapObject = nullptr;
 

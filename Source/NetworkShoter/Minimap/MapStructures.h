@@ -13,14 +13,23 @@ UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_MAP_AMMO);
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_MAP_CHEST);
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_MAP_MISC);
 
+//todo 
+FORCEINLINE FString GetMyMapName(UWorld* World)
+{
+	return World->GetMapName().Replace(*FString("UEDPIE_0_"), *FString(""));
+}
+
 /** Encapsulated main info about layer for clean view */
 USTRUCT(BlueprintType)
-struct FLayerInfo
+struct NETWORKSHOTER_API FLayerInfo
 {
 	GENERATED_BODY()
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FString LayerGroup;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FString Sublayer;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 Floor = 0;
 
 	FString ToString() const;

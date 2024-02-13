@@ -12,7 +12,7 @@ class UWidget;
 
 /** Base class for any map object (icon, clickable icon, background) */
 UCLASS(DefaultToInstanced, EditInlineNew, Blueprintable)
-class UMapObject : public UObject
+class NETWORKSHOTER_API UMapObject : public UObject
 {
 	GENERATED_BODY()
 public:
@@ -57,6 +57,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Icon", meta = (ClampMin=0, ClampMax=3))
 	int32 WidgetPriority = 0;
 
+	UPROPERTY(EditAnywhere)
 	mutable FString UniqueName;
 
 	/** Default icon world location, auto setup */
@@ -66,7 +67,7 @@ public:
 
 /** Simple map object version with static image */
 UCLASS()
-class UMapObjectSimpleImage : public UMapObject
+class NETWORKSHOTER_API UMapObjectSimpleImage : public UMapObject
 {
 	GENERATED_BODY()
 public:
@@ -89,7 +90,7 @@ public:
  *		- External - MapObject passed from any external source (save, quest system, etc...)
  *		- Baked - Saved map objects from MapObject component (show unloaded actors, or a different level) */
 UCLASS()
-class UMapObjectContainer : public UObject
+class NETWORKSHOTER_API UMapObjectContainer : public UObject
 {
 	GENERATED_BODY()
 public:	
@@ -119,4 +120,14 @@ public:
 	UMapObject* Get() const;
 
 	bool IsValid() const { return BakedObject || ExternalObject || RuntimeObject; }
+};
+
+/** List of all baked objects on level */
+UCLASS(Abstract)
+class NETWORKSHOTER_API UBakedMapObjects : public UObject
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Instanced)
+	TArray<UMapObject*> MapObjects;
 };

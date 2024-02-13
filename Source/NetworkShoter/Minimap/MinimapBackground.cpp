@@ -38,6 +38,8 @@ AMinimapBackground::AMinimapBackground()
 #endif
 
 	MapObjectComponent = CreateDefaultSubobject<UMapObjectComponent>("MapObject");
+	MapObjectComponent->bCanBake = true;
+	MapObjectComponent->bRuntime = false;
 	check(MapObjectComponent->MapObject);
 	MapObjectComponent->MapObject->bIcon = false;
 }

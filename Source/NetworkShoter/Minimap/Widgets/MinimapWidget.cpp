@@ -27,7 +27,7 @@ void UMinimapWidget::NativeOnInitialized()
 
 	const auto MinimapController = UMinimapController::Get(this);
 
-	ObservedLevelName = GetWorld()->GetMapName();
+	ObservedLevelName = GetMyMapName(GetWorld());
 	ObservedLayer = MinimapController->GetPlayerLayer();
 
 	MinimapController->OnMapObjectAdd.AddUObject(this, &ThisClass::OnMapObjectAdd);
@@ -246,7 +246,7 @@ void UMinimapWidget::CenterToPlayer()
 	GetWorld()->GetTimerManager().ClearTimer(BackToFocusPlayerTimer);
 	CenterMapState = Player;
 
-	SetObservedLevel(GetWorld()->GetMapName());
+	SetObservedLevel(GetMyMapName(GetWorld()));
 
 	const auto MapController = UMinimapController::Get(this);
 	SetObservedLayer(MapController->GetPlayerLayer());
@@ -343,6 +343,7 @@ void UMinimapWidget::SetObservedLevel(const FString& LevelName)
 	MapObjectsIds.Empty();
 	
 	RegenerateMap();
+	CenterOfMap = {0.0, 0.0};
 }
 
 #pragma region IconTagFilter
@@ -476,7 +477,7 @@ void UMinimapWidget::DrawDebugLayers(FSlateWindowElementList& DrawElements, int3
 	const auto MapController = UMinimapController::Get(this);
 	if (!MapController) return;
 
-	const auto LayersData = MapController->GetLayersData(ObservedLevelName.Replace(*FString("UEDPIE_0_"), *FString(""))); //todo UEDPIE_0_
+	const auto LayersData = MapController->GetLayersData(ObservedLevelName);
 	if (!LayersData) return;
 
 	const auto OverlappedGroup = LayersData->GetGroupAtLocation2D(MapToWorld(CenterOfMap));

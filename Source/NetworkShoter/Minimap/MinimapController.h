@@ -12,6 +12,7 @@ class UMapObject;
 class UMapObjectContainer;
 class UMapLayerGroup;
 class UMapLayersData;
+class UBakedMapObjects;
 
 /** Map objects on level */
 USTRUCT()
@@ -60,6 +61,10 @@ public:
 	/** Layers data for each level */
 	UPROPERTY(EditDefaultsOnly)
 	TMap<FString, TSubclassOf<UMapLayersData>> BakedLayersData;
+
+	/** Baked map objects data for each level */
+	UPROPERTY(EditDefaultsOnly)
+	TMap<FString, TSubclassOf<UBakedMapObjects>> BakedMapObjectsData;
 
 	/** LevelName - Baked data */
 	UPROPERTY()

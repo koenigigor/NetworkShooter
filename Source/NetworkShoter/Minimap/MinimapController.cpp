@@ -30,13 +30,13 @@ UMinimapController::UMinimapController()
 
 void UMinimapController::RegisterMapObject(UMapObjectComponent* Icon)
 {
-	const auto LevelName = GetWorld()->GetMapName();
+	const auto LevelName = GetMyMapName(GetWorld());
 	AddMapObject_Internal(Icon->MapObject, Runtime, LevelName);
 }
 
 void UMinimapController::UnregisterMapObject(UMapObjectComponent* Icon)
 {
-	const auto LevelName = GetWorld()->GetMapName();
+	const auto LevelName = GetMyMapName(GetWorld());
 	RemoveMapObject_Internal(Icon->MapObject, Runtime, LevelName);
 }
 
@@ -52,15 +52,17 @@ TMap<FString, UMapObjectContainer*>& UMinimapController::GetMapObjects_Mutable(F
 
 	MapObjectsCache.Add(LevelName);
 
-	// todo load baked (and external?) objects for different level
-	/*
-	//GetMutableDefaults...
-	TArray<UMapObject*> BakedObjects{};
-	for (const auto& BakedObject : BakedObjects)
+	// load baked objects for level
+	if (BakedMapObjectsData.Contains(LevelName))
 	{
-		AddMapObject_Internal(BakedObject, EMapObjectType::Baked, LevelName, false);
+		const auto BakedObjects = GetMutableDefault<UBakedMapObjects>(BakedMapObjectsData[LevelName]);
+		//const auto BakedObjects = NewObject<UBakedMapObjects>(this, BakedMapObjectsData[LevelName]);
+		for (const auto MapObject : BakedObjects->MapObjects)
+		{
+			UE_LOG(LogMinimapController, Display, TEXT("Load baked object %s"), *MapObject->GetUniqueName())
+			AddMapObject_Internal(MapObject, EMapObjectType::Baked, LevelName, false);
+		}
 	}
-	*/
 
 	return MapObjectsCache[LevelName].Containers;
 }
@@ -126,7 +128,7 @@ void UMinimapController::AddMapObject_Internal(UMapObject* MapObject, EMapObject
 
 		MapObjectWrapper->OnLayerChange.AddLambda([&](UMapObjectContainer* Wrapper)
 		{
-			OnMapObjectChangeLayer.Broadcast(GetWorld()->GetMapName(), Wrapper);
+			OnMapObjectChangeLayer.Broadcast(GetMyMapName(GetWorld()), Wrapper);
 		});
 
 		if (bNotify)
