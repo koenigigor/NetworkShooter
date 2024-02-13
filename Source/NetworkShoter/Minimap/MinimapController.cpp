@@ -53,10 +53,10 @@ TMap<FString, UMapObjectContainer*>& UMinimapController::GetMapObjects_Mutable(F
 	MapObjectsCache.Add(LevelName);
 
 	// load baked objects for level
-	if (BakedMapObjectsData.Contains(LevelName))
+	auto Row = BakedMapData ? BakedMapData->FindRow<FBakedMapData>(FName(LevelName), nullptr) : nullptr;
+	if (Row && IsValid(Row->BakedObjects))
 	{
-		const auto BakedObjects = GetMutableDefault<UBakedMapObjects>(BakedMapObjectsData[LevelName]);
-		//const auto BakedObjects = NewObject<UBakedMapObjects>(this, BakedMapObjectsData[LevelName]);
+		const auto BakedObjects = GetMutableDefault<UBakedMapObjects>(Row->BakedObjects);
 		for (const auto MapObject : BakedObjects->MapObjects)
 		{
 			UE_LOG(LogMinimapController, Display, TEXT("Load baked object %s"), *MapObject->GetUniqueName())
@@ -79,15 +79,17 @@ UMapLayersData* UMinimapController::GetLayersData(const FString& MapName)
 		return BakedLayers[MapName];
 	}
 
-	if (!BakedLayersData.Contains(MapName))
+	// load baked data
+	auto Row = BakedMapData ? BakedMapData->FindRow<FBakedMapData>(FName(MapName), nullptr) : nullptr;
+	if (!Row)
 	{
-		UE_LOG(LogMinimapController, Log, TEXT("Not found baked layer data for level %s"), *MapName)
+		UE_LOG(LogMinimapController, Log, TEXT("Level %s has no baked data"), *MapName)
 		return nullptr;
 	}
+	
+	const auto LoadedData = IsValid(Row->LayerData) ? NewObject<UMapLayersData>(this, Row->LayerData) : nullptr;
+    BakedLayers.Add(MapName, LoadedData);
 
-	// load baked data
-	const auto LoadedData = NewObject<UMapLayersData>(this, BakedLayersData[MapName]);
-	BakedLayers.Add(MapName, LoadedData);
 	return LoadedData;
 }
 

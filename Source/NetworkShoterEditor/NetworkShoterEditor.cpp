@@ -7,7 +7,6 @@
 #include "UnrealEd.h"
 #include "Minimap/BuildMapLayers.h"
 #include "Minimap/BuildMapObjects.h"
-#include "Minimap/MinimapBakeData.h"
 
 IMPLEMENT_MODULE(FNetworkShoterEditorModule, NetworkShoterEditor);
 

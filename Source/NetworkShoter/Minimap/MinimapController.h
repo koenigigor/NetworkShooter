@@ -58,17 +58,8 @@ public:
 	void SetPlayerLayer(FLayerInfo NewLayer);
 	const FLayerInfo& GetPlayerLayer() const { return PlayerLayer; };
 
-	/** Layers data for each level */
-	UPROPERTY(EditDefaultsOnly)
-	TMap<FString, TSubclassOf<UMapLayersData>> BakedLayersData;
-
-	/** Baked map objects data for each level */
-	UPROPERTY(EditDefaultsOnly)
-	TMap<FString, TSubclassOf<UBakedMapObjects>> BakedMapObjectsData;
-
-	/** LevelName - Baked data */
-	UPROPERTY()
-	TMap<FString, UMapLayersData*> BakedLayers;
+	UPROPERTY(EditDefaultsOnly, meta=(RequiredAssetDataTags="RowStructure=/Script/NetworkShoter.BakedMapData"))
+	UDataTable* BakedMapData;
 
 	UFUNCTION(BlueprintCallable)
 	UMapLayersData* GetLayersData(const FString& MapName);
@@ -81,6 +72,10 @@ protected:
 
 	TMap<FString, UMapObjectContainer*>& GetMapObjects_Mutable(FString LevelName);
 
+	/** LevelName - Baked data */
+	UPROPERTY()
+	TMap<FString, UMapLayersData*> BakedLayers;
+	
 	/** [LevelName - MapObjects on level] */
 	UPROPERTY()
 	TMap<FString, FMapObjectsCache> MapObjectsCache;
