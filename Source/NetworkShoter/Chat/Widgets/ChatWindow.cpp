@@ -6,6 +6,7 @@
 #include "ChatTabButton.h"
 #include "ChatScrollBox.h"
 #include "ChatSetupWindow.h"
+#include "Selection.h"
 #include "Chat/ChatController.h"
 #include "Components/SizeBox.h"
 #include "Components/UniformGridPanel.h"
@@ -20,9 +21,11 @@ void UChatWindow::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
 
-	const auto ChatSave = UChatStyleSave::Get(GetOwningPlayer());
-	ChatSave->OnCreateNewTab.AddDynamic(this, &ThisClass::OnCreateNewTab);
-	ChatSave->OnWindowStyleUpdate.AddDynamic(this, &ThisClass::OnStyleUpdate);
+	if (const auto ChatSave = UChatStyleSave::Get(GetOwningPlayer()))
+	{
+		ChatSave->OnCreateNewTab.AddDynamic(this, &ThisClass::OnCreateNewTab);
+		ChatSave->OnWindowStyleUpdate.AddDynamic(this, &ThisClass::OnStyleUpdate);
+	}
 }
 
 void UChatWindow::NativeConstruct()

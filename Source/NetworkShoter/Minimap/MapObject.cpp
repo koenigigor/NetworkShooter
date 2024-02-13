@@ -28,6 +28,11 @@ UWorld* UMapObject::GetWorld() const
 	return GetOuter() ? GetOuter()->GetWorld() : nullptr;
 }
 
+AActor* UMapObject::GetOwningActor() const
+{
+	return GetTypedOuter<AActor>();
+}
+
 const FString& UMapObject::GetUniqueName() const
 {
 	if (UniqueName.IsEmpty())

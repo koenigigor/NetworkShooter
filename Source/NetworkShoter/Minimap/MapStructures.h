@@ -16,7 +16,7 @@ UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_MAP_MISC);
 //todo 
 FORCEINLINE FString GetMyMapName(UWorld* World)
 {
-	return World->GetMapName().Replace(*FString("UEDPIE_0_"), *FString(""));
+	return World->GetMapName().Contains("UEDPIE") ? World->GetMapName().RightChop(9) : World->GetMapName();
 }
 
 /** Encapsulated main info about layer for clean view */

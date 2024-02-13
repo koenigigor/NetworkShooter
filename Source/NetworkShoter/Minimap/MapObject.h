@@ -28,6 +28,10 @@ public:
 	int32 GetFloor() const { return LayerInfo.Floor; }
 	int32 GetFloorAbs() const { return FMath::Abs(LayerInfo.Floor); }
 
+	/** !For runtime icons. Return actor withs component attached to */
+	UFUNCTION(BlueprintPure)
+	AActor* GetOwningActor() const;
+	
 	/** Create icon widget, override for specify */
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	UWidget* CreateWidget(APlayerController* PC);
