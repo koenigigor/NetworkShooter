@@ -29,6 +29,10 @@ protected:
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 	virtual int32 NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;
 	virtual FReply NativeOnMouseWheel(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+	virtual FReply NativeOnMouseButtonUp(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+	virtual void NativeOnMouseCaptureLost(const FCaptureLostEvent& CaptureLostEvent) override;
+	virtual FReply NativeOnMouseMove(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 
 	void OnMapObjectAdd(const FString& LevelName, UMapObjectContainer* MapObjectContainer);
 	void OnMapObjectUpdate(const FString& LevelName, UMapObjectContainer* MapObjectContainer);
@@ -106,9 +110,18 @@ protected:
 
 	FString ObservedLevelName;
 
-	/** Map (widget) center in map space */
+	/** Map movement operation flag */
+	bool bMoveMap = false;
+	FVector2D MoveMapStartPositionScr;
+	FVector2D MoveMapStartCenterPosition;
+	
+	/** Widget center in map space */
 	FVector2D CenterOfMap;
 
+	/** Can drag map using mouse */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+	bool bCanDragMap = true;
+	
 	/** Center of map follow for player */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	bool bAutoFocusPlayer = true;

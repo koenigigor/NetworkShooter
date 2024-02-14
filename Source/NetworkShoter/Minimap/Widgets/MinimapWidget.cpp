@@ -4,6 +4,7 @@
 #include "MinimapWidget.h"
 
 #include "../MinimapController.h"
+#include "Blueprint/SlateBlueprintLibrary.h"
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
 #include "Components/Image.h"
@@ -76,6 +77,60 @@ FReply UMinimapWidget::NativeOnMouseWheel(const FGeometry& InGeometry, const FPo
 	ScaleMap(InMouseEvent.GetWheelDelta() * WheelScaleStep);
 
 	return FReply::Handled();
+}
+
+FReply UMinimapWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+	auto Reply = Super::NativeOnMouseButtonDown(InGeometry, InMouseEvent);
+	if (Reply.IsEventHandled()) return Reply;
+
+	// drag map
+	if (bCanDragMap)
+	{
+		bMoveMap = true;
+		MoveMapStartPositionScr = InMouseEvent.GetScreenSpacePosition();
+		MoveMapStartCenterPosition = GetCenterOfMap();
+		return FReply::Handled().CaptureMouse(GetCachedWidget().ToSharedRef());
+	}
+	
+	return FReply::Unhandled();
+}
+
+FReply UMinimapWidget::NativeOnMouseButtonUp(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+	if (bMoveMap)
+	{
+		bMoveMap = false;
+		return FReply::Handled().ReleaseMouseCapture();
+	}
+	
+	return Super::NativeOnMouseButtonUp(InGeometry, InMouseEvent);
+}
+
+void UMinimapWidget::NativeOnMouseCaptureLost(const FCaptureLostEvent& CaptureLostEvent)
+{
+	bMoveMap = false;
+}
+
+FReply UMinimapWidget::NativeOnMouseMove(const FGeometry& InGeometry, const FPointerEvent& MouseEvent)
+{
+	if (bMoveMap)
+	{
+		const auto& Geometry = MarkCanvas->GetCachedGeometry();
+		
+		const auto ScreenDelta = MouseEvent.GetScreenSpacePosition() - MoveMapStartPositionScr;
+		
+		FVector2D LocalPosition, DeltaToLocal;
+		USlateBlueprintLibrary::ScreenToWidgetLocal(this, Geometry, FVector2D(0.0), LocalPosition);
+		USlateBlueprintLibrary::ScreenToWidgetLocal(this, Geometry, ScreenDelta, DeltaToLocal);
+		
+		const auto LocalDelta = (LocalPosition - DeltaToLocal) / Geometry.GetLocalSize();		
+		SetCenterOfMap(MoveMapStartCenterPosition + LocalDelta);
+		
+		return FReply::Handled();
+	}
+	
+	return Super::NativeOnMouseMove(InGeometry, MouseEvent);
 }
 
 #pragma region MapControllerEvents
