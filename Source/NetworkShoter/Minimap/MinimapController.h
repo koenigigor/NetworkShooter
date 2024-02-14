@@ -44,6 +44,9 @@ public:
 	void AddExternalIcon(UMapObject* MapObject, const FString& MapName, bool bNotify = true);
 	void RemoveExternalIcon(UMapObject* MapObject, const FString& MapName, bool bNotify = true);
 
+	UFUNCTION(BlueprintCallable)
+	static FGameplayTagContainer GetMapFilterTags();
+
 	/** Return cached map objects for level [UniqueName, Object] */
 	const TMap<FString, UMapObjectContainer*>& GetMapObjects(FString LevelName);
 

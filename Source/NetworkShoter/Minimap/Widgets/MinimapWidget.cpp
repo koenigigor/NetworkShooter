@@ -39,6 +39,19 @@ void UMinimapWidget::NativeOnInitialized()
 		OnMapObjectAdd(ObservedLevelName, Icon);
 }
 
+void UMinimapWidget::NativeConstruct()
+{
+	Super::NativeConstruct();
+
+	//reset to current level
+	SetObservedLevel(GetMyMapName(GetWorld()));
+	
+	if (!bAutoFocusPlayer)
+	{
+		SetCenterOfMap(WorldToMap(GetOwningPlayer()->GetFocalLocation()));
+	}
+}
+
 void UMinimapWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
@@ -344,6 +357,8 @@ void UMinimapWidget::SetObservedLevel(const FString& LevelName)
 	
 	RegenerateMap();
 	CenterOfMap = {0.0, 0.0};
+
+	//todo if active level, center to player
 }
 
 #pragma region IconTagFilter

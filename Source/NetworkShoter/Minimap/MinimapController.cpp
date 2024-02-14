@@ -113,6 +113,12 @@ void UMinimapController::RemoveExternalIcon(UMapObject* MapObject, const FString
 	RemoveMapObject_Internal(MapObject, External, MapName, bNotify);
 }
 
+FGameplayTagContainer UMinimapController::GetMapFilterTags()
+{
+	UGameplayTagsManager& Manager = UGameplayTagsManager::Get();
+	return Manager.RequestGameplayTagChildren(TAG_MAP_ROOT);
+}
+
 void UMinimapController::AddMapObject_Internal(UMapObject* MapObject, EMapObjectType Type, const FString& MapName, bool bNotify)
 {
 	const auto& ObjectName = MapObject->GetUniqueName();

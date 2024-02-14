@@ -7,6 +7,7 @@
 
 #include "MapStructures.generated.h"
 
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_MAP_ROOT);
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_MAP_DEFAULT);
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_MAP_HEAL);
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_MAP_AMMO);
@@ -16,6 +17,10 @@ UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_MAP_MISC);
 //todo 
 FORCEINLINE FString GetMyMapName(UWorld* World)
 {
+	//UGameplayStatics::GetCurrentLevelName
+	FString MapName = World->GetMapName();
+	MapName.RemoveFromStart(World->StreamingLevelsPrefix);
+	return MapName;
 	return World->GetMapName().Contains("UEDPIE") ? World->GetMapName().RightChop(9) : World->GetMapName();
 }
 
