@@ -108,6 +108,8 @@ public:
 	virtual FGenericTeamId GetGenericTeamId() const override;
 	
 	virtual FVector GetPawnViewLocation() const override;
+
+	void CloseUI();
 	
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 

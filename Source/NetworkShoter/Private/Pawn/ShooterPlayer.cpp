@@ -153,6 +153,14 @@ FVector AShooterPlayer::GetPawnViewLocation() const
 	return Super::GetPawnViewLocation();
 }
 
+void AShooterPlayer::CloseUI()
+{
+	if (auto PC = GetController<APlayerController>())
+	{
+		PC->SetInputMode(FInputModeGameOnly());
+	}
+}
+
 void AShooterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
@@ -171,6 +179,7 @@ void AShooterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 		}
 		if (InputMapping.InputActions.IA_Move)
 		{
+			EnhancedInput->BindAction(InputMapping.InputActions.IA_Move, ETriggerEvent::Started, this, &ThisClass::CloseUI);
 			EnhancedInput->BindAction(InputMapping.InputActions.IA_Move, ETriggerEvent::Triggered, this, &ThisClass::MovementInput);
 		}
 		if (InputMapping.InputActions.IA_Rotation)

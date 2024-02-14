@@ -21,8 +21,7 @@ ANSHUD* ANSHUD::GetNSHUD(APlayerController* PC)
 /** True if any window focused */ 
 bool ANSHUD::HasWindowInFocus() const
 {
-	return WindowLayerWidget ? WindowLayerWidget->HasFocusedDescendants() : false;
-	//return WindowLayerWidget && WindowLayerWidget->GetWindowCount() > 0 ? true : false;
+	return WindowLayerWidget->GetWindowCount() > 0;
 }
 
 bool ANSHUD::HasChatFocus() const
