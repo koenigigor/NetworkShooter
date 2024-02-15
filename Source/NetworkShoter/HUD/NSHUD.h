@@ -51,6 +51,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category="Settings")
 	TSubclassOf<UUserWidget> PauseMenuClass;
 
+	UPROPERTY(EditDefaultsOnly, Category="Settings")
+	TSubclassOf<UUserWidget> MapWindowClass;
+
 	virtual void BeginPlay() override;
 
 	void OnPreMatch();
@@ -64,6 +67,9 @@ protected:
 public:
 	UFUNCTION(BlueprintCallable)
 	void ShowTabMenu(const bool bShow = true);
+
+	UFUNCTION(BlueprintCallable)
+	void ToggleMapWindow();
 	
 protected:
 	UFUNCTION()
@@ -100,6 +106,9 @@ private:
 
 	UPROPERTY()
 	UUserWidget* PauseMenu = nullptr;
+
+	UPROPERTY()
+	UUserWidget* MapWindow = nullptr;
 
 public:
 	UFUNCTION(BlueprintCallable)

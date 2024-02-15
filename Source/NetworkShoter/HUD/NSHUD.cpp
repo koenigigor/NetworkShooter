@@ -75,7 +75,7 @@ void ANSHUD::BeginPlay()
 		if (IsValid(WindowLayerWidgetClass))
 		{
 			WindowLayerWidget = CreateWidget<UWindowLayerWidget>(GetOwningPlayerController(), WindowLayerWidgetClass);
-			WindowLayerWidget->AddToViewport();
+			WindowLayerWidget->AddToViewport(100);
 		} else UE_LOG(LogNSHUD, Error, TEXT("WindowLayerWidgetClass not set"))
 	
 		if (IsValid(ContextMenuLayerClass))
@@ -155,6 +155,31 @@ void ANSHUD::ShowTabMenu(const bool bShow)
 	else
 	{
 		TabMenu->RemoveFromParent();
+	}
+}
+
+void ANSHUD::ToggleMapWindow()
+{
+	// create widget, mb spawn on begin play as other
+	if (!MapWindow)
+	{
+		if (IsValid(MapWindowClass))
+		{
+			MapWindow = CreateWidget<UUserWidget>(GetOwningPlayerController(), MapWindowClass);
+		} UE_LOG(LogNSHUD, Error, TEXT("MapWindowClass not set"))
+	}
+
+	// toggle map window visibility
+	if (MapWindow)
+	{
+		if (MapWindow->GetParent())
+		{
+			MapWindow->RemoveFromParent();
+		}
+		else
+		{
+			PushWindow(FGameplayTag::EmptyTag, MapWindow);
+		}
 	}
 }
 

@@ -51,6 +51,11 @@ void UMinimapWidget::NativeConstruct()
 	{
 		SetCenterOfMap(WorldToMap(GetOwningPlayer()->GetFocalLocation()));
 	}
+
+	bMoveMap = false;
+	
+	bAbovePlayer = true;
+	OnAbovePlayerChange.Broadcast();
 }
 
 void UMinimapWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
@@ -126,6 +131,12 @@ FReply UMinimapWidget::NativeOnMouseMove(const FGeometry& InGeometry, const FPoi
 		
 		const auto LocalDelta = (LocalPosition - DeltaToLocal) / Geometry.GetLocalSize();		
 		SetCenterOfMap(MoveMapStartCenterPosition + LocalDelta);
+
+		if (bAbovePlayer)
+		{
+			bAbovePlayer = false;
+			OnAbovePlayerChange.Broadcast();
+		}
 		
 		return FReply::Handled();
 	}
@@ -307,6 +318,12 @@ void UMinimapWidget::SetCenterOfMap(FVector2D NewCenter)
 			AutoFocusPlayerTime,
 			false);
 	}
+
+	if (bAbovePlayer)
+	{
+		bAbovePlayer = false;
+		OnAbovePlayerChange.Broadcast();
+	}
 }
 
 void UMinimapWidget::CenterToPlayer()
@@ -318,6 +335,12 @@ void UMinimapWidget::CenterToPlayer()
 
 	const auto MapController = UMinimapController::Get(this);
 	SetObservedLayer(MapController->GetPlayerLayer());
+
+	if (!bAbovePlayer)
+	{
+		bAbovePlayer = true;
+		OnAbovePlayerChange.Broadcast();
+	}
 }
 
 void UMinimapWidget::SetAutoFocusPlayer(bool bFocusPlayer)
@@ -363,6 +386,9 @@ void UMinimapWidget::UpdateCenterOfMap(float DeltaTime)
 		if (CenterOfMap.Equals(PlayerLocation, 0.01))
 		{
 			CenterMapState = Player;
+
+			bAbovePlayer = true;
+			OnAbovePlayerChange.Broadcast();
 		}
 		return;
 	}
@@ -414,6 +440,12 @@ void UMinimapWidget::SetObservedLevel(const FString& LevelName)
 	CenterOfMap = {0.0, 0.0};
 
 	//todo if active level, center to player
+	if (CenterMapState != Player && GetMyMapName(GetWorld()).Equals(LevelName))
+	{
+		CenterToPlayer();
+	}
+
+	OnObservedLevelChange.Broadcast();
 }
 
 #pragma region IconTagFilter
@@ -433,6 +465,15 @@ bool UMinimapWidget::IsSatisfiesFilter(UMapObject* MapObject) const
 #endif
 
 	return Filter.HasTag(MapObject->Category);
+}
+
+void UMinimapWidget::SetRotateMap(bool bRotate)
+{
+	bRotateMap = bRotate;
+	if (!bRotateMap)
+	{
+		MarkCanvas->SetRenderTransformAngle(0.f);
+	}
 }
 
 void UMinimapWidget::SetFilter(FGameplayTagContainer NewFilter)

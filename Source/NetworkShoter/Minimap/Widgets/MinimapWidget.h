@@ -13,6 +13,8 @@ class UMapObjectContainer;
 class UCanvasPanel;
 class UImage;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FMapSimpleDelegate);
+
 /** Minimap widget contain background and icons
  *	ZOrder calculation:
  *		Background: Level * 10 + SubLevel[0..3] (eq. on 2 floor is 20-23 ZOrders)
@@ -58,6 +60,15 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void CenterToPlayer();
 
+	/** Center of map is above player? */
+	UFUNCTION(BlueprintPure)
+	bool IsAbovePlayer() const { return bAbovePlayer; };
+
+	UPROPERTY(BlueprintAssignable)
+	FMapSimpleDelegate OnAbovePlayerChange;
+
+	UFUNCTION(BlueprintCallable)
+	void SetRotateMap(bool bRotate);
 
 	UFUNCTION(BlueprintCallable)
 	void SetFilter(FGameplayTagContainer NewFilter);
@@ -68,12 +79,22 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SetAutoFocusPlayer(bool bFocusPlayer);
+
+
 	UFUNCTION(BlueprintCallable)
 	void SetObservedLevel(const FString& LevelName);
+	
+	UFUNCTION(BlueprintPure)
+	FString GetObservedLevel() const { return ObservedLevelName; };
+	
+	UPROPERTY(BlueprintAssignable)
+	FMapSimpleDelegate OnObservedLevelChange;
+
+	
 	void SetObservedLayer(const FLayerInfo& NewLayer);
 
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
 	bool bRotateMap = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Scale")
@@ -114,6 +135,9 @@ protected:
 	bool bMoveMap = false;
 	FVector2D MoveMapStartPositionScr;
 	FVector2D MoveMapStartCenterPosition;
+
+	/** true if center of map above player */
+	bool bAbovePlayer = false;
 	
 	/** Widget center in map space */
 	FVector2D CenterOfMap;
