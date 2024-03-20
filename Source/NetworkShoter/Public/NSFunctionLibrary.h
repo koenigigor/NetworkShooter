@@ -38,4 +38,7 @@ public:
 	{
 		return Row.Brush;
 	}
+
+	UFUNCTION(BlueprintPure)
+	static bool IsEditorOnlyActor(AActor* Actor);
 };

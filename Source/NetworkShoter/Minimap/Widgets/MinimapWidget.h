@@ -62,10 +62,10 @@ public:
 
 	/** Center of map is above player? */
 	UFUNCTION(BlueprintPure)
-	bool IsAbovePlayer() const { return bAbovePlayer; };
+	bool IsCentredOnPlayer() const { return bCenterOnPlayer; };
 
 	UPROPERTY(BlueprintAssignable)
-	FMapSimpleDelegate OnAbovePlayerChange;
+	FMapSimpleDelegate OnCenterOnPlayerStateChange;
 
 	UFUNCTION(BlueprintCallable)
 	void SetRotateMap(bool bRotate);
@@ -137,7 +137,7 @@ protected:
 	FVector2D MoveMapStartCenterPosition;
 
 	/** true if center of map above player */
-	bool bAbovePlayer = false;
+	bool bCenterOnPlayer = false;
 	
 	/** Widget center in map space */
 	FVector2D CenterOfMap;

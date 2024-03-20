@@ -54,8 +54,8 @@ void UMinimapWidget::NativeConstruct()
 
 	bMoveMap = false;
 	
-	bAbovePlayer = true;
-	OnAbovePlayerChange.Broadcast();
+	bCenterOnPlayer = true;
+	OnCenterOnPlayerStateChange.Broadcast();
 }
 
 void UMinimapWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
@@ -132,10 +132,10 @@ FReply UMinimapWidget::NativeOnMouseMove(const FGeometry& InGeometry, const FPoi
 		const auto LocalDelta = (LocalPosition - DeltaToLocal) / Geometry.GetLocalSize();		
 		SetCenterOfMap(MoveMapStartCenterPosition + LocalDelta);
 
-		if (bAbovePlayer)
+		if (bCenterOnPlayer)
 		{
-			bAbovePlayer = false;
-			OnAbovePlayerChange.Broadcast();
+			bCenterOnPlayer = false;
+			OnCenterOnPlayerStateChange.Broadcast();
 		}
 		
 		return FReply::Handled();
@@ -319,10 +319,10 @@ void UMinimapWidget::SetCenterOfMap(FVector2D NewCenter)
 			false);
 	}
 
-	if (bAbovePlayer)
+	if (bCenterOnPlayer)
 	{
-		bAbovePlayer = false;
-		OnAbovePlayerChange.Broadcast();
+		bCenterOnPlayer = false;
+		OnCenterOnPlayerStateChange.Broadcast();
 	}
 }
 
@@ -336,10 +336,10 @@ void UMinimapWidget::CenterToPlayer()
 	const auto MapController = UMinimapController::Get(this);
 	SetObservedLayer(MapController->GetPlayerLayer());
 
-	if (!bAbovePlayer)
+	if (!bCenterOnPlayer)
 	{
-		bAbovePlayer = true;
-		OnAbovePlayerChange.Broadcast();
+		bCenterOnPlayer = true;
+		OnCenterOnPlayerStateChange.Broadcast();
 	}
 }
 
@@ -387,8 +387,8 @@ void UMinimapWidget::UpdateCenterOfMap(float DeltaTime)
 		{
 			CenterMapState = Player;
 
-			bAbovePlayer = true;
-			OnAbovePlayerChange.Broadcast();
+			bCenterOnPlayer = true;
+			OnCenterOnPlayerStateChange.Broadcast();
 		}
 		return;
 	}
@@ -418,6 +418,7 @@ FVector2D UMinimapWidget::WorldToMap(FVector WorldLocation) const
 
 FVector UMinimapWidget::MapToWorld(FVector2D MapLocation) const
 {
+	// opposite WorldToMap 
 	return (FVector(MapLocation.Y - 1.0, -MapLocation.X, 0.0) + 0.5) * SegmentSize * -1.0;
 }
 

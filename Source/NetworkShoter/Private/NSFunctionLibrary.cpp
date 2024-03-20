@@ -61,3 +61,8 @@ ETeamAttitude::Type UNSFunctionLibrary::GetAttitude(AActor* A, AActor* B)
 {
 	return FGenericTeamId::GetAttitude(A, B);
 }
+
+bool UNSFunctionLibrary::IsEditorOnlyActor(AActor* Actor)
+{
+	return Actor ? Actor->bIsEditorOnlyActor : false;
+}
