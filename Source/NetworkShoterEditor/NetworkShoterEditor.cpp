@@ -6,6 +6,7 @@
 #include "Modules/ModuleInterface.h"
 #include "UnrealEd.h"
 #include "Minimap/BuildMapLayers.h"
+#include "Minimap/BuildMapLocations.h"
 #include "Minimap/BuildMapObjects.h"
 
 IMPLEMENT_MODULE(FNetworkShoterEditorModule, NetworkShoterEditor);
@@ -27,6 +28,14 @@ void FNetworkShoterEditorModule::StartupModule()
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic( &UBuildMapObjects::BuildMapLayersCMD),
 		ECVF_Cheat
 	);
+
+	FEditorBuildUtils::RegisterCustomBuildType("BakeMapLocationsData", FDoEditorBuildDelegate::CreateStatic(&UBuildMapLocations::ExecuteBuild), NAME_None);
+	IConsoleManager::Get().RegisterConsoleCommand(
+		TEXT("Tava.Minimap.BakeLocations"),
+		TEXT("Build Tava map locations in data object, Keys: \n WP - use word partition builder (iterate all cells) - Works until you not open blueprint in editor (can't override opened file) \n AssetName - Name of result asset (default \"MapObjectsData\") \n Path - Path for save asset (default /Game/BakedData/)"),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic( &UBuildMapLocations::BuildMapLocationsCMD),
+		ECVF_Cheat
+	);
 }
 
 void FNetworkShoterEditorModule::ShutdownModule()
@@ -36,4 +45,7 @@ void FNetworkShoterEditorModule::ShutdownModule()
 	
 	IConsoleManager::Get().UnregisterConsoleObject(TEXT("Tava.Minimap.BakeMapObjects"));
 	FEditorBuildUtils::UnregisterCustomBuildType("BakeMapObjectsData");
+
+	IConsoleManager::Get().UnregisterConsoleObject(TEXT("Tava.Minimap.BakeLocations"));
+	FEditorBuildUtils::UnregisterCustomBuildType("BakeMapLocationsData");
 }
