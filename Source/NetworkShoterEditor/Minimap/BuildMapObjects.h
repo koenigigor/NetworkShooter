@@ -28,9 +28,6 @@ protected:
 	virtual bool RunInternal(UWorld* World, const FCellInfo& InCellInfo, FPackageSourceControlHelper& PackageHelper) override;
 	virtual bool PostRun(UWorld* World, FPackageSourceControlHelper& PackageHelper, const bool bInRunSuccess) override;
 	// UWorldPartitionBuilder interface end
-
-	/** Load or create UMapLayersData blueprint */
-	static UBlueprint* LoadBlueprint(const FString& BasePath, const FString& AssetName);
 	
 	/** Get all loaded map objects, add in layers data unique one */
 	static void AccumulateData(UWorld* World, UBakedMapObjects* Data);

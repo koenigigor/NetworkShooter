@@ -4,6 +4,7 @@
 #include "BuildMapLayers.h"
 
 #include "AssetCompilingManager.h"
+#include "BuildUtils.h"
 #include "EngineUtils.h"
 #include "KismetCompilerModule.h"
 #include "PackageTools.h"
@@ -15,6 +16,8 @@
 #include "WorldPartition/IWorldPartitionEditorModule.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogBuildMapLayers, All, All);
+
+using namespace BuildUtils;
 
 namespace
 {
@@ -38,11 +41,6 @@ FBox GetActorLocalBounds(AActor* Actor)
 	});
 
 	return Box;
-}
-
-FString GetPath(FString String)
-{
-	return String.EndsWith("/") ? String : String + "/";
 }
 }
 
@@ -81,7 +79,7 @@ void UBuildMapLayers::BuildMapLayersCMD(const TArray<FString>& Strings, UWorld* 
 	{
 		UE_LOG(LogBuildMapLayers, Display, TEXT("Bake not World partition world"))
 
-		UBlueprint* Blueprint = LoadBlueprint(BasePath, AssetName);
+		UBlueprint* Blueprint = LoadBlueprint<UMapLayersData>(BasePath, AssetName);
         UMapLayersData* LayersData = Blueprint->GeneratedClass.Get()->GetDefaultObject<UMapLayersData>();
         LayersData->LayerGroups.Empty();
 
@@ -109,7 +107,7 @@ bool UBuildMapLayers::PreRun(UWorld* World, FPackageSourceControlHelper& Package
 	const FString AssetName = BaseAssetName + "_" + World->GetMapName();
 	
 	// Load blueprint
-	Blueprint = LoadBlueprint(BasePath, AssetName);
+	Blueprint = LoadBlueprint<UMapLayersData>(BasePath, AssetName);
 	LayersData = Blueprint->GeneratedClass.Get()->GetDefaultObject<UMapLayersData>();
 	LayersData->LayerGroups.Empty();
 
@@ -136,34 +134,6 @@ bool UBuildMapLayers::PostRun(UWorld* World, FPackageSourceControlHelper& Packag
 	LayersData = nullptr;
 
 	return true;
-}
-
-UBlueprint* UBuildMapLayers::LoadBlueprint(const FString& BasePath, const FString& AssetName)
-{
-	const FString PackagePath = BasePath + AssetName;
-	const FString AssetPath = "Blueprint'" + PackagePath + "." + AssetName + "'";
-	
-	UBlueprint* Blueprint = LoadObject<UBlueprint>(nullptr, *AssetPath, nullptr, LOAD_NoWarn | LOAD_NoRedirects);
-	if (!Blueprint)
-	{
-		UE_LOG(LogBuildMapLayers, Display, TEXT("Add new blueprint"))
-		
-		UPackage* Package = CreatePackage(*PackagePath);
-
-		// Find BP class to create
-		UClass* BpClass = nullptr;
-		UClass* BpGenClass = nullptr;
-		FModuleManager::LoadModuleChecked<IKismetCompilerInterface>("KismetCompiler")
-			.GetBlueprintTypesForClass(UMapLayersData::StaticClass(), BpClass, BpGenClass);
-
-		// Create asset
-		Blueprint = FKismetEditorUtilities::CreateBlueprint(UMapLayersData::StaticClass(), Package, *AssetName, BPTYPE_Normal, BpClass, BpGenClass);
-
-		FAssetRegistryModule::AssetCreated(Blueprint);
-		Blueprint->GetPackage()->MarkPackageDirty();
-	}
-
-	return Blueprint;
 }
 
 void UBuildMapLayers::AccumulateLayersData(UWorld* World, UMapLayersData* LayersData)
