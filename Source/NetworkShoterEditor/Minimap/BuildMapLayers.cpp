@@ -11,6 +11,7 @@
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "Kismet2/KismetEditorUtilities.h"
 #include "Minimap/MapLayerGroup.h"
+#include "Minimap/MapVisibilityCondition.h"
 #include "Minimap/MinimapLayerCollider.h"
 #include "UObject/SavePackage.h"
 #include "WorldPartition/IWorldPartitionEditorModule.h"
@@ -181,7 +182,7 @@ void UBuildMapLayers::AccumulateLayersData(UWorld* World, UMapLayersData* Layers
 
 		//set visibility by copy constructor
 		NewSublayer.VisibilityCondition = Collider->VisibilityCondition
-			                                  ? NewObject<ULayerVisibilityCondition>(
+			                                  ? NewObject<UMapVisibilityCondition>(
 				                                  LayersData,
 				                                  Collider->VisibilityCondition->GetClass(),
 				                                  *FString("Condition" + ConditionIndex++),

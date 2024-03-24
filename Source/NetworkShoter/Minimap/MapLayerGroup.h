@@ -7,7 +7,7 @@
 #include "MapStructures.h"
 #include "MapLayerGroup.generated.h"
 
-class UMapLayerGroup;
+class UMapVisibilityCondition;
 
 USTRUCT(BlueprintType)
 struct FLayerBounds
@@ -31,29 +31,6 @@ struct FLayerBounds
 	}
 };
 
-/** Visibility condition for sublayer,
- *	if IsVisible() return false, this part of layer will be hidden (like area not discover) */
-UCLASS(DefaultToInstanced, EditInlineNew, Blueprintable)
-class NETWORKSHOTER_API ULayerVisibilityCondition : public UObject
-{
-	GENERATED_BODY()
-public:
-	UFUNCTION(BlueprintNativeEvent)
-	bool IsVisible() const;
-
-	/** Notify visibility conditions update,
-	 *	manual call after update condition */
-	UFUNCTION(BlueprintCallable)
-	void Update();
-
-	UFUNCTION(BlueprintImplementableEvent)
-	void BeginPlay();
-
-	virtual UWorld* GetWorld() const override;
-
-	TWeakObjectPtr<UMapLayerGroup> OwningGroup;
-};
-
 /** Part of layer, can be enabled by condition (this part of floor not explored, etc)
  *	if subfloor disabled it will be hidden on global map (include layer collision) */
 USTRUCT(BlueprintType)
@@ -69,9 +46,9 @@ struct FLayerSublayer
 	TArray<FLayerBounds> Bounds;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Instanced)
-	ULayerVisibilityCondition* VisibilityCondition = nullptr;
+	UMapVisibilityCondition* VisibilityCondition = nullptr;
 
-	bool IsVisible() const { return VisibilityCondition ? VisibilityCondition->IsVisible() : true; };
+	bool IsVisible() const;
 };
 
 /** Group of sublayers in single floor */
@@ -112,6 +89,9 @@ public:
 
 	DECLARE_MULTICAST_DELEGATE_OneParam(FMapLayerStackDelegate, UMapLayerGroup* LayerGroup);
 	FMapLayerStackDelegate OnSublayerVisibilityUpdate;
+
+protected:
+	void UpdateVisibilityHandle();
 };
 
 

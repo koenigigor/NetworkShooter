@@ -3,23 +3,13 @@
 
 #include "MapLayerGroup.h"
 
-bool ULayerVisibilityCondition::IsVisible_Implementation() const { return true; }
+#include "MapVisibilityCondition.h"
 
-void ULayerVisibilityCondition::Update()
+
+bool FLayerSublayer::IsVisible() const
 {
-	if (OwningGroup.IsValid())
-	{
-		OwningGroup->OnSublayerVisibilityUpdate.Broadcast(OwningGroup.Get());
-	}
+	return VisibilityCondition ? VisibilityCondition->IsVisible() : true;
 }
-
-UWorld* ULayerVisibilityCondition::GetWorld() const
-{
-	if (GIsEditor && !GIsPlayInEditorWorld) return nullptr;
-	return GetOuter() ? GetOuter()->GetWorld() : nullptr;
-}
-
-///
 
 void UMapLayerGroup::PostInitProperties()
 {
@@ -39,8 +29,7 @@ void UMapLayerGroup::Init()
 		{
 			if (Sublayer.VisibilityCondition)
 			{
-				Sublayer.VisibilityCondition->OwningGroup = MakeWeakObjectPtr(this);
-				Sublayer.VisibilityCondition->BeginPlay();
+				Sublayer.VisibilityCondition->OnVisibilityUpdate.BindUObject(this, &ThisClass::UpdateVisibilityHandle);
 			}
 		}
 	}
@@ -96,6 +85,11 @@ FBox UMapLayerGroup::GetBounds() const
 	}
 
 	return Box;
+}
+
+void UMapLayerGroup::UpdateVisibilityHandle()
+{
+	OnSublayerVisibilityUpdate.Broadcast(this);
 }
 
 ///

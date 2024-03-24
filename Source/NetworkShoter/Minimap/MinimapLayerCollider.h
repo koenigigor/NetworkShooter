@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "MinimapLayerCollider.generated.h"
 
-class ULayerVisibilityCondition;
+class UMapVisibilityCondition;
 
 
 /**	Layers collider for map abjects, must be attached to trigger volume.
@@ -39,7 +39,7 @@ public:
 
 	/** Layer visibility condition (like "require discover area first") */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Instanced)
-	ULayerVisibilityCondition* VisibilityCondition = nullptr;
+	UMapVisibilityCondition* VisibilityCondition = nullptr;
 
 	/** If layer has an irregular shape, use box primitives (can be editor only) for bake layer bounds as simple data */
 	UPROPERTY(EditAnywhere, Category = "Layer")

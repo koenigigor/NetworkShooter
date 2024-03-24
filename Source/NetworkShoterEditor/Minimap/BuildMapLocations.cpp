@@ -63,8 +63,6 @@ void UBuildMapLocations::AccumulateData(UWorld* World, UBakedMapLocations* Data)
 {
 	static int32 LocationIndex = 0;
 
-	UE_LOG(LogTemp, Display, TEXT("AccumulateData"))
-
 	for (TActorIterator<AMapLocationSpline> It(World, AMapLocationSpline::StaticClass()); It; ++It)
 	{
 		AMapLocationSpline* LocationSpline = *It;
